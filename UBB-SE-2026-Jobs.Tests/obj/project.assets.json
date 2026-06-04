@@ -393,16 +393,6 @@
         "build": {
           "build/net8.0/xunit.runner.visualstudio.props": {}
         }
-      },
-      "UBB-SE-2026-Jobs.Library/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "compile": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
-        }
       }
     }
   },
@@ -913,17 +903,12 @@
         "xunit.runner.visualstudio.3.1.4.nupkg.sha512",
         "xunit.runner.visualstudio.nuspec"
       ]
-    },
-    "UBB-SE-2026-Jobs.Library/1.0.0": {
-      "type": "project",
-      "path": "../UBB-SE-2026-Jobs.Library/UBB-SE-2026-Jobs.Library.csproj",
-      "msbuildProject": "../UBB-SE-2026-Jobs.Library/UBB-SE-2026-Jobs.Library.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0": [
+      "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj",
       "Microsoft.NET.Test.Sdk >= 17.14.1",
-      "UBB-SE-2026-Jobs.Library >= 1.0.0",
       "coverlet.collector >= 6.0.4",
       "xunit >= 2.9.3",
       "xunit.runner.visualstudio >= 3.1.4"
@@ -961,8 +946,8 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj": {
-              "projectPath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj"
+            "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj": {
+              "projectPath": "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj"
             }
           }
         }
@@ -1293,5 +1278,16 @@
         }
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1105",
+      "level": "Error",
+      "message": "Unable to find project information for 'E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj'. If you are using Visual Studio, this may be because the project is unloaded or not part of the current solution so run a restore from the command-line. Otherwise, the project file may be invalid or missing targets required for restore.",
+      "libraryId": "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }

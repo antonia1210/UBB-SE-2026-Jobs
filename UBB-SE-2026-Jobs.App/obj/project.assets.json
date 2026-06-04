@@ -389,16 +389,6 @@
         "build": {
           "buildTransitive/net8.0/_._": {}
         }
-      },
-      "UBB-SE-2026-Jobs.Library/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "compile": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
-        }
       }
     },
     "net10.0-windows10.0.19041/win-arm64": {
@@ -718,16 +708,6 @@
         },
         "build": {
           "buildTransitive/net8.0/_._": {}
-        }
-      },
-      "UBB-SE-2026-Jobs.Library/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "compile": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
         }
       }
     },
@@ -1049,16 +1029,6 @@
         "build": {
           "buildTransitive/net8.0/_._": {}
         }
-      },
-      "UBB-SE-2026-Jobs.Library/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "compile": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
-        }
       }
     },
     "net10.0-windows10.0.19041/win-x86": {
@@ -1373,16 +1343,6 @@
         },
         "build": {
           "buildTransitive/net8.0/_._": {}
-        }
-      },
-      "UBB-SE-2026-Jobs.Library/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v10.0",
-        "compile": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/UBB-SE-2026-Jobs.Library.dll": {}
         }
       }
     }
@@ -3316,18 +3276,13 @@
         "system.numerics.tensors.nuspec",
         "useSharedDesignerContext.txt"
       ]
-    },
-    "UBB-SE-2026-Jobs.Library/1.0.0": {
-      "type": "project",
-      "path": "../UBB-SE-2026-Jobs.Library/UBB-SE-2026-Jobs.Library.csproj",
-      "msbuildProject": "../UBB-SE-2026-Jobs.Library/UBB-SE-2026-Jobs.Library.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net10.0-windows10.0.19041": [
+      "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj",
       "Microsoft.Windows.SDK.BuildTools >= 10.0.28000.1839",
-      "Microsoft.WindowsAppSDK >= 2.1.3",
-      "UBB-SE-2026-Jobs.Library >= 1.0.0"
+      "Microsoft.WindowsAppSDK >= 2.1.3"
     ]
   },
   "packageFolders": {
@@ -3362,8 +3317,8 @@
         "net10.0-windows10.0.19041": {
           "targetAlias": "net10.0-windows10.0.19041.0",
           "projectReferences": {
-            "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj": {
-              "projectPath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj"
+            "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj": {
+              "projectPath": "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj"
             }
           }
         }
@@ -3742,5 +3697,19 @@
         "#import": []
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "NU1105",
+      "level": "Error",
+      "message": "Unable to find project information for 'E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj'. If you are using Visual Studio, this may be because the project is unloaded or not part of the current solution so run a restore from the command-line. Otherwise, the project file may be invalid or missing targets required for restore.",
+      "libraryId": "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj",
+      "targetGraphs": [
+        "net10.0-windows10.0.19041.0",
+        "net10.0-windows10.0.19041.0/win-arm64",
+        "net10.0-windows10.0.19041.0/win-x64",
+        "net10.0-windows10.0.19041.0/win-x86"
+      ]
+    }
+  ]
 }

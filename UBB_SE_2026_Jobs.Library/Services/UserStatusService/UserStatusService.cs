@@ -1,0 +1,88 @@
+using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.DTOs;
+using UBB_SE_2026_Jobs.Library.Repositories.Matches;
+using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
+using UBB_SE_2026_Jobs.Library.Services.Jobs;
+using UBB_SE_2026_Jobs.Library.Services.JobSkills;
+using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
+
+namespace UBB_SE_2026_Jobs.Library.Services.UserStatusService;
+
+public class UserStatusService : IUserStatusService
+{
+    private readonly IMatchRepository matchRepository;
+    private readonly IPussyCatsJobService PussyCatsJobService;
+    private readonly IPussyCatsCompanyService PussyCatsCompanyService;
+    private readonly IUserSkillService userSkillService;
+    private readonly IJobSkillService jobSkillService;
+
+    public UserStatusService(
+        IMatchRepository matchRepository,
+        IPussyCatsJobService PussyCatsJobService,
+        IPussyCatsCompanyService PussyCatsCompanyService,
+        IUserSkillService userSkillService,
+        IJobSkillService jobSkillService)
+    {
+        this.matchRepository = matchRepository;
+        this.PussyCatsJobService = PussyCatsJobService;
+        this.PussyCatsCompanyService = PussyCatsCompanyService;
+        this.userSkillService = userSkillService;
+        this.jobSkillService = jobSkillService;
+    }
+
+    public async Task<IReadOnlyList<ApplicationCardModel>> GetApplicationsForUserAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var matches = await matchRepository.GetByUserIdAsync(userId, cancellationToken).ConfigureAwait(false);
+        var userSkills = await userSkillService.GetByUserIdAsync(userId, cancellationToken).ConfigureAwait(false);
+
+        var jobsById = (await PussyCatsJobService.GetAllAsync(cancellationToken).ConfigureAwait(false))
+            .ToDictionary(job => job.JobId);
+        var companiesById = (await PussyCatsCompanyService.GetAllAsync(cancellationToken).ConfigureAwait(false))
+            .ToDictionary(company => company.CompanyId);
+        var jobSkillsByJobId = (await jobSkillService.GetAllAsync(cancellationToken).ConfigureAwait(false))
+            .GroupBy(jobSkillWithId => jobSkillWithId.Job.JobId)
+            .ToDictionary(groupDictionary => groupDictionary.Key, groupDictionary => (IReadOnlyList<JobSkill>)groupDictionary.ToList());
+
+        var result = new List<ApplicationCardModel>();
+        foreach (var match in matches)
+        {
+            if (!jobsById.TryGetValue(match.Job.JobId, out var job))
+                continue;
+
+            companiesById.TryGetValue(job.Company.CompanyId, out var company);
+            var jobSkills = jobSkillsByJobId.GetValueOrDefault(match.Job.JobId) ?? [];
+            var score = CalculateCompatibilityScore(userSkills, jobSkills);
+
+            result.Add(new ApplicationCardModel
+            {
+                MatchId = match.MatchId,
+                JobId = match.Job.JobId,
+                CompanyName = company?.Name ?? "Unknown Company",
+                JobDescription = job.JobDescription,
+                AppliedDate = match.Timestamp,
+                Status = match.Status,
+                CompatibilityScore = score,
+                FeedbackMessage = match.FeedbackMessage,
+            });
+        }
+
+        return result;
+    }
+
+    private static int CalculateCompatibilityScore(IReadOnlyList<UserSkill> userSkills, IReadOnlyList<JobSkill> jobSkills)
+    {
+        if (jobSkills.Count == 0)
+            return 100;
+
+        var userSkillMap = userSkills.ToDictionary(userSkillToAddToMap => userSkillToAddToMap.Skill.SkillId, userSkill => userSkill.Score);
+
+        double total = 0;
+        foreach (var required in jobSkills)
+        {
+            if (userSkillMap.TryGetValue(required.Skill.SkillId, out var userScore))
+                total += Math.Min(userScore, required.RequiredLevel) / (double)required.RequiredLevel;
+        }
+
+        return (int)(total / jobSkills.Count * 100);
+    }
+}

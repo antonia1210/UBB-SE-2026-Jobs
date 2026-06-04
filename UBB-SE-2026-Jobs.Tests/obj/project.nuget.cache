@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "dgSpecHash": "2JMUrsUwpY0=",
-  "success": true,
+  "dgSpecHash": "G33U2Fh/Agg=",
+  "success": false,
   "projectFilePath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Filip\\.nuget\\packages\\coverlet.collector\\6.0.4\\coverlet.collector.6.0.4.nupkg.sha512",
@@ -19,5 +19,17 @@
     "C:\\Users\\Filip\\.nuget\\packages\\xunit.extensibility.execution\\2.9.3\\xunit.extensibility.execution.2.9.3.nupkg.sha512",
     "C:\\Users\\Filip\\.nuget\\packages\\xunit.runner.visualstudio\\3.1.4\\xunit.runner.visualstudio.3.1.4.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1105",
+      "level": "Error",
+      "message": "Unable to find project information for 'E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj'. If you are using Visual Studio, this may be because the project is unloaded or not part of the current solution so run a restore from the command-line. Otherwise, the project file may be invalid or missing targets required for restore.",
+      "projectPath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
+      "filePath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
+      "libraryId": "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }

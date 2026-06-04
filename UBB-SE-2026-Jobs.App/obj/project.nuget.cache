@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "dgSpecHash": "NLHstxemnpk=",
-  "success": true,
+  "dgSpecHash": "4RIZwLZSsuc=",
+  "success": false,
   "projectFilePath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Filip\\.nuget\\packages\\microsoft.web.webview2\\1.0.3719.77\\microsoft.web.webview2.1.0.3719.77.nupkg.sha512",
@@ -30,5 +30,20 @@
     "C:\\Users\\Filip\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\10.0.3\\microsoft.netcore.app.runtime.win-x64.10.0.3.nupkg.sha512",
     "C:\\Users\\Filip\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x86\\10.0.3\\microsoft.windowsdesktop.app.runtime.win-x86.10.0.3.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1105",
+      "level": "Error",
+      "message": "Unable to find project information for 'E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj'. If you are using Visual Studio, this may be because the project is unloaded or not part of the current solution so run a restore from the command-line. Otherwise, the project file may be invalid or missing targets required for restore.",
+      "projectPath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj",
+      "filePath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj",
+      "libraryId": "E:\\ISS\\Jobs_ISS_Final\\UBB_SE_2026_Jobs.Library\\UBB_SE_2026_Jobs.Library.csproj",
+      "targetGraphs": [
+        "net10.0-windows10.0.19041.0",
+        "net10.0-windows10.0.19041.0/win-arm64",
+        "net10.0-windows10.0.19041.0/win-x64",
+        "net10.0-windows10.0.19041.0/win-x86"
+      ]
+    }
+  ]
 }

@@ -1,0 +1,18 @@
+using UBB_SE_2026_Jobs.Library.Domain;
+
+namespace UBB_SE_2026_Jobs.Library.Repositories.Skills;
+
+public interface IJobSkillRepository
+{
+    Task<JobSkill?> GetAsync(int jobId, int skillId, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<JobSkill>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<JobSkill>> GetByJobIdAsync(int jobId, CancellationToken cancellationToken = default);
+
+    Task<JobSkill> AddAsync(JobSkill jobSkill, CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(JobSkill jobSkill, CancellationToken cancellationToken = default);
+
+    Task RemoveAsync(int jobId, int skillId, CancellationToken cancellationToken = default);
+}
