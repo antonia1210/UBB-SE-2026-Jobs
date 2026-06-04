@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "3wLgHSnFp+Y=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\szalo\\.nuget\\packages\\microsoft.windows.sdk.net.ref\\10.0.19041.57\\microsoft.windows.sdk.net.ref.10.0.19041.57.nupkg.sha512"
+  ],
+  "logs": []
+}

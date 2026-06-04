@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "UBB-SE-2026-Jobs.App (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "UBB-SE-2026-Jobs.App (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

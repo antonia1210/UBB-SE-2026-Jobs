@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "dgSpecHash": "haHuNYpXq00=",
+  "success": false,
+  "projectFilePath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
+  "expectedPackageFiles": [],
+  "logs": [
+    {
+      "code": "NU1201",
+      "level": "Error",
+      "message": "Project UBB-SE-2026-Jobs.Library is not compatible with net10.0 (.NETCoreApp,Version=v10.0). Project UBB-SE-2026-Jobs.Library supports: net8.0-windows10.0.19041 (.NETCoreApp,Version=v8.0)",
+      "projectPath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
+      "filePath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
+      "libraryId": "UBB-SE-2026-Jobs.Library",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
+}

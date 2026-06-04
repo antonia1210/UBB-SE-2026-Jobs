@@ -1,0 +1,6 @@
+@UBB_SE_2026_Jobs.Api_HostAddress = http://localhost:5244
+
+GET {{UBB_SE_2026_Jobs.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
