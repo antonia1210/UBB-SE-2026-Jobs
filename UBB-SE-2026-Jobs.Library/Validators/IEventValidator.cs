@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace UBB_SE_2026_Jobs.Library.TestsAndInterviews.Validators
+namespace UBB_SE_2026_Jobs.Library.Validators
 {
     public interface IEventValidator
     {

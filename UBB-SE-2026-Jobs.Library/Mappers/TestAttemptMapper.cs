@@ -1,7 +1,7 @@
-﻿namespace UBB_SE_2026_Jobs.Library.TestsAndInterviews.Mappers
+﻿namespace UBB_SE_2026_Jobs.Library.Mappers
 {
-    using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Dtos;
-    using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Models.Core;
+    using UBB_SE_2026_Jobs.Library.DTOs.Portal;
+    using UBB_SE_2026_Jobs.Library.Domain.Portal;
 
     /// <summary>
     /// Provides extension methods for mapping between TestAttempt and TestAttemptDto objects.

@@ -1,8 +1,8 @@
-﻿namespace UBB_SE_2026_Jobs.Library.TestsAndInterviews.Mappers
+﻿namespace UBB_SE_2026_Jobs.Library.Mappers
 {
     using System.Collections.Generic;
-    using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Dtos;
-    using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Models;
+    using UBB_SE_2026_Jobs.Library.DTOs.Portal;
+    using UBB_SE_2026_Jobs.Library.Domain.Portal;
 
     /// <summary>
     /// Provides extension methods for mapping between JobPosting and JobPostingDto objects.

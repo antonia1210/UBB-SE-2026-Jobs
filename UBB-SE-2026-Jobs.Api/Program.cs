@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using UBB_SE_2026_Jobs.Library.Persistence;
-using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Data;
 using PcCompanyService = UBB_SE_2026_Jobs.Library.Services.CompanyService;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
 using UBB_SE_2026_Jobs.Library.Repositories.Companies;
@@ -17,6 +16,7 @@ using UBB_SE_2026_Jobs.Library.Repositories.Recommendations;
 using UBB_SE_2026_Jobs.Library.Repositories.Skills;
 using UBB_SE_2026_Jobs.Library.Repositories.SkillTests;
 using UBB_SE_2026_Jobs.Library.Repositories.Users;
+using UBB_SE_2026_Jobs.Library.Repositories.Portal;
 using UBB_SE_2026_Jobs.Library.Services.CompatibilityService;
 using UBB_SE_2026_Jobs.Library.Services.CooldownService;
 using UBB_SE_2026_Jobs.Library.Services.CompanyService;
@@ -44,10 +44,7 @@ using UBB_SE_2026_Jobs.Library.Services.ChatService;
 using UBB_SE_2026_Jobs.Library.Services.Developers;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
 using UBB_SE_2026_Jobs.Library.Services.PdfExport;
-using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Repositories;
-using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Repositories.Interfaces;
-using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Services;
-using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Services.Interfaces;
+using UBB_SE_2026_Jobs.Library.Services.Portal;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
@@ -93,13 +90,13 @@ builder.Services.AddAuthorization();
 
 var connString = builder.Configuration.GetConnectionString("JobsDb");
 
-// Primary DbContext (PussyCats / main schema)
+// Primary DbContext — owns all migrations (main schema + portal schema)
 builder.Services.AddDbContext<PussyCatsDbContext>(options =>
     options.UseSqlServer(connString));
 
-// Secondary DbContext (Tests & Interviews schema) — migrations live in Library assembly
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(connString, b => b.MigrationsAssembly("UBB-SE-2026-Jobs.Library")));
+// Portal DbContext — shares same DB, no migrations of its own
+builder.Services.AddDbContext<PortalDbContext>(options =>
+    options.UseSqlServer(connString));
 
 builder.Services.AddCors(options =>
 {
@@ -179,7 +176,7 @@ builder.Services.AddSingleton<ILocalFileStorageService>(serviceProvider =>
     return new LocalFileStorageService(uploadsPath);
 });
 
-// --- Tests & Interviews repositories ---
+// --- Portal repositories ---
 builder.Services.AddScoped<IAnswerRepository, AnswerRepository>();
 builder.Services.AddScoped<IApplicantRepository, ApplicantRepository>();
 builder.Services.AddScoped<ICollaboratorsRepo, CollaboratorsRepo>();
@@ -194,7 +191,7 @@ builder.Services.AddScoped<ISlotRepository, SlotRepository>();
 builder.Services.AddScoped<ITestAttemptRepository, TestAttemptRepository>();
 builder.Services.AddScoped<ITestRepository, TestRepository>();
 
-// --- Tests & Interviews services ---
+// --- Portal services ---
 builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<IApplicantService, ApplicantService>();
 builder.Services.AddScoped<IAttemptValidationService, AttemptValidationService>();
@@ -219,11 +216,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
-// Run migrations for both contexts at startup
+// Run migrations — only PussyCatsDbContext owns migrations for all schemas
 using (var scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<PussyCatsDbContext>().Database.Migrate();
-    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
 }
 
 if (app.Environment.IsDevelopment())

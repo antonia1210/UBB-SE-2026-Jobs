@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UBB_SE_2026_Jobs.Library.TestsAndInterviews.Validators
+namespace UBB_SE_2026_Jobs.Library.Validators
 {
     public class PaymentValidator : IPaymentValidator
     {

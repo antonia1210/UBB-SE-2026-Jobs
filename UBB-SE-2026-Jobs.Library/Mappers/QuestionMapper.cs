@@ -1,5 +1,5 @@
-﻿using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Dtos;
-using UBB_SE_2026_Jobs.Library.TestsAndInterviews.Models.Core;
+﻿using UBB_SE_2026_Jobs.Library.DTOs.Portal;
+using UBB_SE_2026_Jobs.Library.Domain.Portal;
 
 namespace Tests_and_Interviews.Mappers
 {

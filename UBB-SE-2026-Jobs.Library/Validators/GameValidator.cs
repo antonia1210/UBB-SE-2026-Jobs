@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace UBB_SE_2026_Jobs.Library.TestsAndInterviews.Validators
+namespace UBB_SE_2026_Jobs.Library.Validators
 {
     public class GameValidator : IGameValidator
     {
