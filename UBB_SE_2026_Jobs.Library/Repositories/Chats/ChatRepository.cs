@@ -1,0 +1,128 @@
+﻿using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.Persistence;
+
+namespace UBB_SE_2026_Jobs.Library.Repositories.Chats;
+
+public class ChatRepository : IChatRepository
+{
+    private readonly JobsDbContext databaseContext;
+
+    public ChatRepository(JobsDbContext databaseContext)
+    {
+        this.databaseContext = databaseContext;
+    }
+
+    public async Task<Chat?> GetByIdAsync(int chatId, CancellationToken cancellationToken = default)
+    {
+        return await databaseContext.Chats
+            .Include(chat => chat.User)
+            .Include(chat => chat.SecondUser)
+            .Include(chat => chat.Company)
+            .AsNoTracking()
+            .Include(chat => chat.BlockedByUser)
+            .FirstOrDefaultAsync(chat => chat.ChatId == chatId, cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<Chat>> GetForUserAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        return await databaseContext.Chats
+            .Include(chat => chat.User)
+            .Include(chat => chat.SecondUser)
+            .Include(chat => chat.Company)
+            .AsNoTracking()
+            .Include(chat => chat.BlockedByUser)
+            .Where(chat => chat.User.UserId == userId || chat.SecondUser.UserId == userId)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<Chat>> GetForCompanyAsync(int companyId, CancellationToken cancellationToken = default)
+    {
+        return await databaseContext.Chats
+            .Include(chat => chat.User)
+            .Include(chat => chat.SecondUser)
+            .AsNoTracking()
+            .Include(chat => chat.BlockedByUser)
+            .Where(chat => chat.Company!=null && chat.Company.CompanyId == companyId)
+            .Include(chat => chat.Company)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<Chat?> FindUserUserChatAsync(int userId, int secondUserId, CancellationToken cancellationToken = default)
+    {
+        return await databaseContext.Chats
+            .Include(chat => chat.User)
+            .Include(chat => chat.SecondUser)
+            .AsNoTracking()
+            .Include(chat => chat.BlockedByUser)
+            .FirstOrDefaultAsync(
+                chat => (chat.User.UserId == userId && chat.SecondUser.UserId == secondUserId)
+                     || (chat.User.UserId == secondUserId && chat.SecondUser.UserId == userId),
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<Chat?> FindUserCompanyChatAsync(int userId, Company company, int? jobId,
+        CancellationToken cancellationToken = default)
+    {
+        return await databaseContext.Chats
+            .Include(chat => chat.User)
+            .Include(chat => chat.SecondUser)
+            .Include(chat => chat.Company)
+            .AsNoTracking()
+            .Include(chat => chat.BlockedByUser)
+            .FirstOrDefaultAsync(
+                chat => chat.User.UserId == userId
+                        && chat.Company != null 
+                        && chat.Company.CompanyId == company.CompanyId
+                        && chat.Job!=null && chat.Job.JobId == jobId
+                        && chat.SecondUser == null,
+                cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<Chat> AddAsync(Chat chat, CancellationToken cancellationToken = default)
+    {
+        databaseContext.Attach(chat.User);
+
+        if (chat.SecondUser != null)
+        {
+            databaseContext.Attach(chat.SecondUser);
+        }
+
+        if (chat.Company != null)
+        {
+            databaseContext.Attach(chat.Company);
+        }
+
+        databaseContext.Chats.Add(chat);
+        /*
+        foreach (var entry in databaseContext.ChangeTracker.Entries())
+        {
+            Console.WriteLine(
+                $"{entry.Entity.GetType().Name} : {entry.State}");
+        }
+        */
+        await databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        return await GetByIdAsync(chat.ChatId, cancellationToken).ConfigureAwait(false) ?? chat;
+    }
+
+    public async Task UpdateAsync(Chat chat, CancellationToken cancellationToken = default)
+    {
+        var tracked = databaseContext.Chats.Local.FirstOrDefault(existing => existing.ChatId == chat.ChatId);
+        if (tracked is not null)
+        {
+            databaseContext.Entry(tracked).CurrentValues.SetValues(chat);
+        }
+        else
+        {
+            databaseContext.Entry(chat).State = EntityState.Modified;
+        }
+        await databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+}
+

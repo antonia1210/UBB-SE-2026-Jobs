@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="UBB_SE_2026_Jobs.Api/UBB_SE_2026_Jobs.Api.csproj" />
+  <Project Path="UBB_SE_2026_Jobs.App/UBB_SE_2026_Jobs.App.csproj" Id="31e4fae5-6188-4c5f-a85a-13bb8b19aa29">
+    <Platform Project="x64" />
+    <Deploy />
+  </Project>
+  <Project Path="UBB_SE_2026_Jobs.Library/UBB_SE_2026_Jobs.Library.csproj" />
+  <Project Path="UBB_SE_2026_Jobs.Tests/UBB_SE_2026_Jobs.Tests.csproj" />
+  <Project Path="UBB_SE_2026_Jobs.Web/UBB_SE_2026_Jobs.Web.csproj" />
+</Solution>

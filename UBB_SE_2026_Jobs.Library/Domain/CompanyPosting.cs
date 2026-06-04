@@ -1,0 +1,32 @@
+// <copyright file="Company.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
+
+namespace UBB_SE_2026_Jobs.Library.Domain
+{
+    /// <summary>
+    /// Represents a company participating in the recruitment process.
+    /// </summary>
+    public class CompanyPosting
+    {
+        /// <summary>
+        /// Gets or sets the unique identifier for this company posting.
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the company.
+        /// </summary>
+        public string? CompanyName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the job title of the position offered by the company.
+        /// </summary>
+        public string? JobTitle { get; set; }
+
+        /// <summary>
+        /// Gets or sets the unique identifier of the recruiter associated with this company.
+        /// </summary>
+        public int RecruiterId { get; set; }
+    }
+}
