@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj": {}
+    "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj": {}
   },
   "projects": {
-    "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj": {
+    "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj",
+        "projectUniqueName": "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj",
         "projectName": "UBB-SE-2026-Jobs.App",
-        "projectPath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj",
-        "packagesPath": "C:\\Users\\Filip\\.nuget\\packages\\",
-        "outputPath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.App\\obj\\",
+        "projectPath": "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.App\\UBB-SE-2026-Jobs.App.csproj",
+        "packagesPath": "C:\\Users\\EuSun\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.App\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Filip\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\EuSun\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -29,11 +29,12 @@
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net10.0-windows10.0.19041": {
+          "net10.0-windows10.0.19041.0": {
+            "framework": "net10.0-windows10.0.19041",
             "targetAlias": "net10.0-windows10.0.19041.0",
             "projectReferences": {
-              "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj": {
-                "projectPath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj"
+              "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj": {
+                "projectPath": "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj"
               }
             }
           }
@@ -48,10 +49,11 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.300"
       },
       "frameworks": {
-        "net10.0-windows10.0.19041": {
+        "net10.0-windows10.0.19041.0": {
+          "framework": "net10.0-windows10.0.19041",
           "targetAlias": "net10.0-windows10.0.19041.0",
           "dependencies": {
             "Microsoft.Windows.SDK.BuildTools": {
@@ -77,27 +79,27 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Runtime.win-arm64",
-              "version": "[10.0.3, 10.0.3]"
+              "version": "[10.0.8, 10.0.8]"
             },
             {
               "name": "Microsoft.AspNetCore.App.Runtime.win-x64",
-              "version": "[10.0.3, 10.0.3]"
+              "version": "[10.0.8, 10.0.8]"
             },
             {
               "name": "Microsoft.AspNetCore.App.Runtime.win-x86",
-              "version": "[10.0.3, 10.0.3]"
+              "version": "[10.0.8, 10.0.8]"
             },
             {
               "name": "Microsoft.NETCore.App.Runtime.win-arm64",
-              "version": "[10.0.3, 10.0.3]"
+              "version": "[10.0.8, 10.0.8]"
             },
             {
               "name": "Microsoft.NETCore.App.Runtime.win-x64",
-              "version": "[10.0.3, 10.0.3]"
+              "version": "[10.0.8, 10.0.8]"
             },
             {
               "name": "Microsoft.NETCore.App.Runtime.win-x86",
-              "version": "[10.0.3, 10.0.3]"
+              "version": "[10.0.8, 10.0.8]"
             },
             {
               "name": "Microsoft.Windows.SDK.NET.Ref",
@@ -105,15 +107,15 @@
             },
             {
               "name": "Microsoft.WindowsDesktop.App.Runtime.win-arm64",
-              "version": "[10.0.3, 10.0.3]"
+              "version": "[10.0.8, 10.0.8]"
             },
             {
               "name": "Microsoft.WindowsDesktop.App.Runtime.win-x64",
-              "version": "[10.0.3, 10.0.3]"
+              "version": "[10.0.8, 10.0.8]"
             },
             {
               "name": "Microsoft.WindowsDesktop.App.Runtime.win-x86",
-              "version": "[10.0.3, 10.0.3]"
+              "version": "[10.0.8, 10.0.8]"
             }
           ],
           "frameworkReferences": {
@@ -124,7 +126,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
@@ -413,20 +415,20 @@
         }
       }
     },
-    "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj": {
+    "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj",
+        "projectUniqueName": "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj",
         "projectName": "UBB-SE-2026-Jobs.Library",
-        "projectPath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj",
-        "packagesPath": "C:\\Users\\Filip\\.nuget\\packages\\",
-        "outputPath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Library\\obj\\",
+        "projectPath": "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.Library\\UBB-SE-2026-Jobs.Library.csproj",
+        "packagesPath": "C:\\Users\\EuSun\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.Library\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\Filip\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\EuSun\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -439,6 +441,7 @@
         },
         "frameworks": {
           "net10.0": {
+            "framework": "net10.0",
             "targetAlias": "net10.0",
             "projectReferences": {}
           }
@@ -453,10 +456,11 @@
           "auditLevel": "low",
           "auditMode": "all"
         },
-        "SdkAnalysisLevel": "10.0.100"
+        "SdkAnalysisLevel": "10.0.300"
       },
       "frameworks": {
         "net10.0": {
+          "framework": "net10.0",
           "targetAlias": "net10.0",
           "imports": [
             "net461",
@@ -474,7 +478,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",

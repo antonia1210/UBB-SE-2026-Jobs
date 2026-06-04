@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "CAVjoxvWBSA=",
+  "dgSpecHash": "wVi5BPhFXPg=",
   "success": true,
-  "projectFilePath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Api\\UBB-SE-2026-Jobs.Api.csproj",
+  "projectFilePath": "C:\\Users\\EuSun\\source\\repos\\UBB-SE-2026-Jobs-2\\UBB-SE-2026-Jobs.Api\\UBB-SE-2026-Jobs.Api.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Filip\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.8\\microsoft.aspnetcore.openapi.10.0.8.nupkg.sha512",
-    "C:\\Users\\Filip\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
+    "C:\\Users\\EuSun\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.8\\microsoft.aspnetcore.openapi.10.0.8.nupkg.sha512",
+    "C:\\Users\\EuSun\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
   ],
   "logs": []
 }
