@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("UBB-SE-2026-Jobs.Library")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b7ba7ef14d4b2a9205cfad3f42a9b2da55405051")]
 [assembly: System.Reflection.AssemblyProductAttribute("UBB-SE-2026-Jobs.Library")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UBB-SE-2026-Jobs.Library")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
