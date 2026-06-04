@@ -1,20 +1,23 @@
 {
   "version": 2,
-  "dgSpecHash": "haHuNYpXq00=",
-  "success": false,
-  "projectFilePath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
-  "expectedPackageFiles": [],
-  "logs": [
-    {
-      "code": "NU1201",
-      "level": "Error",
-      "message": "Project UBB-SE-2026-Jobs.Library is not compatible with net10.0 (.NETCoreApp,Version=v10.0). Project UBB-SE-2026-Jobs.Library supports: net8.0-windows10.0.19041 (.NETCoreApp,Version=v8.0)",
-      "projectPath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
-      "filePath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
-      "libraryId": "UBB-SE-2026-Jobs.Library",
-      "targetGraphs": [
-        "net10.0"
-      ]
-    }
-  ]
+  "dgSpecHash": "2JMUrsUwpY0=",
+  "success": true,
+  "projectFilePath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Tests\\UBB-SE-2026-Jobs.Tests.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Filip\\.nuget\\packages\\coverlet.collector\\6.0.4\\coverlet.collector.6.0.4.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\microsoft.codecoverage\\17.14.1\\microsoft.codecoverage.17.14.1.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\microsoft.net.test.sdk\\17.14.1\\microsoft.net.test.sdk.17.14.1.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\microsoft.testplatform.objectmodel\\17.14.1\\microsoft.testplatform.objectmodel.17.14.1.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\microsoft.testplatform.testhost\\17.14.1\\microsoft.testplatform.testhost.17.14.1.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\xunit\\2.9.3\\xunit.2.9.3.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\xunit.abstractions\\2.0.3\\xunit.abstractions.2.0.3.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\xunit.analyzers\\1.18.0\\xunit.analyzers.1.18.0.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\xunit.assert\\2.9.3\\xunit.assert.2.9.3.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\xunit.core\\2.9.3\\xunit.core.2.9.3.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\xunit.extensibility.core\\2.9.3\\xunit.extensibility.core.2.9.3.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\xunit.extensibility.execution\\2.9.3\\xunit.extensibility.execution.2.9.3.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\xunit.runner.visualstudio\\3.1.4\\xunit.runner.visualstudio.3.1.4.nupkg.sha512"
+  ],
+  "logs": []
 }

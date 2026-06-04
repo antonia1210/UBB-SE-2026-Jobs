@@ -1,20 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "k0q/frnS4Is=",
-  "success": false,
-  "projectFilePath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Api\\UBB-SE-2026-Jobs.Api.csproj",
-  "expectedPackageFiles": [],
-  "logs": [
-    {
-      "code": "NU1201",
-      "level": "Error",
-      "message": "Project UBB-SE-2026-Jobs.Library is not compatible with net10.0 (.NETCoreApp,Version=v10.0). Project UBB-SE-2026-Jobs.Library supports: net8.0-windows10.0.19041 (.NETCoreApp,Version=v8.0)",
-      "projectPath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Api\\UBB-SE-2026-Jobs.Api.csproj",
-      "filePath": "C:\\Users\\szalo\\source\\repos\\UBB-SE-2026-Jobs\\UBB-SE-2026-Jobs.Api\\UBB-SE-2026-Jobs.Api.csproj",
-      "libraryId": "UBB-SE-2026-Jobs.Library",
-      "targetGraphs": [
-        "net10.0"
-      ]
-    }
-  ]
+  "dgSpecHash": "CAVjoxvWBSA=",
+  "success": true,
+  "projectFilePath": "E:\\ISS\\Jobs_ISS_Final\\UBB-SE-2026-Jobs.Api\\UBB-SE-2026-Jobs.Api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Filip\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.8\\microsoft.aspnetcore.openapi.10.0.8.nupkg.sha512",
+    "C:\\Users\\Filip\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": []
 }
