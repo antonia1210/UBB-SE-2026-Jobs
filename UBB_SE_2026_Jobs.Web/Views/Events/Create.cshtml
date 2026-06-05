@@ -27,6 +27,19 @@
         <label class="form-label">End Date</label>
         <input asp-for="EndDate" type="date" class="form-control" />
     </div>
+    <div class="mb-3">
+        <label class="form-label">Collaborators</label>
+        <select asp-for="CollaboratorCompanyIds" class="form-select" multiple="multiple">
+            @if (ViewBag.Companies != null)
+            {
+                @foreach (var company in (List<UBB_SE_2026_Jobs.Web.Dtos.CompanyDto>)ViewBag.Companies)
+                {
+                    <option value="@company.CompanyId">@company.Name</option>
+                }
+            }
+        </select>
+        <div class="form-text">Hold Ctrl (Windows) or Command (Mac) to select multiple.</div>
+    </div>
     <button type="submit" class="btn btn-primary">Create</button>
     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>

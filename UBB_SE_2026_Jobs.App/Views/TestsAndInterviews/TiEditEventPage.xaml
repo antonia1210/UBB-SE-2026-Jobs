@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
+    xmlns:local="using:UBB_SE_2026_Jobs.App.ViewModels.TI"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <ScrollViewer Padding="32">
@@ -33,6 +34,16 @@
                                     HorizontalAlignment="Stretch"/>
             </Grid>
             <TextBlock Text="{x:Bind ViewModel.DateError, Mode=OneWay}" Foreground="Red" FontSize="12"/>
+
+            <TextBlock Text="Collaborators" FontWeight="SemiBold" Margin="0,8,0,0"/>
+            <ListView ItemsSource="{x:Bind ViewModel.AvailableCompanies, Mode=OneWay}" SelectionMode="None" MaxHeight="200"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="local:TiCompanyPickItem">
+                        <CheckBox Content="{x:Bind Company.Name}" IsChecked="{x:Bind IsSelected, Mode=TwoWay}"/>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
 
             <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,8,0,0">
                 <Button Content="Delete" Click="Delete_Click"

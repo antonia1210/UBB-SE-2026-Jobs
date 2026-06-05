@@ -1,5 +1,5 @@
 using UBB_SE_2026_Jobs.Library.Services;
-using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 
 namespace UBB_SE_2026_Jobs.Tests.Services;
@@ -17,7 +17,7 @@ public class SimpleModelOperationsTests
     [InlineData(0, SimpleModelOperations.ParticipantExperiencePoints)]
     public void GetExperiencePoints_ScoreProvided_ReturnsTierXpForScore(int score, int expectedXp)
     {
-        var skillTest = new SkillTest { Score = score };
+        var skillTest = new SkillTestViewDto { Score = score };
 
         Assert.Equal(expectedXp, SimpleModelOperations.GetExperiencePoints(skillTest));
     }
