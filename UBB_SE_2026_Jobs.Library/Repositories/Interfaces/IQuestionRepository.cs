@@ -26,5 +26,7 @@ namespace UBB_SE_2026_Jobs.Library.Repositories.Interfaces
         /// <param name="positionId">The ID of the position for which to retrieve interview questions.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation, containing a list of <see cref="TestQuestion"/> objects.</returns>
         Task<List<TestQuestion>> GetInterviewQuestionsByPositionAsync(int positionId);
+
+        Task<TestQuestion?> FindByIdWithAnswersAsync(int questionId);
     }
 }

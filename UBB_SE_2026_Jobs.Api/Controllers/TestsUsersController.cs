@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using UBB_SE_2026_Jobs.Library.Persistence;
 using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Mappers;
+using UBB_SE_2026_Jobs.Library.Repositories.Users;
 
 namespace UBB_SE_2026_Jobs.Api.Controllers;
 
@@ -10,32 +9,31 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 [ApiController]
 public class TestsUsersController : ControllerBase
 {
-    private readonly JobsDbContext databaseContext;
+    private readonly IUserRepository userRepository;
 
-    public TestsUsersController(JobsDbContext databaseContext)
+    public TestsUsersController(IUserRepository userRepository)
     {
-        this.databaseContext = databaseContext;
+        this.userRepository = userRepository;
     }
 
     [HttpGet("{userId}")]
     public async Task<ActionResult<UserDto>> GetById(int userId)
     {
-        var user = await this.databaseContext.Users.FindAsync(userId);
+        var user = await this.userRepository.GetByIdAsync(userId);
         return user is null ? NotFound() : Ok(user.ToDto());
     }
 
     [HttpGet]
     public async Task<ActionResult<List<UserDto>>> GetAll()
     {
-        var users = await this.databaseContext.Users.ToListAsync();
+        var users = await this.userRepository.GetAllAsync();
         return Ok(users.Select(user => user.ToDto()).ToList());
     }
 
     [HttpPost]
     public async Task<ActionResult> Add([FromBody] UserDto userDto)
     {
-        this.databaseContext.Users.Add(userDto.ToEntity());
-        await this.databaseContext.SaveChangesAsync();
+        await this.userRepository.AddAsync(userDto.ToEntity());
         return Ok();
     }
 
@@ -44,18 +42,16 @@ public class TestsUsersController : ControllerBase
     {
         var user = userDto.ToEntity();
         user.Id = userId;
-        this.databaseContext.Entry(user).State = EntityState.Modified;
-        await this.databaseContext.SaveChangesAsync();
+        await this.userRepository.UpdateAsync(user);
         return Ok();
     }
 
     [HttpDelete("{userId}")]
     public async Task<ActionResult> Delete(int userId)
     {
-        var user = await this.databaseContext.Users.FindAsync(userId);
+        var user = await this.userRepository.GetByIdAsync(userId);
         if (user is null) return NotFound();
-        this.databaseContext.Users.Remove(user);
-        await this.databaseContext.SaveChangesAsync();
+        await this.userRepository.RemoveAsync(userId);
         return Ok(new { message = "User deleted successfully" });
     }
 }
