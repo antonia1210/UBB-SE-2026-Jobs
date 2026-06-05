@@ -94,6 +94,18 @@ public class ChatServiceProxy : IChatService
         response.EnsureSuccessStatusCode();
     }
 
-    public Task<Stream> OpenMessageAttachmentAsync(string attachmentPath, CancellationToken cancellationToken = default)
-        => throw new NotSupportedException("File attachments are not supported in the web client.");
+    public async Task<Stream> OpenMessageAttachmentAsync(string attachmentPath, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(attachmentPath))
+            throw new ArgumentException("Attachment path cannot be empty.", nameof(attachmentPath));
+
+        var fileName = Uri.EscapeDataString(Path.GetFileName(attachmentPath));
+        var response = await http.GetAsync($"api/files/{fileName}", cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+
+        var memory = new MemoryStream();
+        await response.Content.CopyToAsync(memory, cancellationToken).ConfigureAwait(false);
+        memory.Position = 0;
+        return memory;
+    }
 }

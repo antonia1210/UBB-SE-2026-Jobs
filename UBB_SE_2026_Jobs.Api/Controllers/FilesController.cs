@@ -30,7 +30,7 @@ public class FilesController : ControllerBase
             return BadRequest("No file provided.");
 
         var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (fileExtension is not ".jpg" and not ".jpeg" and not ".png" and not ".pdf")
+        if (fileExtension is not ".jpg" and not ".jpeg" and not ".png" and not ".pdf" and not ".doc" and not ".docx")
             return BadRequest("Unsupported file type.");
 
         if (file.Length > MaxFileSize)
@@ -64,6 +64,8 @@ public class FilesController : ControllerBase
         {
             ".png" => "image/png",
             ".pdf" => "application/pdf",
+            ".doc" => "application/msword",
+            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             _ => "image/jpeg",
         };
         return PhysicalFile(Path.GetFullPath(fullPath), contentType);

@@ -130,7 +130,8 @@ public sealed partial class ChatPage : Page
             return;
         }
 
-        ViewModel.HandleAttachmentSelected(file.Path);
+        await using var stream = await file.OpenStreamForReadAsync();
+        await ViewModel.SendAttachmentAsync(stream, file.Name, Path.GetExtension(file.Name));
     }
 
     private void HandleGoToProfileClick(object sender, RoutedEventArgs eventArguments)
@@ -185,16 +186,6 @@ public sealed partial class ChatPage : Page
         }
     }
 
-    private void UsersTab_Click(object sender, RoutedEventArgs eventArguments)
-    {
-        ViewModel.SwitchTab("Users");
-    }
-
-    private void CompanyTab_Click(object sender, RoutedEventArgs eventArguments)
-    {
-        ViewModel.SwitchTab("Company");
-    }
-
     private void RefreshTimer_Tick(object? sender, object eventArguments)
     {
         _ = ViewModel.RefreshInboxAndSelectedChatAsync();
@@ -222,7 +213,7 @@ public sealed partial class ChatPage : Page
         {
             JobId = job.JobId,
             CompanyName = job.Company?.Name ?? string.Empty,
-            JobDescription = job.JobDescription,
+            JobDescription = job.JobDescription ?? string.Empty,
             AppliedDate = DateTime.Now,
             Status = MatchStatus.Applied,
         };

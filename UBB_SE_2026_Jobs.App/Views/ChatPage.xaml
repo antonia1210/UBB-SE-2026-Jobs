@@ -239,26 +239,6 @@
                                Foreground="{StaticResource ChatColorTextPrimary}"
                                CharacterSpacing="-20" />
 
-                    <Border x:Name="TabSwitcher"
-                            Visibility="{Binding IsUserMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                            Background="{StaticResource ChatColorContactChipBackground}"
-                            CornerRadius="10"
-                            Padding="3">
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="2">
-                            <ToggleButton Grid.Column="0"
-                                          x:Name="UsersTabButton"
-                                          Content="Users"
-                                          IsChecked="{Binding IsUsersTabActive, Mode=TwoWay}"
-                                          Click="UsersTab_Click"
-                                          Style="{StaticResource PillTabStyle}" />
-                            <ToggleButton Grid.Column="1"
-                                          x:Name="CompanyTabButton"
-                                          Content="Companies"
-                                          IsChecked="{Binding IsCompaniesTabActive, Mode=TwoWay}"
-                                          Click="CompanyTab_Click"
-                                          Style="{StaticResource PillTabStyle}" />
-                        </Grid>
-                    </Border>
                 </StackPanel>
             </Border>
 

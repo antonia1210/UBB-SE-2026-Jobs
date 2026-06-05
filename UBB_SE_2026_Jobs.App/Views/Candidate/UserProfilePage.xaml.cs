@@ -69,7 +69,9 @@ public sealed partial class UserProfilePage : Page
         buttonPersonalityTest.Content = viewModel.GetPersonalityButtonText();
         if (!string.IsNullOrEmpty(user.ProfilePicturePath))
         {
-            var fullUrl = $"https://localhost:7134/api/files/{user.ProfilePicturePath}";
+            var baseUrl = ApiConfigurationLoader.Load().BaseUrl.TrimEnd('/');
+            var fileName = Uri.EscapeDataString(Path.GetFileName(user.ProfilePicturePath));
+            var fullUrl = $"{baseUrl}/api/files/{fileName}";
             publicAvatar.ProfilePicture = new BitmapImage(new Uri(fullUrl));
         }
         else

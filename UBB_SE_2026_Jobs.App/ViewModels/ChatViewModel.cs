@@ -6,6 +6,7 @@ using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.Services.ChatService;
+using UBB_SE_2026_Jobs.Library.Services.FileStorage;
 using UBB_SE_2026_Jobs.Library.Services.Jobs;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels;
@@ -14,6 +15,7 @@ public class ChatViewModel : DispatchableObservableObject
 {
     private readonly IChatService chatService;
     private readonly IJobService jobService;
+    private readonly ILocalFileStorageService fileStorage;
     private readonly SessionContext session;
     private Chat? selectedChat;
     private string messageText = string.Empty;
@@ -32,10 +34,15 @@ public class ChatViewModel : DispatchableObservableObject
     private bool showGoToCompanyProfile;
     private bool showGoToJobPost;
 
-    public ChatViewModel(IChatService chatService, IJobService jobService, SessionContext session)
+    public ChatViewModel(
+        IChatService chatService,
+        IJobService jobService,
+        ILocalFileStorageService fileStorage,
+        SessionContext session)
     {
         this.chatService = chatService;
         this.jobService = jobService;
+        this.fileStorage = fileStorage;
         this.session = session;
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         SearchCommand = new AsyncRelayCommand(SearchAsync);
@@ -215,7 +222,7 @@ public class ChatViewModel : DispatchableObservableObject
     public bool IsCompanyMode => session.Mode == AppMode.Company;
     public bool IsDeveloperMode => session.Mode == AppMode.Developer;
     public bool IsCandidateMode => session.Mode == AppMode.Candidate;
-    public bool IsUserMode => session.Mode == AppMode.Candidate;
+    public bool IsUserMode => false;
 
     public ObservableCollection<Chat> CurrentChatList
         => IsCandidateMode ? FilteredChats : Chats;
@@ -244,7 +251,8 @@ public class ChatViewModel : DispatchableObservableObject
                 ApplyTabFilter();
             }
 
-            StatusMessage = Chats.Count == 0
+            var visibleChatCount = IsCandidateMode ? FilteredChats.Count : Chats.Count;
+            StatusMessage = visibleChatCount == 0
                 ? "No conversations yet. Search for a contact to start one."
                 : string.Empty;
         });
@@ -264,27 +272,13 @@ public class ChatViewModel : DispatchableObservableObject
 
             if (IsCandidateMode)
             {
-                if (ActiveTab == "Users")
-                {
-                    var users = await chatService.SearchUsersAsync(SearchQuery);
-                    results.AddRange(users.Where(user => user.UserId != session.UserId));
+                var users = await chatService.SearchUsersAsync(SearchQuery);
+                results.AddRange(users.Where(user => user.UserId != session.UserId));
 
-                    var matchingChats = FindUserTabMatchingChats(FilteredChats, SearchQuery);
-                    foreach (var chat in matchingChats)
-                    {
-                        results.Insert(0, chat);
-                    }
-                }
-                else
+                var matchingChats = FindUserTabMatchingChats(FilteredChats, SearchQuery);
+                foreach (var chat in matchingChats)
                 {
-                    var companies = await chatService.SearchCompaniesAsync(SearchQuery);
-                    results.AddRange(companies);
-
-                    var matchingChats = FindCompanyTabMatchingChats(FilteredChats, SearchQuery);
-                    foreach (var chat in matchingChats)
-                    {
-                        results.Insert(0, chat);
-                    }
+                    results.Insert(0, chat);
                 }
             }
             else if (IsCompanyMode)
@@ -359,16 +353,6 @@ public class ChatViewModel : DispatchableObservableObject
                     chat = createdChat;
                 }
             }
-            else if (result.Kind == ContactSearchResultKind.Company)
-            {
-                var createdChat = await chatService.FindOrCreateUserCompanyChatAsync(session.UserId, new Company { CompanyId = result.Id });
-                if (createdChat is null)
-                {
-                    return;
-                }
-
-                chat = createdChat;
-            }
             else
             {
                 return;
@@ -384,7 +368,7 @@ public class ChatViewModel : DispatchableObservableObject
 
             if (IsCandidateMode)
             {
-                ActiveTab = chat.SecondUser != null ? "Users" : "Company";
+                ActiveTab = "Users";
                 ApplyTabFilter();
 
                 var oldFilteredChat = FindChatById(FilteredChats, chat.ChatId);
@@ -405,42 +389,7 @@ public class ChatViewModel : DispatchableObservableObject
 
     public void StartCompanyChat(int companyId, int? jobId)
     {
-        if (!IsCandidateMode)
-        {
-            return;
-        }
-
-        _ = RunSafelyAsync(async () =>
-        {
-            var chat = await chatService.FindOrCreateUserCompanyChatAsync(session.UserId, new Company{CompanyId=companyId}, jobId.HasValue?new Job{JobId =(int) jobId}:null);//TODO: avoid creating a new company instance
-            if (chat is null)
-            {
-                return;
-            }
-
-            var oldChat = FindChatById(Chats, chat.ChatId);
-            if (oldChat is not null)
-            {
-                Chats.Remove(oldChat);
-            }
-
-            Chats.Insert(0, chat);
-
-            ActiveTab = "Company";
-            ApplyTabFilter();
-
-            var oldFilteredChat = FindChatById(FilteredChats, chat.ChatId);
-            if (oldFilteredChat is not null)
-            {
-                FilteredChats.Remove(oldFilteredChat);
-            }
-
-            FilteredChats.Insert(0, chat);
-
-            SelectChat(chat);
-            SearchQuery = string.Empty;
-            SearchResults.Clear();
-        });
+        ErrorMessage = "Company chat is available only from recruiter mode.";
     }
 
     private async Task LoadSelectedChatAsync()
@@ -455,7 +404,7 @@ public class ChatViewModel : DispatchableObservableObject
         await RunSafelyAsync(async () =>
         {
             var callerId = GetCallerId();
-            var messages = await chatService.GetMessagesAsync(SelectedChat.ChatId, callerId);
+            var messages = await chatService.GetMessagesAsync(SelectedChat.ChatId, callerId, GetCompanyContextId());
             await chatService.MarkMessagesAsReadAsync(SelectedChat.ChatId, callerId);
             ApplyReadReceiptVisibility(messages);
             Messages.Clear();
@@ -489,10 +438,21 @@ public class ChatViewModel : DispatchableObservableObject
         MessageText = string.Empty;
         await RunSafelyAsync(async () =>
         {
-            await chatService.SendMessageAsync(SelectedChat.ChatId, text, GetCallerId(), SelectedMessageType);
+            var type = SelectedMessageType;
+            var chatId = SelectedChat.ChatId;
+            if (type == MessageType.Text)
+            {
+                await chatService.SendMessageAsync(chatId, text, GetCallerId(), type, GetCompanyContextId());
+            }
+            else
+            {
+                await using var stream = File.OpenRead(text);
+                await SendAttachmentCoreAsync(chatId, stream, Path.GetFileName(text), type);
+            }
+
             SelectedMessageType = MessageType.Text;
 
-            var selectedChatId = SelectedChat.ChatId;
+            var selectedChatId = chatId;
             await RefreshInboxAndSelectedChatAsync();
             MoveChatToTop(Chats, selectedChatId);
             if (IsCandidateMode)
@@ -524,7 +484,7 @@ public class ChatViewModel : DispatchableObservableObject
 
         await RunSafelyAsync(async () =>
         {
-            await chatService.BlockChatAsync(SelectedChat.ChatId, GetCallerId());
+            await chatService.BlockChatAsync(SelectedChat.ChatId, GetCallerId(), GetCompanyContextId());
             await LoadAsync();
         });
     }
@@ -538,7 +498,7 @@ public class ChatViewModel : DispatchableObservableObject
 
         await RunSafelyAsync(async () =>
         {
-            await chatService.UnblockChatAsync(SelectedChat.ChatId, GetCallerId());
+            await chatService.UnblockChatAsync(SelectedChat.ChatId, GetCallerId(), GetCompanyContextId());
             await LoadAsync();
         });
     }
@@ -552,7 +512,7 @@ public class ChatViewModel : DispatchableObservableObject
 
         await RunSafelyAsync(async () =>
         {
-            await chatService.DeleteChatAsync(SelectedChat.ChatId, GetCallerId());
+            await chatService.DeleteChatAsync(SelectedChat.ChatId, GetCallerId(), GetCompanyContextId());
             Chats.Remove(SelectedChat);
             FilteredChats.Remove(SelectedChat);
             SelectedChat = null;
@@ -576,6 +536,11 @@ public class ChatViewModel : DispatchableObservableObject
             AppMode.Developer => session.DeveloperId ?? throw new InvalidOperationException("No developer session is active."),
             _ => session.UserId,
         };
+    }
+
+    private int? GetCompanyContextId()
+    {
+        return IsCompanyMode ? session.CompanyId : null;
     }
 
     private async Task RunSafelyAsync(Func<Task> action)
@@ -656,7 +621,7 @@ public class ChatViewModel : DispatchableObservableObject
                 SelectedChat = refreshedSelectedChat;
             }
 
-            var latestMessages = await chatService.GetMessagesAsync(refreshedSelectedChat.ChatId, callerId);
+            var latestMessages = await chatService.GetMessagesAsync(refreshedSelectedChat.ChatId, callerId, GetCompanyContextId());
 
             var hasUnreadFromOtherParty = HasUnreadFromOtherParty(latestMessages, callerId);
             if (hasUnreadFromOtherParty)
@@ -720,9 +685,7 @@ public class ChatViewModel : DispatchableObservableObject
         var selectedChatId = SelectedChat?.ChatId;
         FilteredChats.Clear();
 
-        var filtered = ActiveTab == "Users"
-            ? GetChatsWithSecondUser(Chats)
-            : GetChatsWithCompany(Chats);
+        var filtered = GetChatsWithSecondUser(Chats);
 
         foreach (var chat in filtered)
         {
@@ -809,6 +772,33 @@ public class ChatViewModel : DispatchableObservableObject
         _ = SendAsync();
     }
 
+    public async Task SendAttachmentAsync(Stream fileStream, string fileName, string extension, CancellationToken cancellationToken = default)
+    {
+        if (SelectedChat is null)
+        {
+            ErrorMessage = "Select a conversation before sending an attachment.";
+            return;
+        }
+
+        if (!TryResolveAttachmentType(extension, out var messageType))
+        {
+            return;
+        }
+
+        var chatId = SelectedChat.ChatId;
+        await RunSafelyAsync(async () =>
+        {
+            await SendAttachmentCoreAsync(chatId, fileStream, fileName, messageType, cancellationToken);
+            SelectedMessageType = MessageType.Text;
+            await RefreshInboxAndSelectedChatAsync();
+            MoveChatToTop(Chats, chatId);
+            if (IsCandidateMode)
+            {
+                MoveChatToTop(FilteredChats, chatId);
+            }
+        });
+    }
+
     public async Task DownloadAttachmentAsync(Message message, string targetPath)
     {
         if (message.Type != MessageType.File && message.Type != MessageType.Image)
@@ -832,6 +822,51 @@ public class ChatViewModel : DispatchableObservableObject
         {
             ErrorMessage = exception.Message;
         }
+    }
+
+    private async Task SendAttachmentCoreAsync(
+        int chatId,
+        Stream fileStream,
+        string fileName,
+        MessageType messageType,
+        CancellationToken cancellationToken = default)
+    {
+        var originalFileName = Path.GetFileName(fileName);
+        var storedPath = await fileStorage.SaveFileAsync(fileStream, originalFileName, cancellationToken);
+        await chatService.SendStoredAttachmentAsync(
+            chatId,
+            storedPath,
+            originalFileName,
+            GetCallerId(),
+            messageType,
+            GetCompanyContextId(),
+            cancellationToken);
+    }
+
+    private bool TryResolveAttachmentType(string extension, out MessageType messageType)
+    {
+        messageType = MessageType.Text;
+        if (string.IsNullOrWhiteSpace(extension))
+        {
+            ErrorMessage = "No file selected.";
+            return false;
+        }
+
+        var normalizedExtension = extension.ToLowerInvariant();
+        if (normalizedExtension is ".jpg" or ".jpeg" or ".png")
+        {
+            messageType = MessageType.Image;
+            return true;
+        }
+
+        if (normalizedExtension is ".pdf" or ".doc" or ".docx")
+        {
+            messageType = MessageType.File;
+            return true;
+        }
+
+        ErrorMessage = "Unsupported file type. Allowed: .jpg, .jpeg, .png, .pdf, .doc, .docx";
+        return false;
     }
 
     public void GoToProfile()
@@ -1203,9 +1238,9 @@ internal static class ChatDisplayNameResolver
             return chat.SecondUser.Name;
         }
 
-        if (chat.Company!=null)
+        if (chat.Company is not null)
         {
-            return chat.Company?.Name ?? $"Company {chat.Company.CompanyId}";
+            return chat.Company.Name ?? $"Company {chat.Company.CompanyId}";
         }
 
         return chat.User.Name;
