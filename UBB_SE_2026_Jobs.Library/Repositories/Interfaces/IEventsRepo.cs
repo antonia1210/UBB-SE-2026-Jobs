@@ -14,6 +14,6 @@ namespace UBB_SE_2026_Jobs.Library.Repositories.Interfaces
         void RemoveEventFromRepo(Event e);
         ObservableCollection<Event> GetCurrentEventsFromRepo(int? loggedInUser=null);
         ObservableCollection<Event> GetPastEventsFromRepo(int? loggedInUser=null);
-        void UpdateEventToRepo(int id, string photo, string title, string description, DateTime start, DateTime end, string location);
+        void UpdateEventToRepo(int id, string photo, string title, string description, DateTime start, DateTime end, string location, List<int> collaboratorCompanyIds);
     }
 }

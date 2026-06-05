@@ -1,12 +1,13 @@
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 using UBB_SE_2026_Jobs.Tests.Fakes;
 using UBB_SE_2026_Jobs.Tests.Helpers;
 using UBB_SE_2026_Jobs.Library.Services.Jobs;
 using UBB_SE_2026_Jobs.Library.Services.JobSkills;
 using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
-using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 
 namespace UBB_SE_2026_Jobs.Tests.Services;
 
@@ -65,7 +66,86 @@ public class UserStatusServiceTests
     }
 
     [Fact]
-    public async Task GetApplicationsForUserAsync_ValidMatchExists_ReturnsApplicationCardWithCorrectCompanyAndScore()
+    public async Task GetApplicationsForUserAsync_ValidMatchExists_ReturnsSingleApplication()
+    {
+        SeedValidApplication();
+
+        var result = await service.GetApplicationsForUserAsync(UserId);
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task GetApplicationsForUserAsync_ValidMatchExists_ReturnsCorrectCompanyName()
+    {
+        SeedValidApplication();
+
+        var result = await service.GetApplicationsForUserAsync(UserId);
+
+        Assert.Equal(KnownCompanyName, result[0].CompanyName);
+    }
+
+    [Fact]
+    public async Task GetApplicationsForUserAsync_ValidMatchExists_ReturnsCorrectCompatibilityScore()
+    {
+        SeedValidApplication();
+
+        var result = await service.GetApplicationsForUserAsync(UserId);
+
+        Assert.Equal(FullCompatibilityScore, result[0].CompatibilityScore);
+    }
+
+    [Fact]
+    public async Task GetApplicationsForUserAsync_ValidMatchExists_ReturnsCorrectMatchId()
+    {
+        SeedValidApplication();
+
+        var result = await service.GetApplicationsForUserAsync(UserId);
+
+        Assert.Equal(MatchId, result[0].MatchId);
+    }
+
+    [Fact]
+    public async Task GetApplicationsForUserAsync_ValidMatchExists_ReturnsCorrectJobId()
+    {
+        SeedValidApplication();
+
+        var result = await service.GetApplicationsForUserAsync(UserId);
+
+        Assert.Equal(JobId, result[0].JobId);
+    }
+
+
+    [Fact]
+    public async Task GetApplicationsForUserAsync_JobHasNoRequiredSkills_ReturnsFullCompatibilityScore()
+    {
+        SeedValidApplication();
+
+        var result = await service.GetApplicationsForUserAsync(UserId);
+
+        Assert.Equal(FullCompatibilityScore, result[0].CompatibilityScore);
+    }
+
+    [Fact]
+    public async Task GetApplicationsForUserAsync_CompanyIsMissing_FallsBackToUnknownCompanyName()
+    {
+        jobRepository.Seed(
+            new JobBuilder()
+                .WithId(JobId)
+                .WithCompanyId(MissingCompanyId)
+                .Build());
+
+        matchRepository.Seed(
+            new MatchBuilder()
+                .WithId(MatchId)
+                .AppliedFor(UserId, JobId)
+                .Build());
+
+        var result = await service.GetApplicationsForUserAsync(UserId);
+
+        Assert.Equal(UnknownCompanyName, result[0].CompanyName);
+    }
+    private void SeedValidApplication()
     {
         companyRepository.Seed(
             new CompanyBuilder()
@@ -101,59 +181,5 @@ public class UserStatusServiceTests
                 Skill = new Skill { SkillId = SkillId },
                 RequiredLevel = RequiredSkillLevel
             });
-
-        var result = await service.GetApplicationsForUserAsync(UserId);
-
-        Assert.Single(result);
-
-        Assert.Equal(MatchId, result[0].MatchId);
-        Assert.Equal(JobId, result[0].JobId);
-        Assert.Equal(KnownCompanyName, result[0].CompanyName);
-        Assert.Equal(FullCompatibilityScore, result[0].CompatibilityScore);
-    }
-
-    [Fact]
-    public async Task GetApplicationsForUserAsync_JobHasNoRequiredSkills_ReturnsFullCompatibilityScore()
-    {
-        companyRepository.Seed(
-            new CompanyBuilder()
-                .WithId(CompanyId)
-                .Build());
-
-        jobRepository.Seed(
-            new JobBuilder()
-                .WithId(JobId)
-                .WithCompanyId(CompanyId)
-                .Build());
-
-        matchRepository.Seed(
-            new MatchBuilder()
-                .WithId(MatchId)
-                .AppliedFor(UserId, JobId)
-                .Build());
-
-        var result = await service.GetApplicationsForUserAsync(UserId);
-
-        Assert.Equal(FullCompatibilityScore, result[0].CompatibilityScore);
-    }
-
-    [Fact]
-    public async Task GetApplicationsForUserAsync_CompanyIsMissing_FallsBackToUnknownCompanyName()
-    {
-        jobRepository.Seed(
-            new JobBuilder()
-                .WithId(JobId)
-                .WithCompanyId(MissingCompanyId)
-                .Build());
-
-        matchRepository.Seed(
-            new MatchBuilder()
-                .WithId(MatchId)
-                .AppliedFor(UserId, JobId)
-                .Build());
-
-        var result = await service.GetApplicationsForUserAsync(UserId);
-
-        Assert.Equal(UnknownCompanyName, result[0].CompanyName);
     }
 }

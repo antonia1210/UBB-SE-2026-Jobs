@@ -1,9 +1,8 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Services.CompanyStatusService;
 using UBB_SE_2026_Jobs.Library.Services.Matches;
-using UBB_SE_2026_Jobs.Web.Configuration;
 using UBB_SE_2026_Jobs.Web.Models;
 
 namespace UBB_SE_2026_Jobs.Web.Controllers;
@@ -13,55 +12,33 @@ public class CompanyStatusController : Controller
 {
     private readonly ICompanyStatusService companyStatusService;
     private readonly IMatchService matchService;
-    private readonly ApiConfiguration apiConfiguration;
 
     public CompanyStatusController(
         ICompanyStatusService companyStatusService,
-        IMatchService matchService,
-        ApiConfiguration apiConfiguration)
+        IMatchService matchService)
     {
         this.companyStatusService = companyStatusService;
         this.matchService = matchService;
-        this.apiConfiguration = apiConfiguration;
     }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var companyId = apiConfiguration.TemporaryCompanyId;
         var applicants = await companyStatusService
-            .GetApplicantsForCompanyAsync(companyId, cancellationToken);
+            .GetApplicantsForCompanyAsync(GetCompanyId(), cancellationToken);
         return View(applicants);
     }
 
     public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
     {
-        var companyId = apiConfiguration.TemporaryCompanyId;
         var applicant = await companyStatusService
-            .GetApplicantByMatchIdAsync(companyId, id, cancellationToken);
+            .GetApplicantByMatchIdAsync(GetCompanyId(), id, cancellationToken);
         return applicant is null ? NotFound() : View(applicant);
-    }
-
-    public IActionResult Create()
-    {
-        return View();
-    }
-
-    [HttpPost, ValidateAntiForgeryToken]
-    public IActionResult Create(UserApplicationResult model)
-    {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
-
-        return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
     {
-        var companyId = apiConfiguration.TemporaryCompanyId;
         var applicant = await companyStatusService
-            .GetApplicantByMatchIdAsync(companyId, id, cancellationToken);
+            .GetApplicantByMatchIdAsync(GetCompanyId(), id, cancellationToken);
         if (applicant is null)
         {
             return NotFound();
@@ -104,6 +81,14 @@ public class CompanyStatusController : Controller
         return RedirectToAction(nameof(Details), new { id = model.MatchId });
     }
 
+    private int GetCompanyId()
+    {
+        var value = User.FindFirstValue("CompanyId");
+        if (string.IsNullOrWhiteSpace(value) || !int.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, out var companyId))
+            throw new InvalidOperationException("Recruiter session is missing a company ID.");
+        return companyId;
+    }
+
     private bool TryValidateDecision(MatchDecisionFormModel model)
     {
         if (model.Decision is not (UBB_SE_2026_Jobs.Library.Domain.Enums.MatchStatus.Accepted
@@ -122,19 +107,5 @@ public class CompanyStatusController : Controller
         }
 
         return ModelState.IsValid;
-    }
-
-    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
-    {
-        var companyId = apiConfiguration.TemporaryCompanyId;
-        var applicant = await companyStatusService
-            .GetApplicantByMatchIdAsync(companyId, id, cancellationToken);
-        return applicant is null ? NotFound() : View(applicant);
-    }
-
-    [HttpPost, ActionName("Delete"), ValidateAntiForgeryToken]
-    public IActionResult DeleteConfirmed(int id)
-    {
-        return RedirectToAction(nameof(Index));
     }
 }

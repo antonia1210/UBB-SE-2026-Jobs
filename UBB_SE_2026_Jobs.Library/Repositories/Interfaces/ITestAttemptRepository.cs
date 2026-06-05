@@ -13,42 +13,39 @@ namespace UBB_SE_2026_Jobs.Library.Repositories.Interfaces
     public interface ITestAttemptRepository
     {
         /// <summary>
-        /// Asynchronously finds a test attempt by user ID and test ID.
-        /// This method retrieves the test attempt along with its associated answers for a specific user and test.
-        /// It returns a TestAttempt object if found, or null if no matching record exists.
+        /// Finds a test attempt by its ID, including answers and questions.
         /// </summary>
-        /// <param name="userId">The ID of the user for whom to find the attempt.</param>
-        /// <param name="testId">The ID of the test for which to find the attempt.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        Task<TestAttempt?> FindByUserAndTestAsync(int userId, int testId);
-
-        /// <summary>
-        /// Asynchronously saves a new test attempt.
-        /// </summary>
-        /// <param name="attempt">The <see cref="TestAttempt"/> object to be saved.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        Task SaveAsync(TestAttempt attempt);
-
-        /// <summary>
-        /// Asynchronously updates an existing test attempt in the database.
-        /// </summary>
-        /// <param name="attempt">The <see cref="TestAttempt"/> object containing the updated data.
-        /// The Id property must be set to identify which record to update.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        Task<TestAttempt?> UpdateAsync(TestAttempt attempt);
-
-        /// <summary>
-        /// Asynchronously finds a test attempt by its ID.
-        /// </summary>
-        /// <param name="id">The id of the test attempt we want to find.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         Task<TestAttempt?> FindByIdAsync(int id);
 
         /// <summary>
-        /// Asynchronously finds all valid test attempts for a given test ID.
+        /// Finds a test attempt by user ID and test ID, including answers.
         /// </summary>
-        /// <param name="testId">The ID of the test for which to find valid attempts.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        Task<TestAttempt?> FindByUserAndTestAsync(int userId, int testId);
+
+        /// <summary>
+        /// Saves a new test attempt.
+        /// </summary>
+        Task SaveAsync(TestAttempt attempt);
+
+        /// <summary>
+        /// Updates an existing test attempt. Returns null if not found.
+        /// </summary>
+        Task<TestAttempt?> UpdateAsync(TestAttempt attempt);
+
+        /// <summary>
+        /// Returns all valid (COMPLETED + validated) attempts for a given test,
+        /// ordered by score descending then completion time ascending.
+        /// Used for leaderboard calculations.
+        /// </summary>
         Task<List<TestAttempt>> FindValidAttemptsByTestIdAsync(int testId);
+
+        /// <summary>
+        /// Returns all completed, validated attempts for a given user,
+        /// including the parent Test so callers can read Test.Title.
+        /// Replaces the former SkillTestRepository.GetByUserIdAsync.
+        /// </summary>
+        Task<IReadOnlyList<TestAttempt>> FindCompletedByUserIdAsync(
+            int userId,
+            CancellationToken cancellationToken = default);
     }
 }

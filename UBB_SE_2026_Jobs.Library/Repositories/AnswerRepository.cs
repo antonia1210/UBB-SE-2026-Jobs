@@ -34,8 +34,8 @@
         public async Task<List<Answer>> FindByAttemptAsync(int attemptId)
         {
             return await this.JobsDbContext.Answers
-                .Include(a => a.Question)
-                .Where(a => a.AttemptId == attemptId)
+                .Include(answer => answer.Question)
+                .Where(answer => answer.AttemptId == attemptId)
                 .ToListAsync();
         }
     }

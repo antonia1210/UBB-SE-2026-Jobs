@@ -70,7 +70,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
                 InterviewerId = slot.RecruiterId,
                 DateStart = slot.StartTime.ToUniversalTime(),
                 Video = string.Empty,
-                Status = "Scheduled",
+                Status = InterviewStatus.Scheduled.ToString(),
                 Score = MINIMUMINTERVIEWSCORE,
             };
 

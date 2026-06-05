@@ -77,7 +77,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
             {
                 throw new ArgumentOutOfRangeException(nameof(number));
             }
-            return game.Scenarios[number].GetAdviceTexts();
+            return game.Scenarios[number].Choices.Select(choice => choice.Advice).ToList();
         }
 
         public string ChoiceMade(int numberScenario, int numberAdvice)
@@ -87,7 +87,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
             {
                 throw new ArgumentOutOfRangeException(nameof(numberScenario));
             }
-            return game.Scenarios[numberScenario].SelectChoice(numberAdvice);
+            return game.Scenarios[numberScenario].Choices[numberAdvice].Feedback;
         }
 
         public string ShowConclusion()
@@ -111,7 +111,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
                     var scenario = new Scenario(scenarioData.scenarioText);
                     foreach (var (advice, feedback) in scenarioData.choices)
                     {
-                        scenario.AddChoice(new AdviceChoice(advice, feedback));
+                        scenario.Choices.Add(new AdviceChoice(advice, feedback));
                     }
 
                     return scenario;
@@ -123,12 +123,12 @@ namespace UBB_SE_2026_Jobs.Library.Services
 
         public void PublishGame(Game existingGame)
         {
-            existingGame.Publish();
+            existingGame.IsPublished = true;
         }
 
         public void UnpublishGame(Game existingGame)
         {
-            existingGame.Unpublish();
+            existingGame.IsPublished = false;
         }
     }
 }

@@ -9,16 +9,16 @@ public class RecommendationService : IRecommendationService
 {
     private readonly IRecommendationRepository recommendationRepository;
     private readonly IUserRepository userRepository;
-    private readonly IPussyCatsJobRepository PussyCatsJobRepository;
+    private readonly IPussyCatsJobRepository jobRepository;
 
     public RecommendationService(
         IRecommendationRepository recommendationRepository,
         IUserRepository userRepository,
-        IPussyCatsJobRepository PussyCatsJobRepository)
+        IPussyCatsJobRepository jobRepository)
     {
         this.recommendationRepository = recommendationRepository;
         this.userRepository = userRepository;
-        this.PussyCatsJobRepository = PussyCatsJobRepository;
+        this.jobRepository = jobRepository;
     }
 
     public async Task<IReadOnlyList<Recommendation>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -41,7 +41,7 @@ public class RecommendationService : IRecommendationService
         var user = await userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false)
             ?? throw new KeyNotFoundException($"User {userId} not found.");
 
-        var job = await PussyCatsJobRepository.GetByIdAsync(jobId, cancellationToken).ConfigureAwait(false)
+        var job = await jobRepository.GetByIdAsync(jobId, cancellationToken).ConfigureAwait(false)
             ?? throw new KeyNotFoundException($"Job {jobId} not found.");
 
         var recommendation = new Recommendation

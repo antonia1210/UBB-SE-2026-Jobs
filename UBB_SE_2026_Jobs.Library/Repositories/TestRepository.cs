@@ -1,33 +1,30 @@
-﻿// <copyright file="TestRepository.cs" company="PlaceholderCompany">
+// <copyright file="TestRepository.cs" company="PlaceholderCompany">
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
 namespace UBB_SE_2026_Jobs.Library.Repositories
 {
     using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.Query;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using UBB_SE_2026_Jobs.Library.Persistence;
-    using UBB_SE_2026_Jobs.Library.DTOs;
     using UBB_SE_2026_Jobs.Library.Domain.Core;
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
-    using static System.Net.Mime.MediaTypeNames;
 
     /// <summary>
-    /// TestRepository class provides methods to perform CRUD operations on the Tests and Questions tables in the database.
+    /// TestRepository class provides methods to read static Tests and Questions data.
     /// </summary>
     public class TestRepository : ITestRepository
     {
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext databaseContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TestRepository"/> class.
         /// </summary>
-        public TestRepository(JobsDbContext JobsDbContext)
+        public TestRepository(JobsDbContext databaseContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <summary>
@@ -35,9 +32,9 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of all tests. The list is
         /// empty if no tests are found.</returns>
-        public async Task<List<Test>> GetTestsASync()
+        public async Task<List<Test>> GetTestsAsync()
         {
-            return await this.JobsDbContext.Tests.ToListAsync();
+            return await this.databaseContext.Tests.ToListAsync();
         }
 
         /// <summary>
@@ -47,22 +44,22 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
         /// will be empty if no such categories exist.</returns>
         public async Task<List<string>> GetAllCategories()
         {
-            return await this.JobsDbContext.Tests
-                .Select(t => t.Category)
+            return await this.databaseContext.Tests
+                .Select(test => test.Category)
                 .Distinct()
                 .ToListAsync();
         }
 
         /// <summary>
-        /// Asynchronously finds a test by its ID, including its associated questions.
+        /// Asynchronously finds a test by its identifier, including its associated questions.
         /// </summary>
-        /// <param name="id">The ID of the test to find.</param>
+        /// <param name="testId">The identifier of the test to find.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task<Test?> FindByIdAsync(int id)
+        public async Task<Test?> FindByIdAsync(int testId)
         {
-            return await this.JobsDbContext.Tests
+            return await this.databaseContext.Tests
                 .Include(test => test.Questions)
-                .FirstOrDefaultAsync(test => test.Id == id);
+                .FirstOrDefaultAsync(test => test.Id == testId);
         }
 
         /// <summary>
@@ -72,58 +69,10 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<List<Test>> FindTestsByCategoryAsync(string category)
         {
-            return await this.JobsDbContext.Tests
+            return await this.databaseContext.Tests
                 .Include(test => test.Questions)
                 .Where(test => test.Category == category)
                 .ToListAsync();
         }
-
-        /// <summary>
-        /// Asynchronously adds a new Test entity to the data store.
-        /// </summary>
-        /// <param name="test">The Test entity to add. Cannot be null.</param>
-        /// <returns>A task that represents the asynchronous add operation.</returns>
-        public async Task AddAsync(Test test)
-        {
-            this.JobsDbContext.Tests.Add(test);
-            await this.JobsDbContext.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// Asynchronously updates the specified test entity in the database.
-        /// </summary>
-        /// <param name="test">The test entity containing updated values. The entity's Id must correspond to an existing test in the
-        /// database.</param>
-        /// <returns>A task that represents the asynchronous update operation.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown if a test with the specified Id does not exist in the database.</exception>
-        public async Task UpdateAsync(Test test)
-        {
-            var existing = await this.JobsDbContext.Tests.FindAsync(test.Id);
-            if (existing == null) {
-                throw new KeyNotFoundException("Test not found");
-            }
-
-            existing.Title = test.Title;
-            existing.Category = test.Category;
-            await this.JobsDbContext.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// Asynchronously deletes the test entity with the specified identifier from the data store.
-        /// </summary>
-        /// <param name="id">The unique identifier of the test entity to delete.</param>
-        /// <returns>A task that represents the asynchronous delete operation.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown if a test entity with the specified identifier does not exist.</exception>
-        public async Task DeleteAsync(int id)
-        {
-            var existing = await this.JobsDbContext.Tests.FindAsync(id);
-            if (existing == null) {
-                throw new KeyNotFoundException("Test not found");
-            }
-
-            this.JobsDbContext.Tests.Remove(existing);
-            await this.JobsDbContext.SaveChangesAsync();
-        }
     }
 }
-

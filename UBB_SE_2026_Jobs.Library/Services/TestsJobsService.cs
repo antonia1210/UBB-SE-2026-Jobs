@@ -110,7 +110,7 @@
             }
 
             return job.JobSkills
-                .Select(js => (js.SkillId, js.RequiredPercentage))
+                .Select(job => (job.SkillId, job.RequiredPercentage))
                 .ToList();
         }
     }

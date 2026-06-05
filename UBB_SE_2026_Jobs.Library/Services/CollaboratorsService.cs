@@ -41,5 +41,15 @@ namespace UBB_SE_2026_Jobs.Library.Services
         {
             return this._repository.GetAllCollaborators(loggedInCompanyId);
         }
+
+        /// <summary>
+        /// Retrieves all collaborators associated with the specified event.
+        /// </summary>
+        /// <param name="eventId">The unique identifier of the event.</param>
+        /// <returns>A list of companies that are collaborators of the specified event.</returns>
+        public List<Company> GetEventCollaborators(int eventId)
+        {
+            return this._repository.GetEventCollaborators(eventId);
+        }
     }
 }

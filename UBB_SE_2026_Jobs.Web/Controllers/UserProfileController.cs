@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.CompletenessService;
 using UBB_SE_2026_Jobs.Library.Services.ImageStorage;
 using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
 using UBB_SE_2026_Jobs.Library.Services.Users;
-using System.Security.Claims;
 
 namespace UBB_SE_2026_Jobs.Web.Controllers;
 
@@ -18,6 +19,12 @@ public class UserProfileController : Controller
     private readonly IUserService userService;
 
     private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    private static int CalculateLevelProgress(int xp, int level) =>
+         SimpleModelOperations.CalculateLevelProgress(xp, level);
+
+    private static int CalculateXpToNextLevel(int xp, int level) =>
+        SimpleModelOperations.CalculateXpToNextLevel(xp, level);
 
     public UserProfileController(
         IUserProfileService userProfileService,
@@ -42,8 +49,10 @@ public class UserProfileController : Controller
         int totalXp = await userProfileService.RecalculateLevelAsync(user, cancellationToken);
         ViewBag.TotalXp = totalXp;
         ViewBag.LevelProgressPercent = CalculateLevelProgress(totalXp, user.CurrentLevel);
+        ViewBag.XpToNextLevel = CalculateXpToNextLevel(totalXp, user.CurrentLevel);
         return View(user);
     }
+   
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleStatus(CancellationToken cancellationToken)
@@ -79,15 +88,6 @@ public class UserProfileController : Controller
         }
 
         return RedirectToAction(nameof(Index));
-    }
-
-    private static int CalculateLevelProgress(int xp, int level)
-    {
-        var thresholds = new[] { 0, 100, 250, 500, 800 };
-        int start = level >= 1 && level <= thresholds.Length ? thresholds[level - 1] : 0;
-        int end = level < thresholds.Length ? thresholds[level] : thresholds[^1];
-        if (end <= start) return 100;
-        return (int)Math.Clamp((xp - start) * 100.0 / (end - start), 0, 100);
     }
 
     [HttpPost, ValidateAntiForgeryToken]

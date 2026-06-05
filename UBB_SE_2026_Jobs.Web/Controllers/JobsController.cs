@@ -2,6 +2,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 {
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Security.Claims;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
@@ -29,13 +30,20 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         }
 
         /// <summary>
-        /// Displays the list of all job postings.
+        /// Displays the job postings for the recruiter's company.
         /// </summary>
+        [Authorize(Roles = "Recruiter")]
         public async Task<IActionResult> Index()
         {
             this.AttachJwt();
-            List<JobPostingDto> jobs = await this.jobsApiClient.GetAllJobsAsync();
-            return this.View(jobs);
+            var companyIdClaim = this.User.FindFirstValue("CompanyId");
+            if (int.TryParse(companyIdClaim, NumberStyles.Integer, CultureInfo.InvariantCulture, out int companyId))
+            {
+                List<JobPostingDto> jobs = await this.jobsApiClient.GetJobsByCompanyIdAsync(companyId);
+                return this.View(jobs);
+            }
+
+            return this.Forbid();
         }
 
         /// <summary>

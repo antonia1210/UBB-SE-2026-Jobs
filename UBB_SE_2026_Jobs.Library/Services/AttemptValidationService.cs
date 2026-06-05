@@ -33,35 +33,24 @@ namespace UBB_SE_2026_Jobs.Library.Services
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task<bool> CanStartTestAsync(int userId, int testId)
         {
-            var existing = await this.attemptRepository.FindByUserAndTestAsync(userId, testId);
-
-            if (existing == null)
-            {
-                return true;
-            }
-
-            return false;
+            // Tests are replayable — only block if an IN_PROGRESS attempt exists.
+            // FindByUserAndTestAsync returns the active IN_PROGRESS attempt or null.
+            var active = await this.attemptRepository.FindByUserAndTestAsync(userId, testId);
+            return active == null;
         }
 
         /// <summary>
-        /// Asynchronously checks for existing test attempts for a given user and test,
-        /// and throws an exception if an attempt already exists.
+        /// Throws only when an IN_PROGRESS attempt already exists for the user/test.
+        /// Completed attempts are allowed — tests are replayable.
         /// </summary>
-        /// <param name="userId">The ID of the user attempting to start the test.</param>
-        /// <param name="testId">The ID of the test the user is attempting to start.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        /// <exception cref="System.InvalidOperationException">Thrown when an existing attempt is found for the user and test.</exception>
         public async Task CheckExistingAttemptsAsync(int userId, int testId)
         {
-            var existing = await this.attemptRepository.FindByUserAndTestAsync(userId, testId);
-
-            if (existing == null)
+            var active = await this.attemptRepository.FindByUserAndTestAsync(userId, testId);
+            if (active != null)
             {
-                return;
+                throw new System.InvalidOperationException(
+                    $"User {userId} already has an active in-progress attempt for test {testId}.");
             }
-
-            throw new System.InvalidOperationException(
-                $"User {userId} has already attempted test {testId}.");
         }
     }
 }

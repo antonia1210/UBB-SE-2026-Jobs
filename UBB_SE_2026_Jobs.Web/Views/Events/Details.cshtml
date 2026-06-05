@@ -16,20 +16,16 @@
     </div>
 </div>
 
-<h4 class="mt-4">Collaborators</h4>
 @{
-    var collaborators = ViewBag.Collaborators as List<UBB_SE_2026_Jobs.Web.Dtos.CollaboratorDto> ?? new List<UBB_SE_2026_Jobs.Web.Dtos.CollaboratorDto>();
+    var collaborators = ViewBag.Collaborators as List<UBB_SE_2026_Jobs.Web.Dtos.CompanyDto> ?? new List<UBB_SE_2026_Jobs.Web.Dtos.CompanyDto>();
 }
-@if (!collaborators.Any())
+@if (collaborators.Any())
 {
-    <p>No collaborators for this event.</p>
-}
-else
-{
+    <h4 class="mt-4">Collaborators</h4>
     <ul>
         @foreach (var c in collaborators)
         {
-            <li>@c.CompanyName</li>
+            <li>@c.Name</li>
         }
     </ul>
 }

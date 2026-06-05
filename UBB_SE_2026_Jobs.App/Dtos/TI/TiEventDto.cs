@@ -11,4 +11,5 @@ public class TiEventDto
     public string Location { get; set; } = string.Empty;
     public int HostCompanyId { get; set; }
     public DateTime PostedAt { get; set; }
+    public List<int> CollaboratorCompanyIds { get; set; } = new();
 }

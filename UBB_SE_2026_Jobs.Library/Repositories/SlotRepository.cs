@@ -16,188 +16,187 @@
     /// </summary>
     public class SlotRepository : ISlotRepository
     {
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext databaseContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SlotRepository"/> class.
         /// </summary>
-        public SlotRepository(JobsDbContext JobsDbContext)
+        public SlotRepository(JobsDbContext databaseContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <inheritdoc />
         public async Task<List<Slot>> GetSlotsAsync(int recruiterId, DateTime date)
         {
-            return await this.JobsDbContext.Slots
-                .Where(s => s.RecruiterId == recruiterId
-                    && s.StartTime.Date == date.Date)
-                .OrderBy(s => s.StartTime)
+            return await this.databaseContext.Slots
+                .Where(slot => slot.RecruiterId == recruiterId
+                    && slot.StartTime.Date == date.Date)
+                .OrderBy(slot => slot.StartTime)
                 .ToListAsync();
         }
 
         /// <inheritdoc />
         public async Task<List<Slot>> GetAvailableByDateAsync(DateTime date)
         {
-            return await this.JobsDbContext.Slots
-                .Where(s => s.StartTime.Date == date.Date && s.StatusValue == 0)
-                .OrderBy(s => s.StartTime)
+            return await this.databaseContext.Slots
+                .Where(slot => slot.StartTime.Date == date.Date && slot.StatusValue == 0)
+                .OrderBy(slot => slot.StartTime)
                 .ToListAsync();
         }
 
         /// <inheritdoc />
         public async Task<List<Slot>> GetByCandidateAsync(int candidateId)
         {
-            return await this.JobsDbContext.Slots
-                .Where(s => s.CandidateId == candidateId && s.StatusValue == 1)
-                .OrderBy(s => s.StartTime)
+            return await this.databaseContext.Slots
+                .Where(slot => slot.CandidateId == candidateId && slot.StatusValue == 1)
+                .OrderBy(slot => slot.StartTime)
                 .ToListAsync();
         }
 
         /// <inheritdoc />
         public async Task<List<Slot>> GetAllSlotsAsync(int recruiterId)
         {
-            return await this.JobsDbContext.Slots
-                .Where(s => s.RecruiterId == recruiterId)
-                .OrderBy(s => s.StartTime)
+            return await this.databaseContext.Slots
+                .Where(slot => slot.RecruiterId == recruiterId)
+                .OrderBy(slot => slot.StartTime)
                 .ToListAsync();
         }
 
         /// <inheritdoc />
-        public async Task<Slot?> GetByIdAsync(int id)
+        public async Task<Slot?> GetByIdAsync(int slotId)
         {
-            return await this.JobsDbContext.Slots
-                .FirstOrDefaultAsync(s => s.Id == id);
+            return await this.databaseContext.Slots
+                .FirstOrDefaultAsync(slot => slot.Id == slotId);
         }
 
         /// <inheritdoc />
         public async Task AddAsync(Slot slot)
         {
-            bool overlaps = await this.JobsDbContext.Slots
-                .AnyAsync(s => s.RecruiterId == slot.RecruiterId
-                    && s.StartTime.Date == slot.StartTime.Date
-                    && slot.StartTime < s.EndTime
-                    && slot.EndTime > s.StartTime);
+            bool overlaps = await this.databaseContext.Slots
+                .AnyAsync(existingSlot => existingSlot.RecruiterId == slot.RecruiterId
+                    && existingSlot.StartTime.Date == slot.StartTime.Date
+                    && slot.StartTime < existingSlot.EndTime
+                    && slot.EndTime > existingSlot.StartTime);
 
             if (overlaps)
             {
-                throw new Exception("Slot overlaps with an existing appointment!");
+                throw new InvalidOperationException("Slot overlaps with an existing appointment.");
             }
 
-            this.JobsDbContext.Slots.Add(slot);
-            await this.JobsDbContext.SaveChangesAsync();
+            this.databaseContext.Slots.Add(slot);
+            await this.databaseContext.SaveChangesAsync();
         }
 
         /// <inheritdoc />
         public async Task UpdateAsync(Slot slot)
         {
-            bool overlaps = await this.JobsDbContext.Slots
-                .AnyAsync(s => s.RecruiterId == slot.RecruiterId
-                    && s.Id != slot.Id
-                    && slot.StartTime < s.EndTime
-                    && slot.EndTime > s.StartTime);
+            bool overlaps = await this.databaseContext.Slots
+                .AnyAsync(existingSlot => existingSlot.RecruiterId == slot.RecruiterId
+                    && existingSlot.Id != slot.Id
+                    && slot.StartTime < existingSlot.EndTime
+                    && slot.EndTime > existingSlot.StartTime);
 
             if (overlaps)
             {
-                throw new Exception("Slot overlaps with an existing appointment!");
+                throw new InvalidOperationException("Slot overlaps with an existing appointment.");
             }
 
-            var existing = await this.JobsDbContext.Slots.FindAsync(slot.Id);
-            if (existing == null)
+            var existingSlot = await this.databaseContext.Slots.FindAsync(slot.Id);
+            if (existingSlot == null)
             {
-                throw new Exception("Slot not found");
+                throw new KeyNotFoundException("Slot not found.");
             }
 
-            existing.StartTime = slot.StartTime;
-            existing.EndTime = slot.EndTime;
-            existing.Duration = slot.Duration;
-            await this.JobsDbContext.SaveChangesAsync();
+            existingSlot.StartTime = slot.StartTime;
+            existingSlot.EndTime = slot.EndTime;
+            existingSlot.Duration = slot.Duration;
+            await this.databaseContext.SaveChangesAsync();
         }
 
         /// <inheritdoc />
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int slotId)
         {
-            var slot = await this.JobsDbContext.Slots.FindAsync(id);
+            var slot = await this.databaseContext.Slots.FindAsync(slotId);
             if (slot != null)
             {
-                this.JobsDbContext.Slots.Remove(slot);
-                await this.JobsDbContext.SaveChangesAsync();
+                this.databaseContext.Slots.Remove(slot);
+                await this.databaseContext.SaveChangesAsync();
             }
         }
 
         /// <inheritdoc />
         public List<Slot> GetSlots(int recruiterId, DateTime date)
         {
-            return this.JobsDbContext.Slots
-                .Where(s => s.RecruiterId == recruiterId
-                    && s.StartTime.Date == date.Date)
-                .OrderBy(s => s.StartTime)
+            return this.databaseContext.Slots
+                .Where(slot => slot.RecruiterId == recruiterId
+                    && slot.StartTime.Date == date.Date)
+                .OrderBy(slot => slot.StartTime)
                 .ToList();
         }
 
         /// <inheritdoc />
         public List<Slot> GetAllSlots(int recruiterId)
         {
-            return this.JobsDbContext.Slots
-                .Where(s => s.RecruiterId == recruiterId)
-                .OrderBy(s => s.StartTime)
+            return this.databaseContext.Slots
+                .Where(slot => slot.RecruiterId == recruiterId)
+                .OrderBy(slot => slot.StartTime)
                 .ToList();
         }
 
         /// <inheritdoc />
-        public Slot? GetById(int id)
+        public Slot? GetById(int slotId)
         {
-            return this.JobsDbContext.Slots
-                .FirstOrDefault(s => s.Id == id);
+            return this.databaseContext.Slots
+                .FirstOrDefault(slot => slot.Id == slotId);
         }
 
         /// <inheritdoc />
         public void Add(Slot slot)
         {
-            bool overlaps = this.JobsDbContext.Slots
-                .Any(s => s.RecruiterId == slot.RecruiterId
-                    && s.StartTime.Date == slot.StartTime.Date
-                    && slot.StartTime < s.EndTime
-                    && slot.EndTime > s.StartTime);
+            bool overlaps = this.databaseContext.Slots
+                .Any(existingSlot => existingSlot.RecruiterId == slot.RecruiterId
+                    && existingSlot.StartTime.Date == slot.StartTime.Date
+                    && slot.StartTime < existingSlot.EndTime
+                    && slot.EndTime > existingSlot.StartTime);
 
             if (overlaps)
             {
-                throw new Exception("Slot overlaps with an existing appointment!");
+                throw new InvalidOperationException("Slot overlaps with an existing appointment.");
             }
 
-            this.JobsDbContext.Slots.Add(slot);
-            this.JobsDbContext.SaveChanges();
+            this.databaseContext.Slots.Add(slot);
+            this.databaseContext.SaveChanges();
         }
 
         /// <inheritdoc />
         public void Update(Slot slot)
         {
-            var existing = this.JobsDbContext.Slots.Find(slot.Id);
-            if (existing == null)
+            var existingSlot = this.databaseContext.Slots.Find(slot.Id);
+            if (existingSlot == null)
             {
-                throw new Exception("Slot not found");
+                throw new KeyNotFoundException("Slot not found.");
             }
 
-            existing.StartTime = slot.StartTime;
-            existing.EndTime = slot.EndTime;
-            existing.RecruiterId = slot.RecruiterId;
-            existing.Duration = slot.Duration;
-            existing.StatusValue = slot.StatusValue;
-            existing.InterviewType = slot.InterviewType;
+            existingSlot.StartTime = slot.StartTime;
+            existingSlot.EndTime = slot.EndTime;
+            existingSlot.RecruiterId = slot.RecruiterId;
+            existingSlot.Duration = slot.Duration;
+            existingSlot.StatusValue = slot.StatusValue;
+            existingSlot.InterviewType = slot.InterviewType;
 
-            this.JobsDbContext.SaveChanges();
+            this.databaseContext.SaveChanges();
         }
 
         /// <inheritdoc />
-        public void Delete(int id)
+        public void Delete(int slotId)
         {
-            var slot = this.JobsDbContext.Slots.Find(id);
+            var slot = this.databaseContext.Slots.Find(slotId);
             if (slot != null)
             {
-                this.JobsDbContext.Slots.Remove(slot);
-                this.JobsDbContext.SaveChanges();
+                this.databaseContext.Slots.Remove(slot);
+                this.databaseContext.SaveChanges();
             }
         }
     }
 }
-

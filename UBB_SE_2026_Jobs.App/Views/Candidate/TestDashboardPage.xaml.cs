@@ -1,8 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using UBB_SE_2026_Jobs.App.ViewModels;
 using UBB_SE_2026_Jobs.Library.Domain;
@@ -32,14 +29,16 @@ public sealed partial class TestDashboardPage : Page
     private void RenderCards()
     {
         TestCardsContainer.Children.Clear();
+        TestCountText.Text = viewModel.TestCards.Count.ToString();
 
         if (!string.IsNullOrEmpty(viewModel.ErrorMessage))
         {
             TestCardsContainer.Children.Add(new TextBlock
             {
                 Text = viewModel.ErrorMessage,
-                Foreground = new SolidColorBrush(Colors.White),
-                TextWrapping = TextWrapping.Wrap,
+                Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray),
+                TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap,
+                FontSize = 14,
             });
             return;
         }
