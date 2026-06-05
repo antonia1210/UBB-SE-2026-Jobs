@@ -689,7 +689,18 @@ public class ChatViewModel : DispatchableObservableObject
 
         var callerId = GetCallerId();
         ShowBlock = !SelectedChat.IsBlocked;
-        ShowUnblock = SelectedChat.IsBlocked && SelectedChat.BlockedByUser?.UserId == callerId;
+        ShowUnblock = SelectedChat.IsBlocked && SelectedChat.BlockedByUserId == callerId;
+
+        if (SelectedChat.IsBlocked)
+        {
+            StatusMessage = SelectedChat.BlockedByUserId == callerId
+                ? "You blocked this user. No new messages can be sent."
+                : "You have been blocked. You cannot send messages.";
+        }
+        else
+        {
+            StatusMessage = string.Empty;
+        }
 
         if (IsCompanyMode)
         {
@@ -960,7 +971,7 @@ public class ChatViewModel : DispatchableObservableObject
                current.SecondUser?.UserId != updated.SecondUser?.UserId ||
                current.Job?.JobId != updated.Job?.JobId ||
                current.IsBlocked != updated.IsBlocked ||
-               current.BlockedByUser?.UserId != updated.BlockedByUser?.UserId ||
+               current.BlockedByUserId != updated.BlockedByUserId ||
                !Nullable.Equals(current.DeletedAtByUser, updated.DeletedAtByUser) ||
                !Nullable.Equals(current.DeletedAtBySecondParty, updated.DeletedAtBySecondParty) ||
                current.UnreadCount != updated.UnreadCount ||

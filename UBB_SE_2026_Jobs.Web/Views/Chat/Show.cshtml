@@ -5,16 +5,28 @@
     int chatId = ViewBag.ChatId;
     int currentUserId = ViewBag.CurrentUserId;
     string apiBase = ViewBag.ApiBase ?? string.Empty;
+    bool isBlocked = ViewBag.IsBlocked ?? false;
+    bool blockedByCurrentUser = ViewBag.BlockedByCurrentUser ?? false;
 }
 
 <div class="container mt-4" style="max-width: 760px;">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <a asp-action="Index" class="btn btn-outline-secondary btn-sm">&larr; Back</a>
         <div class="d-flex gap-2">
-            <form asp-action="Block" asp-route-id="@chatId" method="post" class="d-inline">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-outline-warning btn-sm">Block</button>
-            </form>
+            @if (!isBlocked)
+            {
+                <form asp-action="Block" asp-route-id="@chatId" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-warning btn-sm">Block</button>
+                </form>
+            }
+            else if (blockedByCurrentUser)
+            {
+                <form asp-action="Unblock" asp-route-id="@chatId" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-success btn-sm">Unblock</button>
+                </form>
+            }
             <form asp-action="Delete" asp-route-id="@chatId" method="post" class="d-inline">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-outline-danger btn-sm"
@@ -22,6 +34,13 @@
             </form>
         </div>
     </div>
+
+    @if (isBlocked)
+    {
+        <div class="alert @(blockedByCurrentUser ? "alert-warning" : "alert-secondary") py-2 mb-3">
+            @(blockedByCurrentUser ? "You blocked this user. No new messages can be sent." : "You have been blocked. You cannot send messages.")
+        </div>
+    }
 
     @if (TempData["ChatError"] is string error)
     {
@@ -72,6 +91,8 @@
         }
     </div>
 
+    @if (!isBlocked)
+    {
     <form asp-action="Send" asp-route-id="@chatId" method="post" class="d-flex gap-2 mb-2">
         @Html.AntiForgeryToken()
         <input type="text" name="content" class="form-control" placeholder="Type a message…" autocomplete="off" required />
@@ -99,6 +120,7 @@
         </form>
         <small class="text-muted align-self-center">Max 20 MB</small>
     </div>
+    } @* end if (!isBlocked) *@
 </div>
 
 <script>

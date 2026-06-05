@@ -38,11 +38,14 @@ public class ChatController : Controller
     public async Task<IActionResult> Show(int id, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
+        var chatEntity = await chat.GetChatByIdAsync(id, cancellationToken);
         var messages = await chat.GetMessagesAsync(id, userId, null, cancellationToken);
         await chat.MarkMessagesAsReadAsync(id, userId, cancellationToken);
         ViewBag.ChatId = id;
         ViewBag.CurrentUserId = userId;
         ViewBag.ApiBase = apiConfiguration.BaseUrl.TrimEnd('/') + "/api/files";
+        ViewBag.IsBlocked = chatEntity?.IsBlocked ?? false;
+        ViewBag.BlockedByCurrentUser = chatEntity?.IsBlocked == true && chatEntity.BlockedByUserId == userId;
         return View(messages);
     }
 
@@ -51,7 +54,16 @@ public class ChatController : Controller
     {
         var userId = GetUserId();
         if (!string.IsNullOrWhiteSpace(content))
-            await chat.SendMessageAsync(id, content, userId, MessageType.Text, null, cancellationToken);
+        {
+            try
+            {
+                await chat.SendMessageAsync(id, content, userId, MessageType.Text, null, cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                TempData["ChatError"] = exception.Message;
+            }
+        }
         return RedirectToAction(nameof(Show), new { id });
     }
 

@@ -110,7 +110,8 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             var blockedChat = new Chat
             {
                 IsBlocked = true,
-                BlockedByUser = new User { UserId = 2 }, 
+                BlockedByUserId = 2,
+                BlockedByUser = new User { UserId = 2 },
                 User = new User { UserId = userId }
             };
 
@@ -129,6 +130,7 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             var blockedBySelfChat = new Chat
             {
                 IsBlocked = true,
+                BlockedByUserId = userId,
                 BlockedByUser = new User { UserId = userId },
                 User = new User { UserId = userId }
             };

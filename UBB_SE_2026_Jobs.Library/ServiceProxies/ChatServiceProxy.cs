@@ -22,6 +22,9 @@ public class ChatServiceProxy : IChatService
     private static string WithCompany(string url, int? companyId)
         => companyId.HasValue ? url + (url.Contains('?') ? "&" : "?") + "companyId=" + companyId.Value : url;
 
+    public async Task<Chat?> GetChatByIdAsync(int chatId, CancellationToken cancellationToken = default)
+        => await http.GetFromJsonAsync<Chat>($"api/chats/{chatId}", JsonOptions, cancellationToken);
+
     public async Task<IReadOnlyList<Chat>> GetChatsForUserAsync(int userId, CancellationToken cancellationToken = default)
         => await http.GetFromJsonAsync<List<Chat>>($"api/chats?userId={userId}&callerId={userId}", JsonOptions, cancellationToken)
            ?? new List<Chat>();

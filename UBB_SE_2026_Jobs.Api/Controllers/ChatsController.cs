@@ -18,6 +18,13 @@ public class ChatsController : ControllerBase
         this.chat = chat;
     }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    {
+        var result = await chat.GetChatByIdAsync(id, cancellationToken);
+        return result is null ? NotFound() : Ok(result);
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetChats(
         [FromQuery] int? userId,

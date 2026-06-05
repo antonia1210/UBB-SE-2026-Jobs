@@ -83,6 +83,9 @@ public class ChatService : IChatService
         return await chatRepository.AddAsync(new Chat { User = await GetUserAsync(userId, cancellationToken), SecondUser = await GetUserAsync(secondUserId, cancellationToken) }, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<Chat?> GetChatByIdAsync(int chatId, CancellationToken cancellationToken = default)
+        => await chatRepository.GetByIdAsync(chatId, cancellationToken).ConfigureAwait(false);
+
     public async Task<IReadOnlyList<Chat>> GetChatsForUserAsync(int userId, CancellationToken cancellationToken = default)
     {
         var chats = await chatRepository.GetForUserAsync(userId, cancellationToken).ConfigureAwait(false);
@@ -235,7 +238,7 @@ public class ChatService : IChatService
             ?? throw new KeyNotFoundException($"Chat {chatId} not found.");
         EnsureParticipant(chat, blockerId, companyId);
         chat.IsBlocked = true;
-        chat.BlockedByUser = new User { UserId = blockerId };
+        chat.BlockedByUserId = blockerId;
         await chatRepository.UpdateAsync(chat, cancellationToken).ConfigureAwait(false);
     }
 
@@ -244,13 +247,13 @@ public class ChatService : IChatService
         var chat = await chatRepository.GetByIdAsync(chatId, cancellationToken).ConfigureAwait(false)
             ?? throw new KeyNotFoundException($"Chat {chatId} not found.");
         EnsureParticipant(chat, unblockerId, companyId);
-        if (chat.BlockedByUser?.UserId != unblockerId)
+        if (chat.BlockedByUserId != unblockerId)
         {
             throw new UnauthorizedAccessException("Only the blocker can unblock this chat.");
         }
 
         chat.IsBlocked = false;
-        chat.BlockedByUser = null;
+        chat.BlockedByUserId = null;
         await chatRepository.UpdateAsync(chat, cancellationToken).ConfigureAwait(false);
     }
 
@@ -274,7 +277,7 @@ public class ChatService : IChatService
 
     private static bool ShouldIncludeChat(Chat chat, int callerId)
     {
-        if (chat.IsBlocked && chat.BlockedByUser?.UserId != callerId)
+        if (chat.IsBlocked && chat.BlockedByUserId != callerId)
         {
             return false;
         }

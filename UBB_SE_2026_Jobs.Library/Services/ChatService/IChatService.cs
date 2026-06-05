@@ -5,6 +5,8 @@ namespace UBB_SE_2026_Jobs.Library.Services.ChatService;
 
 public interface IChatService
 {
+    Task<Chat?> GetChatByIdAsync(int chatId, CancellationToken cancellationToken = default);
+
     Task<Chat?> FindOrCreateUserCompanyChatAsync(int userId, Company company, Job? job = null,
         CancellationToken cancellationToken = default);
 

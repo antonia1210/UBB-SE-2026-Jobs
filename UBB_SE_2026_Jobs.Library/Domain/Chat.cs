@@ -9,6 +9,7 @@ public class Chat
     public User? SecondUser { get; set; }
     public Job? Job { get; set; }
     public bool IsBlocked { get; set; }
+    public int? BlockedByUserId { get; set; }
     public User? BlockedByUser { get; set; }
     public DateTime? DeletedAtByUser { get; set; }
     public DateTime? DeletedAtBySecondParty { get; set; }
