@@ -11,9 +11,12 @@
                 <p class="text-muted mb-4">
                     You don't have permission to view this page.
                 </p>
-                <a asp-controller="Home" asp-action="SwitchMode" class="btn btn-primary">
-                    Go to Home
-                </a>
+                @if (User.Identity?.IsAuthenticated != true)
+                {
+                    <a asp-controller="Home" asp-action="SwitchMode" class="btn btn-primary">
+                        Go to Home
+                    </a>
+                }
                 <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary ms-2">
                     Login with a different account
                 </a>

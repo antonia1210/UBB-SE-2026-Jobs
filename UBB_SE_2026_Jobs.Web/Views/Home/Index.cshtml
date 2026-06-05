@@ -36,14 +36,5 @@
             <p class="mode-card__copy">Browse matches, rank applicants, and manage listings. Recruiter account required.</p>
             <button class="btn btn-outline-dark mode-card__cta" type="submit" name="mode" value="Company">Enter Company Mode</button>
         </form>
-        <form asp-action="SelectMode" method="post" class="mode-card" data-mode="Developer">
-            @Html.AntiForgeryToken()
-            <div class="mode-card__header">
-                <span class="mode-card__eyebrow">Developer</span>
-                <h2 class="mode-card__title">Explore insights</h2>
-            </div>
-            <p class="mode-card__copy">Inspect platform metrics, diagnostics, and prototype tooling. Sign-in may be required.</p>
-            <button class="btn btn-outline-dark mode-card__cta" type="submit" name="mode" value="Developer">Enter Developer Mode</button>
-        </form>
     </div>
 </section>

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using UBB_SE_2026_Jobs.App.Configuration;
+using UBB_SE_2026_Jobs.App.Services.TI;
 using UBB_SE_2026_Jobs.Library.Services.Auth;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels.Auth;
@@ -7,6 +8,7 @@ namespace UBB_SE_2026_Jobs.App.ViewModels.Auth;
 public partial class LoginViewModel : DispatchableObservableObject
 {
     private readonly IAuthService authService;
+    private readonly ITiAuthService tiAuthService;
     private readonly SessionContext session;
 
     private string email = string.Empty;
@@ -14,9 +16,10 @@ public partial class LoginViewModel : DispatchableObservableObject
     private string errorMessage = string.Empty;
     private bool isBusy;
 
-    public LoginViewModel(IAuthService authService, SessionContext session)
+    public LoginViewModel(IAuthService authService, ITiAuthService tiAuthService, SessionContext session)
     {
         this.authService = authService;
+        this.tiAuthService = tiAuthService;
         this.session = session;
     }
 
@@ -72,6 +75,8 @@ public partial class LoginViewModel : DispatchableObservableObject
             }
 
             session.SignIn(result.Response);
+            var accountInfo = await tiAuthService.LoginAsync(Email.Trim(), Password);
+            session.ApplyAccountRole(accountInfo?.Role, accountInfo?.CompanyId);
             LoginSucceeded?.Invoke();
         }
         catch (Exception exception)

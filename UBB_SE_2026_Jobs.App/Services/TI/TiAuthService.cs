@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using UBB_SE_2026_Jobs.App.Dtos.TI;
+using UBB_SE_2026_Jobs.Library.DTOs;
 
 namespace UBB_SE_2026_Jobs.App.Services.TI;
 
@@ -10,6 +11,8 @@ public interface ITiAuthService
     /// recruiter company picker. Returns an empty list if the call fails.
     /// </summary>
     Task<List<TiCompanyDto>> GetCompaniesAsync();
+
+    Task<AuthResponseDto?> LoginAsync(string email, string password);
 
     /// <summary>
     /// Registers a user with the T&amp;I API. For recruiters this creates the
@@ -28,13 +31,26 @@ public class TiAuthService : ITiAuthService
     {
         try
         {
-            var companies = await http.GetFromJsonAsync<List<TiCompanyDto>>("api/companies");
+            var companies = await http.GetFromJsonAsync<List<TiCompanyDto>>("api/TestsCompanies");
             return companies ?? new();
         }
         catch
         {
             return new();
         }
+    }
+
+    public async Task<AuthResponseDto?> LoginAsync(string email, string password)
+    {
+        var payload = new { Email = email, Password = password };
+        var response = await http.PostAsJsonAsync("api/tests-auth/login", payload);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        return await response.Content.ReadFromJsonAsync<AuthResponseDto>();
     }
 
     public async Task<bool> RegisterAsync(string name, string email, string password, string role, int? companyId = null)

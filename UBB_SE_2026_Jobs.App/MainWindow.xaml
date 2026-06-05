@@ -13,7 +13,7 @@
                     BackRequested="NavView_BackRequested"
                     PaneOpened="NavView_PaneOpened"
                     PaneClosed="NavView_PaneClosed"
-                    IsBackButtonVisible="Auto"
+                    IsBackButtonVisible="Collapsed"
                     PaneDisplayMode="Left"
                     IsSettingsVisible="False">
 
@@ -50,20 +50,24 @@
         </NavigationView.MenuItems>
 
         <NavigationView.FooterMenuItems>
-            <NavigationViewItem Content="Logout" Tag="Logout" Icon="Back"/>
+            <NavigationViewItem Content="Logout" Tag="Logout" Icon="Cancel"/>
         </NavigationView.FooterMenuItems>
 
         <NavigationView.PaneCustomContent>
-            <ComboBox x:Name="modeSelector"
-                      Header="Mode"
-                      Width="180"
-                      Margin="12,8"
-                      SelectionChanged="ModeSelector_SelectionChanged"
-                      ToolTipService.ToolTip="Switch between User, Company, and Developer mode">
-                <ComboBoxItem Content="User" Tag="Candidate"/>
-                <ComboBoxItem Content="Company" Tag="Company"/>
-                <ComboBoxItem Content="Developer" Tag="Developer"/>
-            </ComboBox>
+            <StackPanel x:Name="accountSummary"
+                        Margin="12,8"
+                        Spacing="2"
+                        Visibility="Collapsed">
+                <TextBlock Text="Signed in as"
+                           FontSize="12"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                <TextBlock x:Name="accountNameText"
+                           FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="accountModeText"
+                           FontSize="12"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            </StackPanel>
         </NavigationView.PaneCustomContent>
 
         <Frame x:Name="contentFrame"/>

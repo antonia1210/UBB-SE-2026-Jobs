@@ -14,8 +14,6 @@ namespace UBB_SE_2026_Jobs.App;
 
 public sealed partial class MainWindow : Window
 {
-    private bool suppressModeSelection;
-
     private static readonly HashSet<string> CandidatePages =
     [
         "UserRecommendationPage",
@@ -103,19 +101,12 @@ public sealed partial class MainWindow : Window
         }
 
         navView.IsPaneVisible = true;
-        navView.IsBackButtonVisible = NavigationViewBackButtonVisible.Auto;
-        modeSelector.Visibility = navView.IsPaneOpen ? Visibility.Visible : Visibility.Collapsed;
-
-        suppressModeSelection = true;
-        modeSelector.SelectedIndex = session.Mode switch
-        {
-            AppMode.Company => 1,
-            AppMode.Developer => 2,
-            _ => 0,
-        };
-        suppressModeSelection = false;
+        navView.IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
+        navView.IsBackEnabled = false;
+        accountSummary.Visibility = navView.IsPaneOpen ? Visibility.Visible : Visibility.Collapsed;
 
         UpdateModeVisibility();
+        UpdateAccountSummary();
         var defaultPage = GetDefaultPage(session.Mode);
         NavigateTo(defaultPage);
         UpdateNavSelection(defaultPage);
@@ -126,7 +117,7 @@ public sealed partial class MainWindow : Window
         navView.IsPaneVisible = false;
         navView.IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
         navView.SelectedItem = null;
-        modeSelector.Visibility = Visibility.Collapsed;
+        accountSummary.Visibility = Visibility.Collapsed;
         contentFrame.BackStack.Clear();
         contentFrame.Navigate(typeof(LoginPage));
     }
@@ -136,7 +127,7 @@ public sealed partial class MainWindow : Window
         navView.IsPaneVisible = false;
         navView.IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
         navView.SelectedItem = null;
-        modeSelector.Visibility = Visibility.Collapsed;
+        accountSummary.Visibility = Visibility.Collapsed;
         contentFrame.BackStack.Clear();
         contentFrame.Navigate(typeof(RegisterPage));
     }
@@ -164,60 +155,18 @@ public sealed partial class MainWindow : Window
 
     private void ContentFrame_Navigated(object sender, NavigationEventArgs eventArguments)
     {
-        navView.IsBackEnabled = contentFrame.CanGoBack;
+        navView.IsBackEnabled = false;
     }
 
     private void NavView_PaneOpened(NavigationView sender, object args)
     {
-        modeSelector.Header = "Mode";
-        modeSelector.Visibility = Visibility.Visible;
+        accountSummary.Visibility = App.Services.GetRequiredService<SessionContext>().IsAuthenticated
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void NavView_PaneClosed(NavigationView sender, object args)
-        => modeSelector.Visibility = Visibility.Collapsed;
-
-    private void ModeSelector_SelectionChanged(object sender, SelectionChangedEventArgs eventArguments)
-    {
-        if (suppressModeSelection)
-        {
-            return;
-        }
-
-        if (modeSelector.SelectedItem is not ComboBoxItem { Tag: string tag })
-        {
-            return;
-        }
-
-        var session = App.Services.GetRequiredService<SessionContext>();
-        if (!session.IsAuthenticated)
-        {
-            ShowLogin();
-            return;
-        }
-
-        session.Mode = tag switch
-        {
-            "Company" => AppMode.Company,
-            "Developer" => AppMode.Developer,
-            _ => AppMode.Candidate,
-        };
-
-        if (session.Mode == AppMode.Company && session.CompanyId is null)
-        {
-            session.CompanyId = 1;
-        }
-
-        if (session.Mode == AppMode.Developer && session.DeveloperId is null)
-        {
-            session.DeveloperId = 1;
-        }
-
-        UpdateModeVisibility();
-
-        var defaultPage = GetDefaultPage(session.Mode);
-        NavigateTo(defaultPage);
-        UpdateNavSelection(defaultPage);
-    }
+        => accountSummary.Visibility = Visibility.Collapsed;
 
     private void UpdateModeVisibility()
     {
@@ -236,6 +185,15 @@ public sealed partial class MainWindow : Window
 
             navigationViewItem.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
         }
+    }
+
+    private void UpdateAccountSummary()
+    {
+        var session = App.Services.GetRequiredService<SessionContext>();
+        accountNameText.Text = string.IsNullOrWhiteSpace(session.DisplayName)
+            ? session.Email
+            : session.DisplayName;
+        accountModeText.Text = session.Mode == AppMode.Company ? "Recruiter" : "Candidate";
     }
 
     private void NavigateTo(string tag)
