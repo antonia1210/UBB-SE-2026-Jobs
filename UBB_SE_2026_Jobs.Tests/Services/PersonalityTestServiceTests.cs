@@ -37,16 +37,15 @@ public class PersonalityTestServiceTests
         Assert.Equal(expectedTraitCount, perTrait.Count());
     }
 
-    /*
     [Fact]
     public void CalculateTraitScores_AnswersProvided_AveragesScoresPerTrait()
     {
-        const double expectedVisibilityAverage = 4.5; //StronglyAgree=5, Agree=4 => (5+4)/2
-        var visibleQuestion1 = new Question { QusestionText = "x", Trait = TraitType.Visibility, SortOrder = 1 };
-        var visibleQuestion2 = new Question { QuestionText = "y", Trait = TraitType.Visibility, SortOrder = 2 };
-        var visibleQuestion3 = new Question { QuestionText = "z", Trait = TraitType.Depth, SortOrder = 3 };
+        const double expectedVisibilityAverage = 4.5;
+        var visibleQuestion1 = new PersonalityQuestion { QuestionText = "x", Trait = TraitType.Visibility, SortOrder = 1 };
+        var visibleQuestion2 = new PersonalityQuestion { QuestionText = "y", Trait = TraitType.Visibility, SortOrder = 2 };
+        var visibleQuestion3 = new PersonalityQuestion { QuestionText = "z", Trait = TraitType.Depth, SortOrder = 3 };
 
-        var answers = new Dictionary<Question, AnswerValue>
+        var answers = new Dictionary<PersonalityQuestion, AnswerValue>
         {
             [visibleQuestion1] = AnswerValue.StronglyAgree,
             [visibleQuestion2] = AnswerValue.Agree,
@@ -57,7 +56,8 @@ public class PersonalityTestServiceTests
 
         Assert.Equal(expectedVisibilityAverage, scores[TraitType.Visibility]);
     }
-    */
+
+
 
     [Fact]
     public void CalculateRoleScores_TraitScoresProvided_ReturnsScoreForEveryRole()
@@ -133,18 +133,16 @@ public class PersonalityTestServiceTests
 
         Assert.Equal(JobRole.FrontendDeveloper, topRoles.Keys.First());
     }
-
-    /*
     [Fact]
     public async Task SaveResultAsync_ValidAnswersAndRole_PersistsWithSelectedRole()
     {
         const int userId = 1;
         const JobRole selectedRole = JobRole.BackendDeveloper;
 
-        var depthQuestion1 = new Question { Trait = TraitType.Depth, SortOrder = 1 };
-        var depthQuestion2 = new Question { Trait = TraitType.Depth, SortOrder = 2 };
-        var depthQuestion3 = new Question { Trait = TraitType.Depth, SortOrder = 3 };
-        var answers = new Dictionary<Question, AnswerValue>
+        var depthQuestion1 = new PersonalityQuestion { Trait = TraitType.Depth, SortOrder = 1 };
+        var depthQuestion2 = new PersonalityQuestion { Trait = TraitType.Depth, SortOrder = 2 };
+        var depthQuestion3 = new PersonalityQuestion { Trait = TraitType.Depth, SortOrder = 3 };
+        var answers = new Dictionary<PersonalityQuestion, AnswerValue>
         {
             [depthQuestion1] = AnswerValue.StronglyAgree,
             [depthQuestion2] = AnswerValue.StronglyAgree,
@@ -156,24 +154,24 @@ public class PersonalityTestServiceTests
         var saved = await personalityTestRepository.GetByUserIdAsync(userId);
         Assert.Equal(selectedRole, saved!.SelectedRole);
     }
-    
+
     [Fact]
     public async Task SaveResultAsync_ResultAlreadyExistsForUser_UpdatesExistingResultKeepingId()
     {
+        var userId = 1;
         personalityTestRepository.Seed(new PersonalityTestResult
         {
             PersonalityTestResultId = 7,
-            User = new User { UserId = 1 },
+            User = new User { UserId = userId },
             SelectedRole = JobRole.FrontendDeveloper,
         });
-        var question = new Question { Trait = TraitType.Depth, SortOrder = 1 };
-        var answers = new Dictionary<Question, AnswerValue> { [question] = AnswerValue.StronglyAgree };
+        var question = new PersonalityQuestion { Trait = TraitType.Depth, SortOrder = 1 };
+        var answers = new Dictionary<PersonalityQuestion, AnswerValue> { [question] = AnswerValue.StronglyAgree };
 
-        await service.SaveResultAsync(1, answers, JobRole.BackendDeveloper);
+        await service.SaveResultAsync(userId, answers, JobRole.BackendDeveloper);
 
-        var saved = await personalityTestRepository.GetByUserIdAsync(1);
+        var saved = await personalityTestRepository.GetByUserIdAsync(userId);
         Assert.Equal(7, saved!.PersonalityTestResultId);
         Assert.Equal(JobRole.BackendDeveloper, saved.SelectedRole);
     }
-    */
 }

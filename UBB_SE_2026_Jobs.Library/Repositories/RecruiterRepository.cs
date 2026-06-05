@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using UBB_SE_2026_Jobs.Library.Persistence;
+using UBB_SE_2026_Jobs.Library.Domain;
 
 namespace UBB_SE_2026_Jobs.Library.Repositories;
 
@@ -37,5 +38,11 @@ public class RecruiterRepository : IRecruiterRepository
             .Select(recruiter => (int?)recruiter.CompanyId)
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    public async Task AddAsync(Recruiter recruiter, CancellationToken cancellationToken = default)
+    {
+        databaseContext.Recruiters.Add(recruiter);
+        await databaseContext.SaveChangesAsync(cancellationToken);
     }
 }

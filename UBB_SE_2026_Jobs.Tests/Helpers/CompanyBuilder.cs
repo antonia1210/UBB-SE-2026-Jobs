@@ -37,7 +37,7 @@ public class CompanyBuilder
     public Company Build() => new()
     {
         CompanyId = companyId,
-        CompanyName = companyName,
+        Name = companyName,
         LogoText = logoText,
         Email = email,
         Phone = phone,

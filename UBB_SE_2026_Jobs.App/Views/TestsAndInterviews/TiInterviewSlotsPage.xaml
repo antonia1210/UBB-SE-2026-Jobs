@@ -3,11 +3,18 @@
     x:Class="UBB_SE_2026_Jobs.App.Views.TestsAndInterviews.TiInterviewSlotsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:dtos="using:UBB_SE_2026_Jobs.App.Dtos.TI"
+    xmlns:dtos="using:UBB_SE_2026_Jobs.Library.DTOs"
+    xmlns:appDtos="using:UBB_SE_2026_Jobs.App.Dtos.TI"
+    xmlns:converters="using:UBB_SE_2026_Jobs.App.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+    </Page.Resources>
 
     <Grid Padding="24">
         <Grid.RowDefinitions>
@@ -17,11 +24,22 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,12">
-            <TextBlock Text="Interview Slots" FontSize="24" FontWeight="Bold"/>
-            <TextBlock Text="Browse available slots and view your upcoming bookings."
-                       FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,4,0,0"/>
-        </StackPanel>
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Book an Interview" FontSize="24" FontWeight="Bold"/>
+                <TextBlock Text="Select a job you applied to, then pick an available slot."
+                           FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            </StackPanel>
+            <Button Grid.Column="1"
+                    x:Name="ViewBookedInterviewsButton"
+                    Content="My Interviews"
+                    VerticalAlignment="Center"
+                    Click="ViewBookedInterviews_Click"/>
+        </Grid>
 
         <!-- Status message -->
         <TextBlock Grid.Row="1"
@@ -30,51 +48,64 @@
                    Visibility="{x:Bind ViewModel.StatusMessage, Mode=OneWay,
                        Converter={StaticResource StringToVisibilityConverter}}"/>
 
-        <!-- Main two-column layout -->
+        <!-- Main two-column layout: Applications (left) and Slots (right) -->
         <Grid Grid.Row="2" ColumnSpacing="24">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="350"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left: calendar + my bookings -->
-            <StackPanel Grid.Column="0" Spacing="16">
-                <CalendarView x:Name="slotsCalendar"
-                              SelectionMode="Single"
-                              HorizontalAlignment="Stretch"
-                              SelectedDatesChanged="Calendar_SelectedDatesChanged"
-                              CalendarViewDayItemChanging="Calendar_DayItemChanging"/>
+            <!-- Left: Applications List -->
+            <StackPanel Grid.Column="0" Spacing="12">
+                <TextBlock Text="YOUR APPLICATIONS" FontSize="12" FontWeight="SemiBold"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
 
-                <TextBlock Text="My Upcoming Bookings" FontSize="16" FontWeight="SemiBold"/>
-
-                <TextBlock Text="No bookings yet."
+                <!-- No applications message -->
+                <TextBlock Text="You have no active applications yet."
                            FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                           Visibility="{x:Bind ViewModel.NoBookings, Mode=OneWay,
+                           Visibility="{x:Bind ViewModel.NoApplications, Mode=OneWay,
                                Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto">
-                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.MyBookings, Mode=OneWay}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Visibility="{x:Bind ViewModel.NoApplications, Mode=OneWay,
+                                  Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
+                    <ItemsRepeater ItemsSource="{x:Bind ViewModel.Applications, Mode=OneWay}">
                         <ItemsRepeater.ItemTemplate>
-                            <DataTemplate x:DataType="dtos:TiSlotDto">
-                                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            <DataTemplate x:DataType="appDtos:TiApplicationDto">
+                                <Border x:Name="AppCard"
+                                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                        BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,8">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <Border Grid.Column="0" Background="#8494FF" CornerRadius="6"
-                                                Padding="8,6" Margin="0,0,10,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{x:Bind DisplayDate}" Foreground="White"
-                                                       FontSize="11" FontWeight="SemiBold" TextAlignment="Center"/>
-                                        </Border>
-                                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                            <TextBlock Text="{x:Bind TimeRange}" FontSize="13" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{x:Bind InterviewType}"
-                                                       FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        BorderThickness="2" CornerRadius="10" Padding="12" Margin="0,0,0,8"
+                                        PointerEntered="AppCard_PointerEntered"
+                                        PointerExited="AppCard_PointerExited"
+                                        Tag="{x:Bind}"
+                                        Tapped="ApplicationCard_Click">
+                                    <StackPanel Spacing="6">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{x:Bind CompanyName}"
+                                                       FontSize="13" FontWeight="SemiBold"/>
+                                            <Border Grid.Column="1" Background="#8494FF" CornerRadius="4"
+                                                    Padding="6,2" VerticalAlignment="Center">
+                                                <TextBlock Text="{x:Bind Status}" Foreground="White"
+                                                           FontSize="10" FontWeight="SemiBold"/>
+                                            </Border>
+                                        </Grid>
+                                        <TextBlock Text="{x:Bind TruncatedDescription}"
+                                                   FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextWrapping="WrapWholeWords"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <TextBlock Text="{x:Bind FormattedDate}"
+                                                       FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                            <TextBlock Text="•"
+                                                       FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
+                                            <TextBlock Text="{x:Bind FormattedScore}"
+                                                       FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}"/>
                                         </StackPanel>
-                                    </Grid>
+                                    </StackPanel>
                                 </Border>
                             </DataTemplate>
                         </ItemsRepeater.ItemTemplate>
@@ -82,44 +113,78 @@
                 </ScrollViewer>
             </StackPanel>
 
-            <!-- Right: available slots for selected date -->
-            <StackPanel Grid.Column="1" Spacing="12">
-                <TextBlock Text="{x:Bind ViewModel.SelectedDateLabel, Mode=OneWay}"
-                           FontSize="18" FontWeight="SemiBold"/>
+            <!-- Right: Available Slots -->
+            <StackPanel Grid.Column="1" Spacing="16">
+                <!-- No selection message - show if no application selected -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="10" Padding="20"
+                        Visibility="{x:Bind ViewModel.NoApplications, Mode=OneWay,
+                            Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="Select a job to see available interview slots."
+                               FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextAlignment="Center"/>
+                </Border>
 
+                <!-- Selected application info and date picker -->
+                <Grid Visibility="{x:Bind ViewModel.NoApplications, Mode=OneWay,
+                          Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="{x:Bind ViewModel.SelectedApplication.CompanyName, Mode=OneWay, FallbackValue='Select a job'}"
+                                   FontSize="16" FontWeight="SemiBold"/>
+                        <TextBlock Text="{x:Bind ViewModel.SelectedDateLabel, Mode=OneWay}"
+                                   FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                    </StackPanel>
+                    <CalendarDatePicker Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       DateChanged="DatePicker_DateChanged"/>
+                </Grid>
+
+                <!-- Loading indicator -->
                 <ProgressRing IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                              Width="36" Height="36" HorizontalAlignment="Left"/>
+                              Width="40" Height="40" HorizontalAlignment="Left"/>
 
-                <TextBlock Text="No available slots for this date."
-                           FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                           Visibility="{x:Bind ViewModel.NoAvailableSlots, Mode=OneWay,
-                               Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <!-- No slots message -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="10" Padding="20"
+                        Visibility="{x:Bind ViewModel.NoAvailableSlots, Mode=OneWay,
+                            Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="No available slots for this date."
+                               FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextAlignment="Center"/>
+                </Border>
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <!-- Available slots grid -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Visibility="{x:Bind ViewModel.NoAvailableSlots, Mode=OneWay,
+                                  Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Inverse}">
                     <ItemsRepeater ItemsSource="{x:Bind ViewModel.AvailableSlots, Mode=OneWay}">
                         <ItemsRepeater.Layout>
-                            <UniformGridLayout MinItemWidth="260" MinColumnSpacing="16" MinRowSpacing="16"/>
+                            <UniformGridLayout MinItemWidth="240" MinColumnSpacing="16" MinRowSpacing="16"/>
                         </ItemsRepeater.Layout>
                         <ItemsRepeater.ItemTemplate>
-                            <DataTemplate x:DataType="dtos:TiSlotDto">
+                            <DataTemplate x:DataType="appDtos:TiSlotDto">
                                 <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                        BorderThickness="1" CornerRadius="12" Padding="20">
+                                        BorderThickness="1" CornerRadius="12" Padding="16">
                                     <StackPanel Spacing="12">
-                                        <Border Background="#8494FF" CornerRadius="20" Padding="12,6"
+                                        <Border Background="#8494FF" CornerRadius="20" Padding="10,4"
                                                 HorizontalAlignment="Left">
                                             <TextBlock Text="{x:Bind InterviewType}" Foreground="White"
-                                                       FontSize="12" FontWeight="SemiBold"/>
+                                                       FontSize="11" FontWeight="SemiBold"/>
                                         </Border>
-                                        <TextBlock Text="{x:Bind TimeRange}" FontSize="18" FontWeight="SemiBold"/>
-                                        <TextBlock FontSize="13">
+                                        <TextBlock Text="{x:Bind TimeRange}" FontSize="16" FontWeight="SemiBold"/>
+                                        <TextBlock FontSize="12">
                                             <Run Text="Duration: "/>
                                             <Run Text="{x:Bind Duration}"/>
                                             <Run Text=" min"/>
                                         </TextBlock>
                                         <Button Content="Book This Slot" Tag="{x:Bind}" Click="BookSlot_Click"
                                                 Background="#8494FF" Foreground="White"
-                                                HorizontalAlignment="Stretch" CornerRadius="8" Padding="0,10"/>
+                                                HorizontalAlignment="Stretch" CornerRadius="8" Padding="0,8"/>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>

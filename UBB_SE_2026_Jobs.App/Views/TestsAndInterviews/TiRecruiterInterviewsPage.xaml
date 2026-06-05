@@ -15,11 +15,22 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="Interview Management" FontSize="24" FontWeight="Bold"/>
-            <TextBlock Text="View and manage your interview slots and pending reviews."
-                       FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,4,0,0"/>
-        </StackPanel>
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Spacing="4">
+                <TextBlock Text="Interview Management" FontSize="24" FontWeight="Bold"/>
+                <TextBlock Text="View and manage your interview slots and pending reviews."
+                           FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+            </StackPanel>
+            <Button Grid.Column="1"
+                    x:Name="ManageSlotsButton"
+                    Content="Manage Slots"
+                    VerticalAlignment="Center"
+                    Click="ManageSlots_Click"/>
+        </Grid>
 
         <Grid Grid.Row="1" ColumnSpacing="24">
             <Grid.ColumnDefinitions>
