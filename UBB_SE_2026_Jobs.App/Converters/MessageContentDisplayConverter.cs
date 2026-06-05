@@ -28,9 +28,7 @@ public class MessageContentDisplayConverter : IValueConverter
             return message.Content;
         }
 
-        return message.Type == MessageType.Image
-            ? $"IMG {displayName}"
-            : $"FILE {displayName}";
+        return displayName;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, string language)

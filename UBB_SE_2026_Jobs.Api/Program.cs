@@ -91,6 +91,7 @@ builder.Services.AddDbContext<JobsDbContext>(options =>
 
 // PussyCats Repositories (Renamed)
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IRecruiterRepository, RecruiterRepository>();
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPussyCatsJobRepository, PussyCatsJobRepository>();
