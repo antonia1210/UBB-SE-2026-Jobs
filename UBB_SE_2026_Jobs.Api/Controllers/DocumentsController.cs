@@ -17,6 +17,10 @@ public class DocumentsController : ControllerBase
     private readonly ILocalDocumentFileService documentFiles;
     private readonly IUserService users;
 
+    private const int MinimumValidUserId = 1;
+    private const int DefaultUserId = 1;
+    private const int NewDocumentId = 0;
+
     public DocumentsController(
         IDocumentService documents,
         ILocalDocumentFileService documentFiles,
@@ -47,8 +51,7 @@ public class DocumentsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Add([FromBody] DocumentAddRequest body, CancellationToken cancellationToken)
     {
-        const int mockUserId = 1;
-        int resolvedUserId = body.UserId > 0 ? body.UserId : mockUserId;
+        int resolvedUserId = body.UserId >= MinimumValidUserId  ? body.UserId : DefaultUserId;
 
         var user = await users.GetByIdAsync(resolvedUserId, cancellationToken);
         if (user is null)
@@ -60,7 +63,7 @@ public class DocumentsController : ControllerBase
             DocumentName = body.DocumentName,
             FilePath = body.FilePath,
         };
-        document.DocumentId = 0;
+        document.DocumentId = NewDocumentId;
         var saved = await documents.AddAsync(document, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = saved.DocumentId }, saved);
     }

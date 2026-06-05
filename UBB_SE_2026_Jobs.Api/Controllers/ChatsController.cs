@@ -73,7 +73,7 @@ public class ChatsController : ControllerBase
         }
         catch (UnauthorizedAccessException unauthorizedException)
         {
-            return Problem(detail: unauthorizedException.Message, statusCode: 403);
+            return Problem(detail: unauthorizedException.Message, statusCode: StatusCodes.Status403Forbidden);
         }
     }
 
@@ -95,7 +95,7 @@ public class ChatsController : ControllerBase
         }
         catch (InvalidOperationException invalidOperationException)
         {
-            return Problem(detail: invalidOperationException.Message, statusCode: 422);
+            return Problem(detail: invalidOperationException.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
         }
     }
 
@@ -113,7 +113,7 @@ public class ChatsController : ControllerBase
         }
         catch (InvalidOperationException invalidOperationException)
         {
-            return Problem(detail: invalidOperationException.Message, statusCode: 422);
+            return Problem(detail: invalidOperationException.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
         }
     }
 
@@ -152,7 +152,7 @@ public class ChatsController : ControllerBase
         }
         catch (UnauthorizedAccessException unauthorizedException)
         {
-            return Problem(detail: unauthorizedException.Message, statusCode: 403);
+            return Problem(detail: unauthorizedException.Message, statusCode: StatusCodes.Status403Forbidden);
         }
     }
 
