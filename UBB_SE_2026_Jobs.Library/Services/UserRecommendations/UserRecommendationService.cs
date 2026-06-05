@@ -5,19 +5,25 @@ using UBB_SE_2026_Jobs.Library.Repositories.Jobs;
 using UBB_SE_2026_Jobs.Library.Repositories.Recommendations;
 using UBB_SE_2026_Jobs.Library.Repositories.Skills;
 using UBB_SE_2026_Jobs.Library.Repositories.Users;
-using UBB_SE_2026_Jobs.Library.Services.Matches;
 using UBB_SE_2026_Jobs.Library.Services.CooldownService;
+using UBB_SE_2026_Jobs.Library.Services.Matches;
 using UBB_SE_2026_Jobs.Library.Services.RecommendationAlgorithm;
+using UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
 
-namespace UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
+namespace UBB_SE_2026_Jobs.Library.Services.UserRecommendations;
 
 public sealed class UserRecommendationService : IUserRecommendationService
 {
+    private const int InternshipYearsThreshold = 2;
+    private const int EntryYearsThreshold = 4;
+    private const int MidSeniorYearsThreshold = 7;
+    private const int DirectorYearsThreshold = 10;
+
     private readonly IUserRepository userRepository;
-    private readonly IPussyCatsJobRepository PussyCatsJobRepository;
+    private readonly IPussyCatsJobRepository jobRepository;
     private readonly IUserSkillRepository userSkillRepository;
     private readonly IJobSkillRepository jobSkillRepository;
-    private readonly IPussyCatsCompanyRepository PussyCatsCompanyRepository;
+    private readonly IPussyCatsCompanyRepository companyRepository;
     private readonly IMatchService matchService;
     private readonly IRecommendationRepository recommendationRepository;
     private readonly ICooldownService cooldownService;
@@ -25,20 +31,20 @@ public sealed class UserRecommendationService : IUserRecommendationService
 
     public UserRecommendationService(
         IUserRepository userRepository,
-        IPussyCatsJobRepository PussyCatsJobRepository,
+        IPussyCatsJobRepository jobRepository,
         IUserSkillRepository userSkillRepository,
         IJobSkillRepository jobSkillRepository,
-        IPussyCatsCompanyRepository PussyCatsCompanyRepository,
+        IPussyCatsCompanyRepository companyRepository,
         IMatchService matchService,
         IRecommendationRepository recommendationRepository,
         ICooldownService cooldownService,
         IRecommendationAlgorithm algorithm)
     {
         this.userRepository = userRepository;
-        this.PussyCatsJobRepository = PussyCatsJobRepository;
+        this.jobRepository = jobRepository;
         this.userSkillRepository = userSkillRepository;
         this.jobSkillRepository = jobSkillRepository;
-        this.PussyCatsCompanyRepository = PussyCatsCompanyRepository;
+        this.companyRepository = companyRepository;
         this.matchService = matchService;
         this.recommendationRepository = recommendationRepository;
         this.cooldownService = cooldownService;
@@ -50,14 +56,14 @@ public sealed class UserRecommendationService : IUserRecommendationService
         var user = await userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false)
             ?? throw new InvalidOperationException("User not found.");
 
-        var ranked = await BuildRankedListAsync(user, filters, cancellationToken).ConfigureAwait(false);
-        if (ranked.Count == 0)
+        var rankedJobs = await BuildRankedListAsync(user, filters, cancellationToken).ConfigureAwait(false);
+        if (rankedJobs.Count == 0)
         {
             return null;
         }
 
-        var (topRankedJob, score) = ranked[0];
-        return await CreateCardAsync(topRankedJob, score, null, cancellationToken).ConfigureAwait(false);
+        var (topRankedJob, topScore) = rankedJobs[0];
+        return await CreateCardAsync(topRankedJob, topScore, null, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<JobRecommendationResult?> RecalculateTopCardIgnoringCooldownAsync(int userId, UserMatchmakingFilters filters, CancellationToken cancellationToken = default)
@@ -65,35 +71,35 @@ public sealed class UserRecommendationService : IUserRecommendationService
         var user = await userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false)
             ?? throw new InvalidOperationException("User not found.");
 
-        var ranked = await BuildRankedListIgnoringCooldownAsync(user, filters, cancellationToken).ConfigureAwait(false);
-        if (ranked.Count == 0)
+        var rankedJobs = await BuildRankedListIgnoringCooldownAsync(user, filters, cancellationToken).ConfigureAwait(false);
+        if (rankedJobs.Count == 0)
         {
             return null;
         }
 
-        var best = ranked[0];
-        return await CreateCardAsync(best.Job, best.Score, null, cancellationToken).ConfigureAwait(false);
+        var bestRankedJob = rankedJobs[0];
+        return await CreateCardAsync(bestRankedJob.Job, bestRankedJob.Score, null, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<List<(Job Job, double Score)>> BuildRankedListIgnoringCooldownAsync(User user, UserMatchmakingFilters filters, CancellationToken cancellationToken)
     {
-        var jobs = await GetFilteredJobsAsync(filters, user, cancellationToken).ConfigureAwait(false);
+        var filteredJobs = await GetFilteredJobsAsync(filters, user, cancellationToken).ConfigureAwait(false);
         var userSkills = await userSkillRepository.GetByUserIdAsync(user.UserId, cancellationToken).ConfigureAwait(false);
 
-        var ranked = new List<(Job Job, double Score)>();
-        foreach (var currentJob in jobs)
+        var rankedJobs = new List<(Job Job, double Score)>();
+        foreach (var currentJob in filteredJobs)
         {
             if (await matchService.GetByUserIdAndJobIdAsync(user.UserId, currentJob.JobId, cancellationToken).ConfigureAwait(false) is not null)
             {
                 continue;
             }
 
-            var score = await ComputeCompatibilityScoreAsync(user, currentJob, userSkills, cancellationToken).ConfigureAwait(false);
-            ranked.Add((currentJob, score));
+            var compatibilityScore = await ComputeCompatibilityScoreAsync(user, currentJob, userSkills, cancellationToken).ConfigureAwait(false);
+            rankedJobs.Add((currentJob, compatibilityScore));
         }
 
-        ranked.Sort(CompareRankedJobsByScoreDescending);
-        return ranked;
+        rankedJobs.Sort(CompareRankedJobsByScoreDescending);
+        return rankedJobs;
     }
 
     private async Task<double> ComputeCompatibilityScoreAsync(User user, Job job, IReadOnlyList<UserSkill> userSkills, CancellationToken cancellationToken)
@@ -104,11 +110,11 @@ public sealed class UserRecommendationService : IUserRecommendationService
 
     private async Task<List<(Job Job, double Score)>> BuildRankedListAsync(User user, UserMatchmakingFilters filters, CancellationToken cancellationToken)
     {
-        var jobs = await GetFilteredJobsAsync(filters, user, cancellationToken).ConfigureAwait(false);
+        var filteredJobs = await GetFilteredJobsAsync(filters, user, cancellationToken).ConfigureAwait(false);
         var userSkills = await userSkillRepository.GetByUserIdAsync(user.UserId, cancellationToken).ConfigureAwait(false);
 
-        var ranked = new List<(Job Job, double Score)>();
-        foreach (var currentJob in jobs)
+        var rankedJobs = new List<(Job Job, double Score)>();
+        foreach (var currentJob in filteredJobs)
         {
             if (await matchService.GetByUserIdAndJobIdAsync(user.UserId, currentJob.JobId, cancellationToken).ConfigureAwait(false) is not null)
             {
@@ -120,12 +126,12 @@ public sealed class UserRecommendationService : IUserRecommendationService
                 continue;
             }
 
-            var score = await ComputeCompatibilityScoreAsync(user, currentJob, userSkills, cancellationToken).ConfigureAwait(false);
-            ranked.Add((currentJob, score));
+            var compatibilityScore = await ComputeCompatibilityScoreAsync(user, currentJob, userSkills, cancellationToken).ConfigureAwait(false);
+            rankedJobs.Add((currentJob, compatibilityScore));
         }
 
-        ranked.Sort(CompareRankedJobsByScoreDescending);
-        return ranked;
+        rankedJobs.Sort(CompareRankedJobsByScoreDescending);
+        return rankedJobs;
     }
 
     private async Task<JobRecommendationResult> BuildCardWithShownRecordAsync(User user, Job job, double score, CancellationToken cancellationToken)
@@ -137,13 +143,13 @@ public sealed class UserRecommendationService : IUserRecommendationService
             Timestamp = DateTime.UtcNow,
         };
 
-        var saved = await recommendationRepository.AddAsync(displayRecommendation, cancellationToken).ConfigureAwait(false);
-        return await CreateCardAsync(job, score, saved.RecommendationId, cancellationToken).ConfigureAwait(false);
+        var savedRecommendation = await recommendationRepository.AddAsync(displayRecommendation, cancellationToken).ConfigureAwait(false);
+        return await CreateCardAsync(job, score, savedRecommendation.RecommendationId, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<JobRecommendationResult> CreateCardAsync(Job job, double score, int? displayRecommendationId, CancellationToken cancellationToken)
     {
-        var company = await PussyCatsCompanyRepository.GetByIdAsync(job.Company.CompanyId, cancellationToken).ConfigureAwait(false)
+        var company = await companyRepository.GetByIdAsync(job.Company.CompanyId, cancellationToken).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Company {job.Company.CompanyId} not found.");
 
         var jobSkillRows = await jobSkillRepository.GetByJobIdAsync(job.JobId, cancellationToken).ConfigureAwait(false);
@@ -189,8 +195,8 @@ public sealed class UserRecommendationService : IUserRecommendationService
             Timestamp = DateTime.UtcNow,
         };
 
-        var saved = await recommendationRepository.AddAsync(dismissedRecommendation, cancellationToken).ConfigureAwait(false);
-        return saved.RecommendationId;
+        var savedRecommendation = await recommendationRepository.AddAsync(dismissedRecommendation, cancellationToken).ConfigureAwait(false);
+        return savedRecommendation.RecommendationId;
     }
 
     public async Task UndoLikeAsync(int matchId, int? displayRecommendationId, CancellationToken cancellationToken = default)
@@ -259,16 +265,12 @@ public sealed class UserRecommendationService : IUserRecommendationService
 
     public static string MapUserYearsToExperienceBucket(int yearsOfExperience)
     {
-        const int InternshipThreshold = 2;
-        const int EntryThreshold = 4;
-        const int MidSeniorThreshold = 7;
-        const int DirectorThreshold = 10;
         return yearsOfExperience switch
         {
-            < InternshipThreshold => "Internship",
-            < EntryThreshold => "Entry",
-            < MidSeniorThreshold => "MidSenior",
-            < DirectorThreshold => "Director",
+            < InternshipYearsThreshold => "Internship",
+            < EntryYearsThreshold => "Entry",
+            < MidSeniorYearsThreshold => "MidSenior",
+            < DirectorYearsThreshold => "Director",
             _ => "Executive",
         };
     }
@@ -276,7 +278,7 @@ public sealed class UserRecommendationService : IUserRecommendationService
     private async Task<List<Job>> GetFilteredJobsAsync(UserMatchmakingFilters filters, User user, CancellationToken cancellationToken)
     {
         var filteredJobs = new List<Job>();
-        foreach (var job in await PussyCatsJobRepository.GetAllAsync(cancellationToken).ConfigureAwait(false))
+        foreach (var job in await jobRepository.GetAllAsync(cancellationToken).ConfigureAwait(false))
         {
             if (await PassesFiltersAsync(job, filters, user, cancellationToken).ConfigureAwait(false))
             {
