@@ -42,9 +42,9 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 
                 return Ok(session.ToDto(Request));
             }
-            catch (KeyNotFoundException e)
+            catch (KeyNotFoundException error)
             {
-                return NotFound(e.Message);
+                return NotFound(error.Message);
             }
         }
 
@@ -73,9 +73,9 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 
                 return Ok(updated.ToDto(Request));
             }
-            catch (KeyNotFoundException e)
+            catch (KeyNotFoundException error)
             {
-                return NotFound(e.Message);
+                return NotFound(error.Message);
             }
         }
 
@@ -93,9 +93,9 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 
                 return BadRequest();
             }
-            catch (KeyNotFoundException e)
+            catch (KeyNotFoundException error)
             {
-                return NotFound(e.Message);
+                return NotFound(error.Message);
             }
         }
 
@@ -112,9 +112,9 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
                 InterviewSession session = await this._service.UploadVideoAsync(sessionId, video.File);
 
                 return Ok(session.ToDto(Request));
-            } catch (KeyNotFoundException e)
+            } catch (KeyNotFoundException error)
             {
-                return NotFound(e.Message);
+                return NotFound(error.Message);
             }
         }
 
@@ -127,9 +127,9 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 
                 return File(videoBytes, contentType);
             }
-            catch (KeyNotFoundException e)
+            catch (KeyNotFoundException error)
             {
-                return NotFound(e.Message);
+                return NotFound(error.Message);
             }
         }
     }

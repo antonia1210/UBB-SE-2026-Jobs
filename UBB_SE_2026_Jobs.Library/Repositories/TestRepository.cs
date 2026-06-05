@@ -32,7 +32,7 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of all tests. The list is
         /// empty if no tests are found.</returns>
-        public async Task<List<Test>> GetTestsAsync()
+        public async Task<List<Test>> GetTestsASync()
         {
             return await this.databaseContext.Tests.ToListAsync();
         }
@@ -123,5 +123,7 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
             this.databaseContext.Tests.Remove(existingTest);
             await this.databaseContext.SaveChangesAsync();
         }
+
+        
     }
 }

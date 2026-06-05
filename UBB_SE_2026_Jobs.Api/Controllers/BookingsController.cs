@@ -38,13 +38,13 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
                 await this._bookingService.ConfirmBookingAsync(slotId, candidateId, jobId);
                 return Ok();
             }
-            catch (KeyNotFoundException e)
+            catch (KeyNotFoundException error)
             {
-                return NotFound(e.Message);
+                return NotFound(error.Message);
             }
-            catch (InvalidOperationException e)
+            catch (InvalidOperationException error)
             {
-                return Conflict(e.Message);
+                return Conflict(error.Message);
             }
         }
     }
