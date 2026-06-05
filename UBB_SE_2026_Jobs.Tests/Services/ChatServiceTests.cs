@@ -545,6 +545,10 @@ public class ChatServiceTests
         };
         chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
 
+        // Ensure the user service contains the company representative so GetUserAsync won't throw.
+        userService.GetAllAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<User>>(new List<User> { new User { UserId = 999 } }));
+
         await chatService.BlockChatAsync(chatId: 1, blockerId: 999, companyId: 100);
 
         Assert.True(chat.IsBlocked);
