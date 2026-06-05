@@ -1,214 +1,140 @@
-﻿/*using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Tests_and_Interviews.Validators;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
+﻿using System;
+using System.Collections.Generic;
+using Xunit;
+using UBB_SE_2026_Jobs.Library.Validators;
 
-namespace PussyCats.Tests.Validators
+namespace UBB_SE_2026_Jobs.Tests.Validators
 {
-    [TestClass]
     public class PaymentValidatorTests
     {
-        private const string ValidName = "John Doe";
-        private const string WhitespaceInput = "   ";
+        
 
-        private const string ValidCard = "123456789012345";
-        private const string ShortCard = "123";
-
-        private const string ValidExp = "12/99";
-        private const string ExpNoSlash = "1299";
-        private const string ExpInvalidChars = "ab/cd";
-        private const string ExpMissingYear = "12/";
-        private const string ExpMonthLow = "00/99";
-        private const string ExpMonthHigh = "13/99";
-
+        private const string ValidCardHolderName = "John Doe";
+        private const string ValidCardNumber = "123456789012345";
+        private const string ValidExpirationDate = "12/99";
         private const string ValidCvv = "123";
-        private const string ShortCvvValue = "12";
+        private const string ExpirationDateNonNumericMonth = "AB/99";
+        private const string ExpirationDateNonNumericYear = "12/YY";
+        private const string ExpirationDateMonthZero = "00/99";
+        private const string ExpirationDateMonthThirteen = "13/99";
+        private const string ExpirationDateExpired = "01/00";
 
-        private const string ErrNameRequired = "Card Holder Name is required.";
-        private const string ErrCardInvalid = "Please enter a valid Card Number.";
-        private const string ErrExpFormat = "Expiration Date must be in MM/YY format.";
-        private const string ErrExpNumbers = "Expiration Date must contain valid numbers (MM/YY).";
-        private const string ErrExpMonthRange = "Invalid expiration month. Must be between 01 and 12.";
-        private const string ErrCvvInvalid = "Please enter a valid CVV.";
-        private const string ErrExpired = "This card has expired. Please use a valid card.";
+        private const string ExpirationDateWithoutSeparator = "1299";
 
-        private const string FormatTwoDigits = "00";
-        private const string SlashSeparator = "/";
-        private const int MonthJanuary = 1;
-        private const int MonthDecember = 12;
-        private const int OffsetOne = 1;
-        private const int YearBase2000 = 2000;
 
-        private PaymentValidator validator = null!;
+        private const string ErrorCardHolderNameRequired = "Card Holder Name is required.";
+        private const string ErrorCardNumberInvalid = "Please enter a valid Card Number.";
+        private const string ErrorExpirationDateFormat = "Expiration Date must be in MM/YY format.";
+        private const string ErrorCvvInvalid = "Please enter a valid CVV.";
+        private const string ErrorExpirationDateInvalidNumbers = "Expiration Date must contain valid numbers (MM/YY).";
+        private const string ErrorExpirationMonthInvalid = "Invalid expiration month. Must be between 01 and 12.";
+        private const string ErrorCardExpired = "This card has expired. Please use a valid card.";
+        private const string NoError = "";
 
-        [TestInitialize]
-        public void Setup()
+        private const int CardNumberValidLength = 15;
+        private const int CardVerificationValueValidLength = 3;
+        private const char FillerCardNumber = '1';
+
+        private readonly IPaymentValidator paymentValidator;
+        public PaymentValidatorTests()
         {
-            validator = new PaymentValidator();
+            paymentValidator = new PaymentValidator();
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_EmptyName_ReturnsError()
-        {
-            var result = validator.ValidatePaymentDetails(string.Empty, ValidCard, ValidExp, ValidCvv);
 
-            Assert.AreEqual(ErrNameRequired, result);
+        [Fact]
+        public void ValidatePaymentDetails_NullCardHolderName_ReturnsError()
+        {
+            var result = paymentValidator.ValidatePaymentDetails(null, ValidCardNumber, ValidExpirationDate, ValidCvv);
+            Assert.Equal(ErrorCardHolderNameRequired, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_WhitespaceName_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_WhitespaceCardHolderName_ReturnsError()
         {
-            var result = validator.ValidatePaymentDetails(WhitespaceInput, ValidCard, ValidExp, ValidCvv);
-
-            Assert.AreEqual(ErrNameRequired, result);
+            var result = paymentValidator.ValidatePaymentDetails("   ", ValidCardNumber, ValidExpirationDate, ValidCvv);
+            Assert.Equal(ErrorCardHolderNameRequired, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_EmptyCardNumber_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_CardNumberTooShort_ReturnsError()
         {
-            var result = validator.ValidatePaymentDetails(ValidName, string.Empty, ValidExp, ValidCvv);
-
-            Assert.AreEqual(ErrCardInvalid, result);
+            var shortCardNumber = new string(FillerCardNumber, CardNumberValidLength - 1);
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, shortCardNumber, ValidExpirationDate, ValidCvv);
+            Assert.Equal(ErrorCardNumberInvalid, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_WhitespaceCardNumber_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_NullExpirationDate_ReturnsError()
         {
-            var result = validator.ValidatePaymentDetails(ValidName, WhitespaceInput, ValidExp, ValidCvv);
-
-            Assert.AreEqual(ErrCardInvalid, result);
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, null, ValidCvv);
+            Assert.Equal(ErrorExpirationDateFormat, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_ShortCardNumber_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_ExpirationDateWithoutSeparator_ReturnsError()
         {
-            var result = validator.ValidatePaymentDetails(ValidName, ShortCard, ValidExp, ValidCvv);
-
-            Assert.AreEqual(ErrCardInvalid, result);
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, ExpirationDateWithoutSeparator, ValidCvv);
+            Assert.Equal(ErrorExpirationDateFormat, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_EmptyExpirationDate_ReturnsError()
-        {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, string.Empty, ValidCvv);
 
-            Assert.AreEqual(ErrExpFormat, result);
+        [Fact]
+        public void ValidatePaymentDetails_NullCvv_ReturnsError()
+        {
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, ValidExpirationDate, null);
+            Assert.Equal(ErrorCvvInvalid, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_WhitespaceExpirationDate_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_CvvTooShort_ReturnsError()
         {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, WhitespaceInput, ValidCvv);
-
-            Assert.AreEqual(ErrExpFormat, result);
+            var shortCvv = new string(FillerCardNumber, CardVerificationValueValidLength - 1);
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, ValidExpirationDate, shortCvv);
+            Assert.Equal(ErrorCvvInvalid, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_ExpirationWithoutSlash_ReturnsError()
-        {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, ExpNoSlash, ValidCvv);
 
-            Assert.AreEqual(ErrExpFormat, result);
+        [Fact]
+        public void ValidatePaymentDetails_ExpirationDateNonNumericMonth_ReturnsError()
+        {
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, ExpirationDateNonNumericMonth, ValidCvv);
+            Assert.Equal(ErrorExpirationDateInvalidNumbers, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_ExpirationWithInvalidNumbers_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_ExpirationDateNonNumericYear_ReturnsError()
         {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, ExpInvalidChars, ValidCvv);
-
-            Assert.AreEqual(ErrExpNumbers, result);
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, ExpirationDateNonNumericYear, ValidCvv);
+            Assert.Equal(ErrorExpirationDateInvalidNumbers, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_ExpirationWithMissingYearPart_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_ExpirationMonthZero_ReturnsError()
         {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, ExpMissingYear, ValidCvv);
-
-            Assert.AreEqual(ErrExpNumbers, result);
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, ExpirationDateMonthZero, ValidCvv);
+            Assert.Equal(ErrorExpirationMonthInvalid, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_MonthBelowRange_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_ExpirationMonthThirteen_ReturnsError()
         {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, ExpMonthLow, ValidCvv);
-
-            Assert.AreEqual(ErrExpMonthRange, result);
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, ExpirationDateMonthThirteen, ValidCvv);
+            Assert.Equal(ErrorExpirationMonthInvalid, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_MonthAboveRange_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_ExpiredCard_ReturnsError()
         {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, ExpMonthHigh, ValidCvv);
-
-            Assert.AreEqual(ErrExpMonthRange, result);
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, ExpirationDateExpired, ValidCvv);
+            Assert.Equal(ErrorCardExpired, result);
         }
 
-        [TestMethod]
-        public void ValidatePaymentDetails_EmptyCvv_ReturnsError()
+        [Fact]
+        public void ValidatePaymentDetails_AllValidDetails_ReturnsEmptyString()
         {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, ValidExp, string.Empty);
-
-            Assert.AreEqual(ErrCvvInvalid, result);
-        }
-
-        [TestMethod]
-        public void ValidatePaymentDetails_WhitespaceCvv_ReturnsError()
-        {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, ValidExp, WhitespaceInput);
-
-            Assert.AreEqual(ErrCvvInvalid, result);
-        }
-
-        [TestMethod]
-        public void ValidatePaymentDetails_ShortCvv_ReturnsError()
-        {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, ValidExp, ShortCvvValue);
-
-            Assert.AreEqual(ErrCvvInvalid, result);
-        }
-
-        [TestMethod]
-        public void ValidatePaymentDetails_PreviousMonthInCurrentYear_ReturnsExpiredError()
-        {
-            var today = DateTime.Now;
-            var previousMonth = today.Month == MonthJanuary ? MonthDecember : today.Month - OffsetOne;
-            var year = today.Month == MonthJanuary ? today.Year - OffsetOne : today.Year;
-            var yy = (year - YearBase2000).ToString(FormatTwoDigits);
-            var exp = $"{previousMonth.ToString(FormatTwoDigits)}{SlashSeparator}{yy}";
-
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, exp, ValidCvv);
-
-            Assert.AreEqual(ErrExpired, result);
-        }
-
-        [TestMethod]
-        public void ValidatePaymentDetails_PreviousYear_ReturnsExpiredError()
-        {
-            var yy = ((DateTime.Now.Year - OffsetOne) - YearBase2000).ToString(FormatTwoDigits);
-            var exp = $"{MonthDecember.ToString(FormatTwoDigits)}{SlashSeparator}{yy}";
-
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, exp, ValidCvv);
-
-            Assert.AreEqual(ErrExpired, result);
-        }
-
-        [TestMethod]
-        public void ValidatePaymentDetails_CurrentMonthAndYear_ReturnsEmptyString()
-        {
-            var today = DateTime.Now;
-            var exp = $"{today.Month.ToString(FormatTwoDigits)}{SlashSeparator}{(today.Year - YearBase2000).ToString(FormatTwoDigits)}";
-
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, exp, ValidCvv);
-
-            Assert.AreEqual(string.Empty, result);
-        }
-
-        [TestMethod]
-        public void ValidatePaymentDetails_FutureDate_ReturnsEmptyString()
-        {
-            var result = validator.ValidatePaymentDetails(ValidName, ValidCard, ValidExp, ValidCvv);
-
-            Assert.AreEqual(string.Empty, result);
+            var result = paymentValidator.ValidatePaymentDetails(ValidCardHolderName, ValidCardNumber, ValidExpirationDate, ValidCvv);
+            Assert.Equal(string.Empty, result);
         }
     }
-}*/
+}
