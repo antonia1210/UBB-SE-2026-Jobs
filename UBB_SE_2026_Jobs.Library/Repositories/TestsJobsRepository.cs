@@ -194,11 +194,19 @@
                     return JobDeleteResult.HasApplicants;
                 }
 
+                var recommendations = this.databaseContext.Recommendations
+                    .Where(r => EF.Property<int>(r, "JobId") == jobId);
+                this.databaseContext.Recommendations.RemoveRange(recommendations);
+
                 if (applicantCount > 0)
                 {
                     var matches = this.databaseContext.Matches
                         .Where(m => EF.Property<int>(m, "JobId") == jobId);
                     this.databaseContext.Matches.RemoveRange(matches);
+
+                    var applicants = this.databaseContext.Applicants
+                        .Where(a => a.JobId == jobId);
+                    this.databaseContext.Applicants.RemoveRange(applicants);
                 }
 
                 if (job.JobSkills != null)

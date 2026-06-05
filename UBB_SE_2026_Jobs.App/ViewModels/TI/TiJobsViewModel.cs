@@ -49,7 +49,7 @@ public partial class TiJobsViewModel : DispatchableObservableObject
     {
         var result = await jobService.RemoveAsync(jobId, force);
         if (result == JobDeleteResult.Deleted)
-            await LoadAsync();
+            await LoadAsync(session.CompanyId);
         return result;
     }
 }
