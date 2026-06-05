@@ -125,6 +125,7 @@ RegisterApiClient<SlotsApiClient>(builder.Services, apiConfig);
 RegisterApiClient<LeaderboardApiClient>(builder.Services, apiConfig);
 RegisterApiClient<TestAttemptsApiClient>(builder.Services, apiConfig);
 RegisterApiClient<EventsApiClient>(builder.Services, apiConfig);
+RegisterApiClient<PaymentApiClient>(builder.Services, apiConfig);
 RegisterApiClient<InterviewSessionsApiClient>(builder.Services, apiConfig);
 RegisterApiClient<UsersApiClient>(builder.Services, apiConfig);
 
