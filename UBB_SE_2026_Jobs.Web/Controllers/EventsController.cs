@@ -21,6 +21,12 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             return claim != null ? int.Parse(claim.Value) : 0;
         }
 
+        private int GetCurrentCompanyId()
+        {
+            var claim = User.Claims.FirstOrDefault(c => c.Type == "CompanyId");
+            return claim != null ? int.Parse(claim.Value) : 0;
+        }
+
         public async Task<IActionResult> Index()
         {
             List<EventDto> currentEvents;
@@ -33,7 +39,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             }
             else
             {
-                int companyId = GetCurrentUserId(); // temporary because your recruiter user id == company id in local DB
+                int companyId = GetCurrentCompanyId();
                 currentEvents = await this._client.GetCurrentEvents(companyId);
                 pastEvents = await this._client.GetPastEvents(companyId);
             }
@@ -56,7 +62,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             }
             else
             {
-                int companyId = GetCurrentUserId(); // temporary because recruiter user id = company id in your local DB
+                int companyId = GetCurrentCompanyId();
                 currentEvents = await this._client.GetCurrentEvents(companyId);
                 pastEvents = await this._client.GetPastEvents(companyId);
             }
@@ -70,15 +76,18 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
                 return NotFound();
             }
 
-            List<CollaboratorDto> collaborators = await this._client.GetCollaborators(ev.HostCompanyId);
+            List<CompanyDto> collaborators = await this._client.GetEventCollaborators(id);
             ViewBag.Collaborators = collaborators;
 
             return View(ev);
         }
 
         [Authorize(Policy = "RecruiterOrAdmin")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var companies = await this._client.GetAllCompanies();
+            int currentCompanyId = GetCurrentCompanyId();
+            ViewBag.Companies = companies.Where(c => c.CompanyId != currentCompanyId).ToList();
             return View();
         }
 
@@ -86,7 +95,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         [Authorize(Policy = "RecruiterOrAdmin")]
         public async Task<IActionResult> Create(EventDto dto)
         {
-            dto.HostCompanyId = GetCurrentUserId();
+            dto.HostCompanyId = GetCurrentCompanyId();
             dto.PostedAt = DateTime.Now;
             await this._client.Create(dto);
             return RedirectToAction("Index");
@@ -95,14 +104,17 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         [Authorize(Policy = "RecruiterOrAdmin")]
         public async Task<IActionResult> Edit(int id)
         {
-            int userId = GetCurrentUserId();
-            List<EventDto> currentEvents = await this._client.GetCurrentEvents(userId);
-            List<EventDto> pastEvents = await this._client.GetPastEvents(userId);
+            int companyId = GetCurrentCompanyId();
+            List<EventDto> currentEvents = await this._client.GetCurrentEvents(companyId);
+            List<EventDto> pastEvents = await this._client.GetPastEvents(companyId);
 
             EventDto? ev = currentEvents.Concat(pastEvents).FirstOrDefault(e => e.Id == id);
 
             if (ev == null)
                 return NotFound();
+
+            var companies = await this._client.GetAllCompanies();
+            ViewBag.Companies = companies.Where(c => c.CompanyId != companyId).ToList();
 
             return View(ev);
         }
@@ -118,9 +130,9 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         [Authorize(Policy = "RecruiterOrAdmin")]
         public async Task<IActionResult> Delete(int id)
         {
-            int userId = GetCurrentUserId();
-            List<EventDto> currentEvents = await this._client.GetCurrentEvents(userId);
-            List<EventDto> pastEvents = await this._client.GetPastEvents(userId);
+            int companyId = GetCurrentCompanyId();
+            List<EventDto> currentEvents = await this._client.GetCurrentEvents(companyId);
+            List<EventDto> pastEvents = await this._client.GetPastEvents(companyId);
 
             EventDto? ev = currentEvents.Concat(pastEvents).FirstOrDefault(e => e.Id == id);
 

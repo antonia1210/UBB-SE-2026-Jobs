@@ -1,16 +1,17 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UBB_SE_2026_Jobs.Library.Domain;
-using UBB_SE_2026_Jobs.Library.Services.Documents;
-using UBB_SE_2026_Jobs.Library.Services.Matches;
-using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
-using UBB_SE_2026_Jobs.Library.Services.Users;
 using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.CompletenessService;
 using UBB_SE_2026_Jobs.Library.Services.CvParsing;
+using UBB_SE_2026_Jobs.Library.Services.Documents;
+using UBB_SE_2026_Jobs.Library.Services.Matches;
 using UBB_SE_2026_Jobs.Library.Services.PdfExport;
 using UBB_SE_2026_Jobs.Library.Services.SkillGapService;
+using UBB_SE_2026_Jobs.Library.Services.SkillTests;
+using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
+using UBB_SE_2026_Jobs.Library.Services.Users;
 
 namespace UBB_SE_2026_Jobs.Api.Controllers;
 
@@ -23,6 +24,7 @@ public class PussyCatsUsersController : ControllerBase
     private readonly IMatchService matches;
     private readonly IDocumentService documents;
     private readonly IUserProfileService userProfileService;
+    private readonly ISkillTestService skillTestService;
     private readonly ICvParsingService cvParsingService;
     private readonly ICompletenessService completenessService;
     private readonly ISkillGapService skillGapService;
@@ -33,6 +35,7 @@ public class PussyCatsUsersController : ControllerBase
         IMatchService matches,
         IDocumentService documents,
         IUserProfileService userProfileService,
+        ISkillTestService skillTestService,
         ICvParsingService cvParsingService,
         ICompletenessService completenessService,
         ISkillGapService skillGapService,
@@ -42,12 +45,12 @@ public class PussyCatsUsersController : ControllerBase
         this.matches = matches;
         this.documents = documents;
         this.userProfileService = userProfileService;
+        this.skillTestService = skillTestService;
         this.cvParsingService = cvParsingService;
         this.completenessService = completenessService;
         this.skillGapService = skillGapService;
         this.pdfExportService = pdfExportService;
     }
-
     [HttpGet]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         => Ok(await users.GetAllAsync(cancellationToken));
@@ -230,7 +233,7 @@ public class PussyCatsUsersController : ControllerBase
     {
         if (await users.GetByIdAsync(id, cancellationToken) is null)
             return NotFound();
-        return Ok(await userProfileService.GetSkillTestsForUserAsync(id, cancellationToken));
+        return Ok(await skillTestService.GetTestsForUserAsync(id, cancellationToken));
     }
 
     [HttpGet("{id}/is-active")]

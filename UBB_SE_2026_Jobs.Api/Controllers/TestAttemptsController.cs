@@ -76,6 +76,13 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 
             return Ok(attempts.Select(a => a.ToDto()).ToList());
         }
+
+    [HttpGet("byuser/{userId}")]
+    public async Task<ActionResult<List<TestAttemptDto>>> FindByUserId(int userId)
+    {
+        var attempts = await _service.FindByUserId(userId);
+        return Ok(attempts.Select(a => a.ToDto()).ToList());
     }
+}
 
 
