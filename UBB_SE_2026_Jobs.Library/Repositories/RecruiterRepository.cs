@@ -20,4 +20,22 @@ public class RecruiterRepository : IRecruiterRepository
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }
+
+    public async Task<IReadOnlyCollection<int>> GetAllRecruiterUserIdsAsync(CancellationToken cancellationToken = default)
+    {
+        var ids = await databaseContext.Recruiters
+            .Select(r => r.UserId)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+        return new HashSet<int>(ids);
+    }
+
+    public async Task<int?> GetCompanyIdForUserAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        return await databaseContext.Recruiters
+            .Where(r => r.UserId == userId)
+            .Select(r => (int?)r.CompanyId)
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
 }
