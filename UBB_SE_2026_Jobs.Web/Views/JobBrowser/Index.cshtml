@@ -39,15 +39,19 @@
                                        @(appliedFilters?.EmploymentTypes.Contains("Internship") == true ? "checked" : "")>
                                 <label class="form-check-label small" for="empIntern">Internship</label>
                             </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Work mode</label>
                             <div class="form-check mb-1">
-                                <input class="form-check-input" type="checkbox" id="empRemote" name="EmploymentTypes" value="Remote"
-                                       @(appliedFilters?.EmploymentTypes.Contains("Remote") == true ? "checked" : "")>
-                                <label class="form-check-label small" for="empRemote">Remote</label>
+                                <input class="form-check-input" type="checkbox" id="workRemote" name="WorkModes" value="Remote"
+                                       @(appliedFilters?.WorkModes.Contains("Remote") == true ? "checked" : "")>
+                                <label class="form-check-label small" for="workRemote">Remote</label>
                             </div>
                             <div class="form-check mb-1">
-                                <input class="form-check-input" type="checkbox" id="empHybrid" name="EmploymentTypes" value="Hybrid"
-                                       @(appliedFilters?.EmploymentTypes.Contains("Hybrid") == true ? "checked" : "")>
-                                <label class="form-check-label small" for="empHybrid">Hybrid</label>
+                                <input class="form-check-input" type="checkbox" id="workHybrid" name="WorkModes" value="Hybrid"
+                                       @(appliedFilters?.WorkModes.Contains("Hybrid") == true ? "checked" : "")>
+                                <label class="form-check-label small" for="workHybrid">Hybrid</label>
                             </div>
                         </div>
 
