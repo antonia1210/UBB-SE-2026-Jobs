@@ -69,7 +69,56 @@ namespace UBB_SE_2026_Jobs.Library.Services
             attempt.RejectedAt = null;
 
             await this.attemptRepository.UpdateAsync(attempt);
+
+            if (attempt.IsValidated && attempt.PercentageScore.HasValue)
+            {
+                await this.UpdateUserSkillsFromAttemptAsync(attempt);
+            }
+
             return true;
+        }
+
+        private async Task UpdateUserSkillsFromAttemptAsync(TestAttempt attempt)
+        {
+            if (attempt.ExternalUserId == null) return;
+
+            var test = await this.testRepository.FindByIdAsync(attempt.TestId);
+            if (test == null || string.IsNullOrWhiteSpace(test.Category)) return;
+
+            var skill = await this.dbContext.Skills
+                .FirstOrDefaultAsync(s => s.Name.ToLower() == test.Category.ToLower());
+
+            if (skill == null) return;
+
+            int userId = attempt.ExternalUserId.Value;
+            var userSkill = await this.dbContext.UserSkills
+                .FirstOrDefaultAsync(us => EF.Property<int>(us, "UserId") == userId && EF.Property<int>(us, "SkillId") == skill.SkillId);
+
+            int newScore = (int)Math.Round(attempt.PercentageScore.Value);
+
+            if (userSkill == null)
+            {
+                var user = await this.dbContext.Users.FindAsync(userId);
+                if (user == null) return;
+
+                userSkill = new Domain.UserSkill
+                {
+                    Skill = skill,
+                    User = user,
+                    Score = newScore,
+                    IsVerified = true,
+                    AchievedDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                };
+                await this.dbContext.UserSkills.AddAsync(userSkill);
+            }
+            else if (newScore > userSkill.Score)
+            {
+                userSkill.Score = newScore;
+                userSkill.IsVerified = true;
+                userSkill.AchievedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            }
+
+            await this.dbContext.SaveChangesAsync();
         }
 
         /// <summary>

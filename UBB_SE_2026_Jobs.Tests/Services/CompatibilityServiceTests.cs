@@ -1,4 +1,5 @@
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.Domain.Core;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Tests.Fakes;
 using UBB_SE_2026_Jobs.Tests.Helpers;
@@ -11,11 +12,12 @@ public class CompatibilityServiceTests
     private readonly FakeUserSkillRepository userSkillRepository = new();
     private readonly FakeSkillGroupRepository skillGroupRepository = new();
     private readonly FakeUserRepository userRepository = new();
+    private readonly FakeTestAttemptRepository testAttemptRepository = new();
     private readonly CompatibilityService service;
 
     public CompatibilityServiceTests()
     {
-        service = new CompatibilityService(userSkillRepository, skillGroupRepository, userRepository);
+        service = new CompatibilityService(userSkillRepository, skillGroupRepository, userRepository, testAttemptRepository);
     }
 
     [Fact]
@@ -76,9 +78,59 @@ public class CompatibilityServiceTests
 
         var expectedRoleResult = await service.CalculateForRoleAsync(userId, JobRole.BackendDeveloper);
 
-        // unverified skill scores at 0.5 becomes 50 after normalization
-        const int expectedScore = 50;
+        const int expectedScore = 10;
         Assert.Equal(expectedScore, expectedRoleResult.MatchScore);
+    }
+
+    [Fact]
+    public async Task CalculateForRoleAsync_UserHasCompletedSkillTest_UsesBestAttemptScore()
+    {
+        const int userId = 1, skillId = 1;
+        const string skillName = "C#";
+        userRepository.Seed(new UserBuilder().WithId(userId).Build());
+        userSkillRepository.Seed(new UserSkill
+        {
+            User = new User { UserId = userId },
+            Skill = new Skill { SkillId = skillId, Name = skillName },
+            Score = 10,
+            IsVerified = false,
+        });
+        testAttemptRepository.Seed(
+            new TestAttempt
+            {
+                Id = 1,
+                ExternalUserId = userId,
+                TestId = 1,
+                Status = "COMPLETED",
+                CompletedAt = DateTime.UtcNow.AddDays(-2),
+                IsValidated = true,
+                PercentageScore = 60,
+                Test = new Test { Id = 1, Title = "C# Fundamentals", SkillId = skillId, Skill = new Skill { SkillId = skillId, Name = skillName } },
+            },
+            new TestAttempt
+            {
+                Id = 2,
+                ExternalUserId = userId,
+                TestId = 1,
+                Status = "COMPLETED",
+                CompletedAt = DateTime.UtcNow.AddDays(-1),
+                IsValidated = true,
+                PercentageScore = 90,
+                Test = new Test { Id = 1, Title = "C# Fundamentals", SkillId = skillId, Skill = new Skill { SkillId = skillId, Name = skillName } },
+            });
+        skillGroupRepository.Seed(new SkillGroup
+        {
+            SkillGroupId = 1,
+            GroupName = "Backend Languages",
+            Weight = 1,
+            JobRole = JobRole.BackendDeveloper,
+            Skills = new List<Skill> { new() { SkillId = skillId, Name = skillName } },
+        });
+
+        var result = await service.CalculateForRoleAsync(userId, JobRole.BackendDeveloper);
+
+        Assert.Equal(90, result.MatchScore);
+        Assert.Contains(result.SkillScores, score => score.SkillName == skillName && score.Score == 90);
     }
 
     [Fact]
