@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.Services;
+using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 using UBB_SE_2026_Jobs.Library.Services.Jobs;
 
 
@@ -12,10 +14,12 @@ using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
 public class PussyCatsJobsController : ControllerBase
 {
     private readonly IPussyCatsJobService jobs;
+    private readonly ITestsJobsService testsJobs;
 
-    public PussyCatsJobsController(IPussyCatsJobService jobs)
+    public PussyCatsJobsController(IPussyCatsJobService jobs, ITestsJobsService testsJobs)
     {
         this.jobs = jobs;
+        this.testsJobs = testsJobs;
     }
 
     [HttpGet]
@@ -51,13 +55,23 @@ public class PussyCatsJobsController : ControllerBase
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Remove(int id, CancellationToken cancellationToken)
+    [HttpGet("{id}/applicant-count")]
+    public IActionResult GetApplicantCount(int id)
     {
-        if (await jobs.GetByIdAsync(id, cancellationToken) is null)
-            return NotFound();
-        await jobs.RemoveAsync(id, cancellationToken);
-        return NoContent();
+        return Ok(testsJobs.GetApplicantCount(id));
+    }
+
+    [HttpDelete("{id}")]
+    public IActionResult Remove(int id, [FromQuery] bool force = false)
+    {
+        JobDeleteResult result = testsJobs.DeleteJob(id, force);
+
+        return result switch
+        {
+            JobDeleteResult.NotFound => NotFound(),
+            JobDeleteResult.HasApplicants => Conflict(new { message = "This job has applicants. Confirm deletion to remove them along with the job." }),
+            _ => NoContent(),
+        };
     }
 }
 

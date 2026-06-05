@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.Jobs;
 
 namespace UBB_SE_2026_Jobs.Library.ServiceProxies;
@@ -41,9 +42,20 @@ public class JobServiceProxy : IJobService
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task RemoveAsync(int jobId, CancellationToken cancellationToken = default)
+    public async Task<int> GetApplicantCountAsync(int jobId, CancellationToken cancellationToken = default)
+        => await http.GetFromJsonAsync<int>($"api/jobs/{jobId}/applicant-count", cancellationToken);
+
+    public async Task<JobDeleteResult> RemoveAsync(int jobId, bool force, CancellationToken cancellationToken = default)
     {
-        var response = await http.DeleteAsync($"api/jobs/{jobId}", cancellationToken);
-        response.EnsureSuccessStatusCode();
+        var url = force ? $"api/jobs/{jobId}?force=true" : $"api/jobs/{jobId}";
+        var response = await http.DeleteAsync(url, cancellationToken);
+
+        return response.StatusCode switch
+        {
+            System.Net.HttpStatusCode.NotFound => JobDeleteResult.NotFound,
+            System.Net.HttpStatusCode.Conflict => JobDeleteResult.HasApplicants,
+            _ when response.IsSuccessStatusCode => JobDeleteResult.Deleted,
+            _ => JobDeleteResult.NotFound,
+        };
     }
 }
