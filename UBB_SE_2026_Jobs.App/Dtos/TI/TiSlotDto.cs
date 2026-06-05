@@ -5,6 +5,7 @@ public class TiSlotDto
     public int Id { get; set; }
     public int RecruiterId { get; set; }
     public int? CandidateId { get; set; }
+    public int CompanyId { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public int Duration { get; set; }
