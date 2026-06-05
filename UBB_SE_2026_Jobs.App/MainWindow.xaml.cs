@@ -31,6 +31,7 @@ public sealed partial class MainWindow : Window
         "CompanyRecommendationPage",
         "CompanyStatusPage",
         "TiRecruiterInterviewsPage",
+        "TiMainTestPage",
     ];
 
     private static readonly HashSet<string> DeveloperPages =
@@ -42,7 +43,6 @@ public sealed partial class MainWindow : Window
     [
         "ChatPage",
         "TiJobsPage",
-        "TiMainTestPage",
         "TiEventsPage",
     ];
 
