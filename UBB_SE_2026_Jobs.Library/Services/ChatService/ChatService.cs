@@ -70,6 +70,18 @@ public class ChatService : IChatService
 
     public async Task<Chat?> FindOrCreateUserChatAsync(int userId, int secondUserId, CancellationToken cancellationToken = default)
     {
+        var callerCompanyId = await recruiterRepository.GetCompanyIdForUserAsync(userId, cancellationToken).ConfigureAwait(false);
+        var targetCompanyId = await recruiterRepository.GetCompanyIdForUserAsync(secondUserId, cancellationToken).ConfigureAwait(false);
+
+        var callerIsRecruiter = callerCompanyId.HasValue;
+        var targetIsRecruiter = targetCompanyId.HasValue;
+
+        if (callerIsRecruiter != targetIsRecruiter)
+            throw new InvalidOperationException("Candidates can only chat with other candidates, and recruiters can only chat with recruiters.");
+
+        if (callerIsRecruiter && callerCompanyId != targetCompanyId)
+            throw new InvalidOperationException("Recruiters can only chat with recruiters from the same company.");
+
         var existing = await chatRepository.FindUserUserChatAsync(userId, secondUserId, cancellationToken).ConfigureAwait(false);
         if (existing is not null)
         {
@@ -133,9 +145,11 @@ public class ChatService : IChatService
             return Array.Empty<User>();
         }
 
+        var recruiterIds = await recruiterRepository.GetAllRecruiterUserIdsAsync(cancellationToken).ConfigureAwait(false);
         var users = await userService.GetAllAsync(cancellationToken).ConfigureAwait(false);
         return users
-            .Where(user => GetUserName(user).Contains(userNameSearchTerm, StringComparison.OrdinalIgnoreCase))
+            .Where(user => !recruiterIds.Contains(user.UserId)
+                && GetUserName(user).Contains(userNameSearchTerm, StringComparison.OrdinalIgnoreCase))
             .Take(MaxSearchResults)
             .ToList();
     }

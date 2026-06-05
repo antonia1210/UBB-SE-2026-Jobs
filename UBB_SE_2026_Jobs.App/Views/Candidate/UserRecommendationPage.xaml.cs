@@ -39,7 +39,6 @@ public sealed partial class UserRecommendationPage : Page
         if (eventArguments.PropertyName is nameof(UserRecommendationViewModel.IsLoading)
                            or nameof(UserRecommendationViewModel.CurrentJob)
                            or nameof(UserRecommendationViewModel.IsDetailOpen)
-                           or nameof(UserRecommendationViewModel.CanUndo)
                            or nameof(UserRecommendationViewModel.HasCard)
                            or nameof(UserRecommendationViewModel.ShowEmptyDeck)
                            or null)
@@ -60,9 +59,9 @@ public sealed partial class UserRecommendationPage : Page
     private void OnOpenFiltersClick(object sender, RoutedEventArgs eventArguments)
         => viewModel.IsFilterOpen = true;
 
-    private void OnRefreshClick(object sender, RoutedEventArgs eventArguments)
+    private async void OnRefreshClick(object sender, RoutedEventArgs eventArguments)
     {
-        viewModel.LoadRecommendationsAsync();
+        await viewModel.LoadRecommendationsAsync();
         UpdateView();
     }
 
@@ -87,12 +86,6 @@ public sealed partial class UserRecommendationPage : Page
     private async void OnDismissClick(object sender, RoutedEventArgs eventArguments)
     {
         await viewModel.DismissAsync();
-        UpdateView();
-    }
-
-    private async void OnUndoClick(object sender, RoutedEventArgs eventArguments)
-    {
-        await viewModel.UndoAsync();
         UpdateView();
     }
 
@@ -148,7 +141,6 @@ public sealed partial class UserRecommendationPage : Page
     {
         DismissButton.IsEnabled = enabled;
         LikeButton.IsEnabled    = enabled;
-        UndoButton.IsEnabled    = viewModel.CanUndo;
     }
 
     private void BindCardData()
@@ -164,7 +156,6 @@ public sealed partial class UserRecommendationPage : Page
         CardLocationEmploymentText.Text = job.LocationEmploymentLine;
         CardTopSkillsList.ItemsSource   = job.TopSkillLabels;
         CardDescriptionExcerptText.Text = job.DescriptionExcerpt;
-        UndoButton.IsEnabled = viewModel.CanUndo;
     }
 
     private void BindExpandedData()
