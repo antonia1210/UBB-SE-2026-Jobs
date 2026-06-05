@@ -191,6 +191,7 @@ public class GameServiceTests
     public void CreateGameFromInput_ValidInput_BuildsGameWithCorrectStructure()
     {
         int fixedBuddyId = 7;
+        int expectedNumberOfScenarios = 2;
         string buddyName = "Jordan", buddyIntroduction = "Hello!", conclusion = "Great job!";
         var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
         {
@@ -217,7 +218,7 @@ public class GameServiceTests
         Assert.Equal(buddyName, result.Buddy.Name);
         Assert.Equal(buddyIntroduction, result.Buddy.Introduction);
 
-        Assert.Equal(2, result.Scenarios.Count);
+        Assert.Equal(expectedNumberOfScenarios, result.Scenarios.Count);
         Assert.Equal("Great job!", result.Conclusion);
         Assert.True(result.IsPublished);
     }
@@ -225,12 +226,13 @@ public class GameServiceTests
     [Fact]
     public void CreateGameFromInput_PublishFalse_GameIsNotPublished()
     {
+        int gameId = 1;
         var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
         {
             ("Scenario", new List<(string, string)> { ("Choice", "Feedback") }),
         };
 
-        var result = gameService.CreateGameFromInput(1, makeGameBuddyName, "Hi", scenarios, "Done", publish: false);
+        var result = gameService.CreateGameFromInput(gameId, makeGameBuddyName, "Hi", scenarios, "Done", publish: false);
 
         Assert.False(result.IsPublished);
     }
