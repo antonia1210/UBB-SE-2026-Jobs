@@ -97,7 +97,8 @@ namespace UBB_SE_2026_Jobs.Library.Services
                 StartedAt = DateTime.UtcNow,
             };
 
-            attempt.Start();
+            attempt.Status = TestStatus.IN_PROGRESS.ToString();
+            attempt.StartedAt = DateTime.UtcNow;
 
             await this.attemptRepository.SaveAsync(attempt);
             this.timerService.StartTimer(attempt.Id);
@@ -140,7 +141,8 @@ namespace UBB_SE_2026_Jobs.Library.Services
             }
 
             this.gradingService.CalculateFinalScore(attempt);
-            attempt.Submit();
+            attempt.Status = TestStatus.COMPLETED.ToString();
+            attempt.CompletedAt = DateTime.UtcNow;
 
             await this.attemptRepository.UpdateAsync(attempt);
         }
