@@ -23,7 +23,6 @@ public sealed partial class MainWindow : Window
         "PersonalityTestPage",
         "CompatibilityOverviewPage",
         "DocumentsPage",
-        "PreferencesPage",
         "TiInterviewSlotsPage",
     ];
 
@@ -58,7 +57,6 @@ public sealed partial class MainWindow : Window
         ["CompatibilityOverviewPage"]   = typeof(CompatibilityOverviewPage),
         ["DocumentsPage"]               = typeof(DocumentsPage),
         ["ExportCVPage"]                = typeof(ExportCVPage),
-        ["PreferencesPage"]             = typeof(PreferencesPage),
         ["CompanyRecommendationPage"]   = typeof(Views.Company.CompanyRecommendationPage),
         ["CompanyStatusPage"]           = typeof(Views.Company.CompanyStatusPage),
         ["DeveloperPage"]               = typeof(Views.Developer.DeveloperPage),
