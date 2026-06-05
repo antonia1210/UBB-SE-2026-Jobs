@@ -42,7 +42,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (jobs is null || !jobs.Any())
                 return NotFound($"No paid jobs found for type '{jobType}' and experience level '{experienceLevel}'.");
 
-            return Ok(jobs.Select(j => j.ToDto()).ToList());
+            return Ok(jobs.Select(job => job.ToDto()).ToList());
         }
     }
 
