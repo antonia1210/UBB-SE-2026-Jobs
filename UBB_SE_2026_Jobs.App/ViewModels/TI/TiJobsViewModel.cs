@@ -19,10 +19,12 @@ public partial class TiJobsViewModel : DispatchableObservableObject
         this.jobService = jobService;
     }
 
-    public async Task LoadAsync()
+    public async Task LoadAsync(int? companyId = null)
     {
         IsLoading = true;
-        var jobs = await jobService.GetAllAsync();
+        var jobs = companyId.HasValue
+            ? await jobService.GetByCompanyIdAsync(companyId.Value)
+            : await jobService.GetAllAsync();
         Jobs.Clear();
         foreach (var job in jobs) Jobs.Add(TiJobMapper.ToDto(job));
         IsLoading = false;

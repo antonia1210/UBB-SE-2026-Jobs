@@ -1,6 +1,7 @@
 ﻿using NSubstitute;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
 using UBB_SE_2026_Jobs.Library.Repositories.Messages;
 using UBB_SE_2026_Jobs.Library.Services.ChatService;
@@ -20,13 +21,14 @@ namespace UBB_SE_2026_Jobs.Tests.Services
         private readonly IUserService userService = Substitute.For<IUserService>();
         private readonly IPussyCatsCompanyService companyService = Substitute.For<IPussyCatsCompanyService>();
         private readonly ILocalFileStorageService fileStorage = Substitute.For<ILocalFileStorageService>();
+        private readonly IRecruiterRepository recruiterRepository = Substitute.For<IRecruiterRepository>();
 
 
         public required ChatService chatService;
 
         public ChatServiceTests()
         {
-            chatService = new(chatRepository, messageRepository, userService, companyService, fileStorage);
+            chatService = new(chatRepository, messageRepository, userService, companyService, fileStorage, recruiterRepository);
         }
 
         #region FindOrCreateUser....

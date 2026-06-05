@@ -27,7 +27,11 @@ namespace UBB_SE_2026_Jobs.Library.Validators
 
         public bool ValidateEventDescription(string eventDescription)
         {
-            if (!string.IsNullOrEmpty(eventDescription) && eventDescription.Length > MaximumDescriptionLength)
+            if (string.IsNullOrEmpty(eventDescription))
+            {
+                throw new Exception("Description is mandatory");
+            }
+            if(eventDescription.Length > MaximumDescriptionLength)
             {
                 throw new Exception("Description is too long");
             }
@@ -53,7 +57,7 @@ namespace UBB_SE_2026_Jobs.Library.Validators
             {
                 throw new Exception("Starting date is mandatory");
             }
-            if (eventStartDate < DateTimeOffset.Now)
+            if (eventStartDate.Value < DateTimeOffset.Now)
             {
                 throw new Exception("Event must start after creation");
             }
@@ -66,7 +70,7 @@ namespace UBB_SE_2026_Jobs.Library.Validators
             {
                 throw new Exception("Ending date is mandatory");
             }
-            if (eventEndDate < DateTimeOffset.Now)
+            if (eventEndDate.Value < DateTimeOffset.Now)
             {
                 throw new Exception("Event must end after creation");
             }
@@ -75,7 +79,7 @@ namespace UBB_SE_2026_Jobs.Library.Validators
 
         public bool ValidateEventDatesChronologically(DateTimeOffset? eventStartDate, DateTimeOffset? eventEndDate)
         {
-            if (eventStartDate > eventEndDate)
+            if (eventStartDate.Value > eventEndDate.Value)
             {
                 throw new Exception("Event must begin before ending");
             }

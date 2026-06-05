@@ -6,25 +6,55 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    Background="#1F1F1F">
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid Padding="24" RowSpacing="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <ScrollViewer>
+        <StackPanel Padding="30,30,30,40" Spacing="30">
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="Skill Tests"
-                       Foreground="White" FontSize="18" FontWeight="Medium"
-                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        </Grid>
+            <!-- Hero header card — matches DocumentsPage upload card style -->
+            <Border Background="#9b72a8" CornerRadius="12" Padding="24">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="TestCardsContainer" Spacing="14"/>
-        </ScrollViewer>
-    </Grid>
+                    <StackPanel Grid.Column="0" Spacing="6" VerticalAlignment="Center">
+                        <TextBlock Text="ASSESSMENT CENTER"
+                                   Foreground="White" FontSize="11"
+                                   CharacterSpacing="80" Opacity="0.8"/>
+                        <TextBlock Text="Test Attempts"
+                                   Foreground="White" FontSize="22" FontWeight="Bold"/>
+                        <TextBlock Text="Your test history — see scores for every attempt."
+                                   Foreground="White" FontSize="13" Opacity="0.85"/>
+                    </StackPanel>
+
+                    <!-- Progress badge -->
+                    <Border Grid.Column="1"
+                            Background="#7a578a" CornerRadius="10"
+                            Padding="20,14" VerticalAlignment="Center">
+                        <StackPanel HorizontalAlignment="Center" Spacing="2">
+                            <TextBlock Text="YOUR PROGRESS"
+                                       Foreground="White" FontSize="10"
+                                       CharacterSpacing="60" TextAlignment="Center"
+                                       Opacity="0.8"/>
+                            <TextBlock x:Name="TestCountText"
+                                       Foreground="White" FontSize="26" FontWeight="Bold"
+                                       TextAlignment="Center"/>
+                            <TextBlock Text="tests logged"
+                                       Foreground="White" FontSize="11"
+                                       TextAlignment="Center" Opacity="0.8"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Cards list -->
+            <StackPanel Spacing="12">
+                <TextBlock Text="Your Results" FontSize="18" FontWeight="Bold"/>
+                <StackPanel x:Name="TestCardsContainer" Spacing="8"/>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
 </Page>

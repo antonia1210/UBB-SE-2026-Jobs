@@ -16,49 +16,50 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 [Route("api/auth")]
 public class PussyCatsAuthController : ControllerBase
 {
-    private readonly IUserService users;
+    private readonly IUserService userService;
     private readonly IConfiguration configuration;
 
-    public PussyCatsAuthController(IUserService users, IConfiguration configuration)
+    public PussyCatsAuthController(IUserService userService, IConfiguration configuration)
     {
-        this.users = users;
+        this.userService = userService;
         this.configuration = configuration;
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest, CancellationToken cancellationToken)
     {
-        var user = await users.GetByEmailAsync(request.Email, cancellationToken);
+        var user = await userService.GetByEmailAsync(loginRequest.Email, cancellationToken);
         if (user is null)
             return Unauthorized();
 
-        var hasher = new PasswordHasher<User>();
-        var result = hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
-        if (result == PasswordVerificationResult.Failed)
+        var passwordHasher = new PasswordHasher<User>();
+        var verificationResult = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, loginRequest.Password);
+        if (verificationResult == PasswordVerificationResult.Failed)
             return Unauthorized();
 
         return Ok(ToAuthResponse(user));
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest, CancellationToken cancellationToken)
     {
-        if (await users.ExistsWithEmailAsync(request.Email, cancellationToken))
+        if (await userService.ExistsWithEmailAsync(registerRequest.Email, cancellationToken))
             return Conflict("Email already registered.");
 
-        var user = new User
+        var newUser = new User
         {
-            Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
+            Email = registerRequest.Email,
+            FirstName = registerRequest.FirstName,
+            LastName = registerRequest.LastName,
             CreatedAt = DateTime.UtcNow,
             LastUpdated = DateTime.UtcNow,
         };
-        var hasher = new PasswordHasher<User>();
-        user.PasswordHash = hasher.HashPassword(user, request.Password);
 
-        var saved = await users.AddAsync(user, cancellationToken);
-        return Ok(ToAuthResponse(saved));
+        var passwordHasher = new PasswordHasher<User>();
+        newUser.PasswordHash = passwordHasher.HashPassword(newUser, registerRequest.Password);
+
+        var savedUser = await userService.AddAsync(newUser, cancellationToken);
+        return Ok(ToAuthResponse(savedUser));
     }
 
     private AuthResponse ToAuthResponse(User user)
@@ -73,8 +74,8 @@ public class PussyCatsAuthController : ControllerBase
 
     private string GenerateJwt(User user)
     {
-        var key = configuration["Jwt:Key"];
-        if (string.IsNullOrWhiteSpace(key))
+        var jwtKey = configuration["Jwt:Key"];
+        if (string.IsNullOrWhiteSpace(jwtKey))
         {
             throw new InvalidOperationException("Missing JWT signing key configuration.");
         }
@@ -82,8 +83,8 @@ public class PussyCatsAuthController : ControllerBase
         var issuer = configuration["Jwt:Issuer"] ?? "UBB_SE_2026_Jobs.Api";
         var audience = configuration["Jwt:Audience"] ?? "PussyCats.Clients";
         var expiresMinutes = configuration.GetValue("Jwt:ExpiresMinutes", 120);
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-        var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
+        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+        var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]
         {
@@ -93,17 +94,16 @@ public class PussyCatsAuthController : ControllerBase
             new Claim(ClaimTypes.Email, user.Email),
         };
 
-        var token = new JwtSecurityToken(
+        var jwtToken = new JwtSecurityToken(
             issuer,
             audience,
             claims,
             expires: DateTime.UtcNow.AddMinutes(expiresMinutes),
-            signingCredentials: credentials);
+            signingCredentials: signingCredentials);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return new JwtSecurityTokenHandler().WriteToken(jwtToken);
     }
 
     public record LoginRequest(string Email, string Password);
     public record RegisterRequest(string Email, string Password, string FirstName, string LastName);
 }
-

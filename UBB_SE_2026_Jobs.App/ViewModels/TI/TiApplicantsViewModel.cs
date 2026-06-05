@@ -12,7 +12,7 @@ public partial class TiApplicantsViewModel : DispatchableObservableObject
     [ObservableProperty] private bool isLoading;
     [ObservableProperty] private TiJobPostingDto? currentJob;
 
-    public ObservableCollection<TiApplicantDto> Applicants { get; } = new();
+    public ObservableCollection<TiMatchSummaryDto> Applicants { get; } = new();
 
     public TiApplicantsViewModel(ITiApplicantService applicantService)
     {

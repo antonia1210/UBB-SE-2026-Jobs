@@ -32,6 +32,7 @@ public class ChatController : Controller
         var chats = await chat.GetChatsForUserAsync(userId, cancellationToken);
         ViewBag.IsCompanyMode = IsCompanyMode();
         ViewBag.ActiveTab = (tab == "companies") ? "companies" : "users";
+        ViewBag.CurrentUserId = userId;
         return View(chats);
     }
 
@@ -166,14 +167,10 @@ public class ChatController : Controller
 
     private int GetCompanyId()
     {
-        var companyIdValue = User.FindFirstValue("CompanyId");
-        if (!string.IsNullOrWhiteSpace(companyIdValue) && int.TryParse(companyIdValue, System.Globalization.CultureInfo.InvariantCulture, out var companyId))
-        {
+        var value = User.FindFirstValue("CompanyId");
+        if (!string.IsNullOrWhiteSpace(value) && int.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, out var companyId))
             return companyId;
-        }
-
-        // Fallback for backwards compatibility
-        return apiConfiguration.TemporaryCompanyId;
+        throw new InvalidOperationException("Recruiter session is missing a company ID.");
     }
 
     private bool IsCompanyMode()

@@ -12,7 +12,7 @@ public class CompanyStatusService : ICompanyStatusService
 {
     private readonly IMatchService matchService;
     private readonly IUserService userService;
-    private readonly IPussyCatsJobService PussyCatsJobService;
+    private readonly IPussyCatsJobService jobsService;
     private readonly IUserSkillService userSkillService;
     private const int LocationBonusPoints = 10;
     private const int EmploymentTypeBonusPoints = 10;
@@ -21,12 +21,12 @@ public class CompanyStatusService : ICompanyStatusService
     public CompanyStatusService(
         IMatchService matchService,
         IUserService userService,
-        IPussyCatsJobService PussyCatsJobService,
+        IPussyCatsJobService jobsService,
         IUserSkillService userSkillService)
     {
         this.matchService = matchService;
         this.userService = userService;
-        this.PussyCatsJobService = PussyCatsJobService;
+        this.jobsService = jobsService;
         this.userSkillService = userSkillService;
     }
 
@@ -53,7 +53,7 @@ public class CompanyStatusService : ICompanyStatusService
                 continue;
             }
 
-            var job = await PussyCatsJobService.GetByIdAsync(match.Job.JobId, cancellationToken).ConfigureAwait(false);
+            var job = await jobsService.GetByIdAsync(match.Job.JobId, cancellationToken).ConfigureAwait(false);
             if (job is null)
             {
                 continue;

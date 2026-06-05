@@ -1,4 +1,5 @@
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.Domain.Core;
 using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
 using UBB_SE_2026_Jobs.Tests.Fakes;
@@ -13,15 +14,6 @@ public class UserProfileServiceTests
     private const int NewUserId = 0;
     private const int OneMinute = 1;
 
-    private const int SkillTestIdOne = 1;
-    private const int SkillTestIdTwo = 2;
-    private const int SkillTestIdThree = 3;
-    private const int SkillIdOne = 1;
-    private const int SkillIdTwo = 2;
-    private const int GoldScore = 95;
-    private const int SilverScore = 75;
-    private const int BronzeScore = 55;
-
     private const string OldEmail = "old@x.com";
     private const string NewEmail = "new@x.com";
     private const string ProfilePicturePath = "pic.png";
@@ -31,22 +23,22 @@ public class UserProfileServiceTests
     private const string LastName = "Lovelace";
     private const string PrimarySkillName = "C#";
     private const string SecondarySkillName = "SQL";
+    private const int SkillIdOne = 1;
+    private const int SkillIdTwo = 2;
 
     private readonly FakeUserRepository userRepository = new();
-    private readonly FakeSkillTestRepository skillTestRepository = new();
+    private readonly FakeTestAttemptRepository testAttemptRepository = new();
     private readonly UserProfileService service;
 
     public UserProfileServiceTests()
     {
-        service = new UserProfileService(userRepository, skillTestRepository);
+        service = new UserProfileService(userRepository, testAttemptRepository);
     }
-
 
     [Fact]
     public async Task IsProfileAvailableAsync_UserIsMissing_ThrowsException()
     {
         Func<Task> act = () => service.IsProfileAvailableAsync(MissingUserId);
-
         var ex = await Assert.ThrowsAsync<Exception>(act);
         Assert.Contains("No profile found", ex.Message);
     }
@@ -55,7 +47,6 @@ public class UserProfileServiceTests
     public async Task IsProfileAvailableAsync_ProfileExists_ReturnsActiveAccountFlag()
     {
         userRepository.Seed(new UserBuilder().WithId(ExistingUserId).WithActiveAccount(false).Build());
-
         Assert.False(await service.IsProfileAvailableAsync(ExistingUserId));
     }
 
@@ -63,9 +54,7 @@ public class UserProfileServiceTests
     public async Task UpdateAccountStatusAsync_StatusChanged_PersistsStatusAndTouchesLastUpdated()
     {
         userRepository.Seed(new UserBuilder().WithId(ExistingUserId).WithActiveAccount(true).Build());
-
         await service.UpdateAccountStatusAsync(ExistingUserId, false);
-
         var user = await userRepository.GetByIdAsync(ExistingUserId);
         Assert.False(user!.ActiveAccount);
         Assert.True(user.LastUpdated > DateTime.UtcNow.AddMinutes(-OneMinute));
@@ -75,9 +64,7 @@ public class UserProfileServiceTests
     public async Task UpdateProfilePicturePathAsync_PathProvided_WritesPathToUser()
     {
         userRepository.Seed(new UserBuilder().WithId(ExistingUserId).Build());
-
         await service.UpdateProfilePicturePathAsync(ExistingUserId, ProfilePicturePath);
-
         Assert.Equal(ProfilePicturePath, (await userRepository.GetByIdAsync(ExistingUserId))!.ProfilePicturePath);
     }
 
@@ -85,9 +72,7 @@ public class UserProfileServiceTests
     public async Task UpdateProfilePicturePathAsync_PathIsNull_HandlesAsEmptyString()
     {
         userRepository.Seed(new UserBuilder().WithId(ExistingUserId).Build());
-
         await service.UpdateProfilePicturePathAsync(ExistingUserId, null!);
-
         Assert.Empty((await userRepository.GetByIdAsync(ExistingUserId))!.ProfilePicturePath);
     }
 
@@ -97,9 +82,7 @@ public class UserProfileServiceTests
         var user = new UserBuilder().WithId(ExistingUserId).Build();
         user.ProfilePicturePath = OldProfilePicturePath;
         userRepository.Seed(user);
-
         await service.RemoveProfilePicturePathAsync(ExistingUserId);
-
         Assert.Empty((await userRepository.GetByIdAsync(ExistingUserId))!.ProfilePicturePath);
     }
 
@@ -107,9 +90,7 @@ public class UserProfileServiceTests
     public async Task SaveAsync_UserIsMissing_AddsNewUser()
     {
         var user = new UserBuilder().WithId(NewUserId).Build();
-
         await service.SaveAsync(NewUserId, user);
-
         Assert.Equal(1, (await userRepository.GetAllAsync()).Count());
     }
 
@@ -118,9 +99,7 @@ public class UserProfileServiceTests
     {
         userRepository.Seed(new UserBuilder().WithId(ExistingUserId).WithEmail(OldEmail).Build());
         var updated = new UserBuilder().WithId(ExistingUserId).WithEmail(NewEmail).Build();
-
         await service.SaveAsync(ExistingUserId, updated);
-
         Assert.Equal(NewEmail, (await userRepository.GetByIdAsync(ExistingUserId))!.Email);
     }
 
@@ -140,9 +119,7 @@ public class UserProfileServiceTests
             new() { Skill = new Skill { SkillId = SkillIdOne, Name = PrimarySkillName } },
             new() { Skill = new Skill { SkillId = SkillIdTwo, Name = SecondarySkillName } },
         };
-
         var text = UBB_SE_2026_Jobs.Library.Services.Helpers.GenerateParsedCvText(user);
-
         Assert.Contains($"{FirstName} {LastName}", text);
         Assert.Contains(UniversityName, text);
         Assert.Contains($"{PrimarySkillName}, {SecondarySkillName}", text);
@@ -155,14 +132,16 @@ public class UserProfileServiceTests
     }
 
     [Fact]
-    public async Task RecalculateLevelAsync_UserHasSkillTests_SumsXpFromTestsAndSetsLevel()
+    public async Task RecalculateLevelAsync_UserHasCompletedAttempts_SumsXpAndSetsLevel()
     {
         var user = new UserBuilder().WithId(ExistingUserId).Build();
         userRepository.Seed(user);
-        skillTestRepository.Seed(
-            new SkillTestBuilder().WithId(SkillTestIdOne).ForUser(ExistingUserId).WithScore(GoldScore).Build(),
-            new SkillTestBuilder().WithId(SkillTestIdTwo).ForUser(ExistingUserId).WithScore(SilverScore).Build(),
-            new SkillTestBuilder().WithId(SkillTestIdThree).ForUser(ExistingUserId).WithScore(BronzeScore).Build());
+
+        testAttemptRepository.Seed(
+            new TestAttempt { Id = 1, ExternalUserId = ExistingUserId, Status = "COMPLETED", IsValidated = true, CompletedAt = DateTime.UtcNow, PercentageScore = 95 },
+            new TestAttempt { Id = 2, ExternalUserId = ExistingUserId, Status = "COMPLETED", IsValidated = true, CompletedAt = DateTime.UtcNow, PercentageScore = 75 },
+            new TestAttempt { Id = 3, ExternalUserId = ExistingUserId, Status = "COMPLETED", IsValidated = true, CompletedAt = DateTime.UtcNow, PercentageScore = 55 }
+        );
 
         var totalXp = await service.RecalculateLevelAsync(user);
 

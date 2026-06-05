@@ -5,6 +5,7 @@
 namespace UBB_SE_2026_Jobs.Library.Services
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Microsoft.EntityFrameworkCore;
     using UBB_SE_2026_Jobs.Library.Persistence;
@@ -18,6 +19,10 @@ namespace UBB_SE_2026_Jobs.Library.Services
         private readonly JobsDbContext dbContext;
         private readonly ITestAttemptRepository attemptRepository;
         private readonly ITestRepository testRepository;
+
+        private const string CompletedStatus = "COMPLETED";
+        private const decimal MinimumScore = 0m;
+
 
         public DataProcessingService(
             JobsDbContext dbContext,
@@ -52,8 +57,13 @@ namespace UBB_SE_2026_Jobs.Library.Services
                 return false;
             }
 
+            float maxPossibleScore = attempt.Answers
+                .Sum(a => a.Question?.QuestionScore ?? 0f);
+
             attempt.IsValidated = true;
-            attempt.PercentageScore = this.ConvertToPercentageScore(attempt.Score.GetValueOrDefault());
+            attempt.PercentageScore = maxPossibleScore > 0f
+                ? (attempt.Score.GetValueOrDefault() / (decimal)maxPossibleScore) * 100m
+                : 0m;
             attempt.RejectionReason = null;
             attempt.RejectedAt = null;
 
@@ -95,40 +105,19 @@ namespace UBB_SE_2026_Jobs.Library.Services
                 return "Attempt status is missing.";
             }
 
-            if (!string.Equals(attempt.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(attempt.Status, CompletedStatus, StringComparison.OrdinalIgnoreCase))
             {
                 return "Attempt is not eligible for leaderboard because status is not COMPLETED.";
             }
 
-            if (attempt.Score < 0 || attempt.Score > 100)
+            if (attempt.Score < MinimumScore)
             {
                 return "Attempt score is invalid.";
-            }
-
-            if (!this.IsTestStillValidForLeaderboard(test))
-            {
-                return "Test is no longer valid for leaderboard inclusion.";
             }
 
             return null;
         }
 
-        /// <summary>
-        /// Determines if a test is still eligible for the leaderboard based on its creation date.
-        /// Currently enforces a 3-month validity window.
-        /// </summary>
-        private bool IsTestStillValidForLeaderboard(Test test)
-        {
-            return test.CreatedAt.AddMonths(3) >= DateTime.UtcNow;
-        }
-
-        /// <summary>
-        /// Normalizes the raw score into a percentage format.
-        /// </summary>
-        private decimal ConvertToPercentageScore(decimal originalScore)
-        {
-            return originalScore / 100m * 100m;
-        }
     }
 }
 

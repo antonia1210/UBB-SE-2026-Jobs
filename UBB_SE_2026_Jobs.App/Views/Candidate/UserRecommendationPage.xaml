@@ -260,12 +260,7 @@
                                 Background="#FFEF4444" ToolTipService.ToolTip="Dismiss job">
                             <FontIcon Glyph="&#xE711;" FontSize="24" Foreground="White"/>
                         </Button>
-                        <Button x:Name="UndoButton" Click="OnUndoClick"
-                                Width="48" Height="48" CornerRadius="24" Padding="0"
-                                VerticalAlignment="Center" ToolTipService.ToolTip="Undo last action">
-                            <FontIcon Glyph="&#xE7A7;" FontSize="16"/>
-                        </Button>
-                        <Button x:Name="LikeButton" Click="OnLikeClick"
+<Button x:Name="LikeButton" Click="OnLikeClick"
                                 Width="64" Height="64" CornerRadius="32" Padding="0"
                                 Background="#FF10B981" ToolTipService.ToolTip="Like / apply">
                             <FontIcon Glyph="&#xE8FB;" FontSize="24" Foreground="White"/>

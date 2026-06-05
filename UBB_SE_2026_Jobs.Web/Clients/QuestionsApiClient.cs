@@ -37,43 +37,5 @@ namespace UBB_SE_2026_Jobs.Web.Clients
             return await response.Content.ReadFromJsonAsync<List<QuestionDto>>() ?? new List<QuestionDto>();
         }
 
-        public async Task<QuestionDto?> Create(QuestionDto dto)
-        {
-            var response = await this._http.PostAsJsonAsync(s_apiPath, dto);
-            response.EnsureSuccessStatusCode();
-
-            return await response.Content.ReadFromJsonAsync<QuestionDto>();
-        }
-
-        public async Task Update(int id, QuestionDto dto)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{s_apiPath}/{id}")
-            {
-                Content = JsonContent.Create(dto)
-            };
-
-            var response = await this._http.SendAsync(request);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                string body = string.Empty;
-                try { body = await response.Content.ReadAsStringAsync(); } catch { }
-                throw new HttpRequestException($"Request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {body}");
-            }
-        }
-
-        public async Task Delete(int id)
-        {
-            var response = await this._http.DeleteAsync($"{s_apiPath}/{id}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                string body = string.Empty;
-                try { body = await response.Content.ReadAsStringAsync(); } catch { }
-                throw new HttpRequestException($"Request failed ({(int)response.StatusCode} {response.ReasonPhrase}): {body}");
-            }
-        }
-
     }
 }
-

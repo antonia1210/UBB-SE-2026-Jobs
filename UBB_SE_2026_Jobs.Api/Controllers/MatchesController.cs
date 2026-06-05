@@ -41,6 +41,9 @@ public class MatchesController : ControllerBase
         if (userId.HasValue)
             return Ok(await matches.GetMatchesForUserAsync(userId.Value, cancellationToken));
 
+        if (jobId.HasValue)
+            return Ok(await matches.GetByJobIdAsync(jobId.Value, cancellationToken));
+
         if (companyId.HasValue)
             return Ok(await matches.GetByCompanyIdAsync(companyId.Value, cancellationToken));
 
@@ -106,11 +109,11 @@ public class MatchesController : ControllerBase
         }
         catch (ArgumentException exception)
         {
-            return Problem(detail: exception.Message, statusCode: 400);
+            return Problem(detail: exception.Message, statusCode: StatusCodes.Status400BadRequest);
         }
         catch (InvalidOperationException exception)
         {
-            return Problem(detail: exception.Message, statusCode: 422);
+            return Problem(detail: exception.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
         }
     }
 
@@ -128,7 +131,7 @@ public class MatchesController : ControllerBase
         }
         catch (InvalidOperationException exception)
         {
-            return Problem(detail: exception.Message, statusCode: 422);
+            return Problem(detail: exception.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
         }
     }
 

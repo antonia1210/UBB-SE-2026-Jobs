@@ -15,13 +15,13 @@ public class MatchService : IMatchService
 
 
     private readonly IMatchRepository matchRepository;
-    private readonly IPussyCatsJobService PussyCatsJobService;
+    private readonly IPussyCatsJobService jobService;
     private readonly IUserService userService;
 
-    public MatchService(IMatchRepository matchRepository, IPussyCatsJobService PussyCatsJobService, IUserService userService)
+    public MatchService(IMatchRepository matchRepository, IPussyCatsJobService jobService, IUserService userService)
     {
         this.matchRepository = matchRepository;
-        this.PussyCatsJobService = PussyCatsJobService;
+        this.jobService = jobService;
         this.userService = userService;
     }
 
@@ -64,7 +64,7 @@ public class MatchService : IMatchService
         var user = await userService.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false)
             ?? throw new KeyNotFoundException($"User {userId} not found.");
 
-        var job = await PussyCatsJobService.GetByIdAsync(jobId, cancellationToken).ConfigureAwait(false)
+        var job = await jobService.GetByIdAsync(jobId, cancellationToken).ConfigureAwait(false)
             ?? throw new KeyNotFoundException($"Job {jobId} not found.");
 
         var match = new Match
@@ -98,7 +98,7 @@ public class MatchService : IMatchService
     public async Task<IReadOnlyList<Match>> GetByCompanyIdAsync(int companyId, CancellationToken cancellationToken = default)
     {
         var companyJobIds = new HashSet<int>();
-        foreach (var job in await PussyCatsJobService.GetByCompanyIdAsync(companyId, cancellationToken).ConfigureAwait(false))
+        foreach (var job in await jobService.GetByCompanyIdAsync(companyId, cancellationToken).ConfigureAwait(false))
         {
             companyJobIds.Add(job.JobId);
         }
@@ -120,6 +120,11 @@ public class MatchService : IMatchService
         matches.Sort(CompareByTimestampDescending);
 
         return matches;
+    }
+
+    public async Task<IReadOnlyList<Match>> GetByJobIdAsync(int jobId, CancellationToken cancellationToken = default)
+    {
+        return await matchRepository.GetByJobIdAsync(jobId, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task SubmitDecisionAsync(int matchId, MatchStatus decision, string feedback, CancellationToken cancellationToken = default)

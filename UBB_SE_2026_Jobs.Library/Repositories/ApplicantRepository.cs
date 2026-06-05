@@ -21,20 +21,20 @@
         public Applicant GetApplicantById(int applicantId)
         {
             return this.JobsDbContext.Applicants
-                .Include(a => a.User)
-                .Include(a => a.Job)
-                .Include(a => a.RecommendedFromCompany)
-                .FirstOrDefault(a => a.ApplicantId == applicantId);
+                .Include(applicant => applicant.User)
+                .Include(applicant => applicant.Job)
+                .Include(applicant => applicant.RecommendedFromCompany)
+                .FirstOrDefault(applicant => applicant.ApplicantId == applicantId);
         }
 
         /// <inheritdoc/>
         public IEnumerable<Applicant> GetApplicantsByCompany(int companyId)
         {
             return this.JobsDbContext.Applicants
-                .Include(a => a.User)
-                .Include(a => a.Job)
-                .Include(a => a.RecommendedFromCompany)
-                .Where(a => a.Job.CompanyId == companyId)
+                .Include(applicant => applicant.User)
+                .Include(applicant => applicant.Job)
+                .Include(applicant => applicant.RecommendedFromCompany)
+                .Where(applicant => applicant.Job.CompanyId == companyId)
                 .ToList();
         }
 
@@ -47,11 +47,18 @@
             }
 
             return this.JobsDbContext.Applicants
-                .Include(a => a.User)
-                .Include(a => a.Job)
-                .Include(a => a.RecommendedFromCompany)
-                .Where(a => a.JobId == Job.JobId)
+                .Include(applicant => applicant.User)
+                .Include(applicant => applicant.Job)
+                .Include(applicant => applicant.RecommendedFromCompany)
+                .Where(applicant => applicant.JobId == Job.JobId)
                 .ToList();
+        }
+
+        /// <inheritdoc/>
+        public Applicant? GetPendingApplicantByJobAndUser(int jobId, int userId)
+        {
+            return this.JobsDbContext.Applicants
+                .FirstOrDefault(applicant => applicant.JobId == jobId && applicant.UserId == userId);
         }
 
         /// <inheritdoc/>

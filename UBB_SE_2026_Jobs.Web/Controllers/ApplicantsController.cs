@@ -142,22 +142,20 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         /// </summary>
         /// <param name="jobId">The job ID.</param>
         [Authorize(Roles = "Recruiter")]
-        public async Task<IActionResult> ApplicantsByJob(int jobId)
+        public async Task<IActionResult> ApplicantsByJob(int jobId, CancellationToken cancellationToken)
         {
             this.AttachJwt();
 
-            // Get job details
             JobPostingDto? job = await this.jobsApiClient.GetJobByIdAsync(jobId);
             if (job == null)
             {
                 return this.NotFound();
             }
 
-            // Get applicants for the job
-            List<ApplicantDto> applicants = await this.applicantsApiClient.GetApplicantsByJobAsync(jobId);
+            var matches = await this.matchService.GetByJobIdAsync(jobId, cancellationToken);
 
             this.ViewBag.Job = job;
-            return this.View(applicants);
+            return this.View(matches);
         }
 
         /// <summary>

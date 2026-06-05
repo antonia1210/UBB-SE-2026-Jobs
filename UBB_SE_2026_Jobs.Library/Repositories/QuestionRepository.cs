@@ -14,33 +14,32 @@
     /// </summary>
     public class QuestionRepository : IQuestionRepository
     {
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext databaseContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QuestionRepository"/> class.
         /// </summary>
-        public QuestionRepository(JobsDbContext JobsDbContext)
+        public QuestionRepository(JobsDbContext databaseContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <inheritdoc />
         public async Task<List<TestQuestion>> FindByTestIdAsync(int testId)
         {
-            return await this.JobsDbContext.Questions
-                .Include(q => q.Answers)
-                .Where(q => q.TestId == testId)
+            return await this.databaseContext.Questions
+                .Include(question => question.Answers)
+                .Where(question => question.TestId == testId)
                 .ToListAsync();
         }
 
         /// <inheritdoc />
         public async Task<List<TestQuestion>> GetInterviewQuestionsByPositionAsync(int positionId)
         {
-            return await this.JobsDbContext.Questions
-                .Where(q => q.QuestionTypeString == QuestionType.INTERVIEW.ToString()
-                    && q.PositionId == positionId)
+            return await this.databaseContext.Questions
+                .Where(question => question.QuestionTypeString == QuestionType.INTERVIEW.ToString()
+                    && question.PositionId == positionId)
                 .ToListAsync();
         }
     }
 }
-

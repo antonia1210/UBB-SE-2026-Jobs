@@ -34,11 +34,6 @@ public sealed partial class TiTestPage : Page
         };
 
         await ViewModel.LoadAsync(testId, userId);
-
-        if (ViewModel.AlreadyAttempted)
-        {
-            Frame.Navigate(typeof(TiAlreadySubmittedPage), testId);
-        }
     }
 
     private void BackToTests_Click(object sender, RoutedEventArgs e)
