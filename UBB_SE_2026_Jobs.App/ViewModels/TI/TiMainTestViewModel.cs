@@ -1,0 +1,73 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Microsoft.UI.Xaml;
+using UBB_SE_2026_Jobs.App.Services.TI;
+
+namespace UBB_SE_2026_Jobs.App.ViewModels.TI;
+
+public class TiMainTestViewModel : INotifyPropertyChanged
+{
+    private readonly ITiTestService testService;
+    private bool isLoading;
+    private TiTestCardViewModel? selectedTest;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public TiMainTestViewModel(ITiTestService testService)
+    {
+        this.testService = testService;
+    }
+
+    public ObservableCollection<TiTestCardViewModel> Tests { get; } = new();
+
+    public bool IsLoading
+    {
+        get => isLoading;
+        set { isLoading = value; Notify(); Notify(nameof(NoTestsVisible)); }
+    }
+
+    public TiTestCardViewModel? SelectedTest
+    {
+        get => selectedTest;
+        set
+        {
+            if (selectedTest != null) selectedTest.IsSelected = false;
+            selectedTest = value;
+            if (selectedTest != null) selectedTest.IsSelected = true;
+            Notify();
+        }
+    }
+
+    public Visibility NoTestsVisible =>
+        !IsLoading && Tests.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+    public async Task LoadTestsAsync()
+    {
+        IsLoading = true;
+        Tests.Clear();
+
+        // Show every test regardless of category. (Previously this filtered by a hardcoded
+        // category list, so tests in any other category — or with slightly different category
+        // names — silently never appeared.)
+        var tests = await testService.GetAllAsync();
+        foreach (var test in tests)
+        {
+            var card = new TiTestCardViewModel
+            {
+                TestId = test.Id,
+                Title = test.Title,
+                Category = test.Category,
+                QuestionTypeLabel = test.QuestionTypeLabel,
+                CreatedAt = test.CreatedAt,
+            };
+            Tests.Add(card);
+        }
+
+        IsLoading = false;
+        Notify(nameof(NoTestsVisible));
+    }
+
+    private void Notify([CallerMemberName] string name = "") =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+}

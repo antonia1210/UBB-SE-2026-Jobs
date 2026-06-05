@@ -1304,6 +1304,29 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tests");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Category = "Programming",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Title = "C# Fundamentals"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Category = "Databases",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Title = "SQL Basics"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Category = "Web Development",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Title = "JavaScript Essentials"
+                        });
                 });
 
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.Core.TestAttempt", b =>
@@ -1420,6 +1443,98 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                     b.HasIndex("TestId");
 
                     b.ToTable("Questions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            OptionsJson = "[\"const\",\"static\",\"readonly\",\"var\"]",
+                            QuestionAnswer = "0",
+                            QuestionScore = 10f,
+                            QuestionText = "Which keyword declares a constant in C#?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            OptionsJson = "[\"System.Type\",\"System.Object\",\"System.Base\",\"System.Root\"]",
+                            QuestionAnswer = "1",
+                            QuestionScore = 10f,
+                            QuestionText = "What is the base class of all C# types?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            OptionsJson = "[\"->\",\"=>\",\":\",\"::\"]",
+                            QuestionAnswer = "2",
+                            QuestionScore = 10f,
+                            QuestionText = "Which symbol denotes inheritance in C#?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            OptionsJson = "[\"SELECT\",\"FETCH\",\"GET\",\"READ\"]",
+                            QuestionAnswer = "0",
+                            QuestionScore = 10f,
+                            QuestionText = "Which statement retrieves rows from a table?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 2
+                        },
+                        new
+                        {
+                            Id = 5,
+                            OptionsJson = "[\"ORDER BY\",\"WHERE\",\"GROUP BY\",\"LIMIT\"]",
+                            QuestionAnswer = "1",
+                            QuestionScore = 10f,
+                            QuestionText = "Which clause filters rows?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 2
+                        },
+                        new
+                        {
+                            Id = 6,
+                            OptionsJson = "[\"INNER JOIN\",\"LEFT JOIN\",\"RIGHT JOIN\",\"FULL JOIN\"]",
+                            QuestionAnswer = "0",
+                            QuestionScore = 10f,
+                            QuestionText = "Which JOIN returns only matching rows from both tables?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 2
+                        },
+                        new
+                        {
+                            Id = 7,
+                            OptionsJson = "[\"let\",\"var\",\"def\",\"dim\"]",
+                            QuestionAnswer = "0",
+                            QuestionScore = 10f,
+                            QuestionText = "Which keyword declares a block-scoped variable?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 3
+                        },
+                        new
+                        {
+                            Id = 8,
+                            OptionsJson = "[\"Only value\",\"Value and type\",\"Only type\",\"Reference only\"]",
+                            QuestionAnswer = "1",
+                            QuestionScore = 10f,
+                            QuestionText = "What does the === operator compare?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 3
+                        },
+                        new
+                        {
+                            Id = 9,
+                            OptionsJson = "[\"JSON.stringify\",\"JSON.encode\",\"JSON.parse\",\"JSON.toObject\"]",
+                            QuestionAnswer = "2",
+                            QuestionScore = 10f,
+                            QuestionText = "Which method converts a JSON string to an object?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 3
+                        });
                 });
 
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.Document", b =>
@@ -3648,9 +3763,6 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                     b.Property<bool>("HasDisabilities")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -3746,7 +3858,6 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Gender = "",
                             GitHub = "",
                             HasDisabilities = false,
-                            Id = 1,
                             LastName = "Smith",
                             LastUpdated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LinkedIn = "",

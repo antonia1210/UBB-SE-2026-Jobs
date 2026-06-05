@@ -1,50 +1,148 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml.Shapes;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using UBB_SE_2026_Jobs.App.Configuration;
+using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.Library.ServiceProxies;
+using UBB_SE_2026_Jobs.Library.Repositories.Documents;
+using UBB_SE_2026_Jobs.Library.Services.Auth;
+using UBB_SE_2026_Jobs.Library.Services.ChatService;
+using UBB_SE_2026_Jobs.Library.Services.CompatibilityService;
+using UBB_SE_2026_Jobs.Library.Services.CompanyRecommendationService;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
+using UBB_SE_2026_Jobs.Library.Services.CompanyStatusService;
+using UBB_SE_2026_Jobs.Library.Services.CompletenessService;
+using UBB_SE_2026_Jobs.Library.Services.CooldownService;
+using UBB_SE_2026_Jobs.Library.Services.Developers;
+using UBB_SE_2026_Jobs.Library.Services.Documents;
+using UBB_SE_2026_Jobs.Library.Services.CvParsing;
+using UBB_SE_2026_Jobs.Library.Services.FileStorage;
+using UBB_SE_2026_Jobs.Library.Services.ImageStorage;
+using UBB_SE_2026_Jobs.Library.Services.Jobs;
+using UBB_SE_2026_Jobs.Library.Services.JobSkills;
+using UBB_SE_2026_Jobs.Library.Services.Matches;
+using UBB_SE_2026_Jobs.Library.Services.PersonalityTestService;
+using UBB_SE_2026_Jobs.Library.Services.Preferences;
+using UBB_SE_2026_Jobs.Library.Services.Recommendations;
+using UBB_SE_2026_Jobs.Library.Services.SkillGapService;
+using UBB_SE_2026_Jobs.Library.Services.Skills;
+using UBB_SE_2026_Jobs.Library.Services.SkillTests;
+using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
+using UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
+using UBB_SE_2026_Jobs.Library.Services.Users;
+using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
+using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
+namespace UBB_SE_2026_Jobs.App;
 
-namespace UBB_SE_2026_Jobs.App
+public partial class App : Application
 {
-    /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
-    /// </summary>
-    public partial class App : Application
+    private Window? _window;
+    private IServiceProvider serviceProvider = null!;
+
+    public static Window? MainAppWindow { get; private set; }
+    public static IServiceProvider Services => ((App)Current).serviceProvider;
+
+    public App()
     {
-        private Window? _window;
+        InitializeComponent();
+        UIDispatcher.Queue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
-        /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
-        /// executed, and as such is the logical equivalent of main() or WinMain().
-        /// </summary>
-        public App()
-        {
-            InitializeComponent();
-        }
+        var services = new ServiceCollection();
+        ConfigureServices(services);
+        serviceProvider = services.BuildServiceProvider();
+    }
 
-        /// <summary>
-        /// Invoked when the application is launched.
-        /// </summary>
-        /// <param name="args">Details about the launch request and process.</param>
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+    protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+    {
+        _window = new MainWindow();
+        MainAppWindow = _window;
+        _window.Activate();
+    }
+
+    private static void ConfigureServices(IServiceCollection services)
+    {
+        var apiConfiguration = ApiConfigurationLoader.Load();
+        services.AddSingleton(apiConfiguration);
+        services.AddSingleton<SessionContext>();
+        services.AddTransient<JwtForwardingHandler>();
+
+        RegisterServiceProxy<IAuthService, AuthServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IChatService, ChatServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ICompatibilityService, CompatibilityServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ICompletenessService, CompletenessServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ICompanyRecommendationService, CompanyRecommendationServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ICompanyService, CompanyServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ICompanyStatusService, CompanyStatusServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ICooldownService, CooldownServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IDeveloperService, DeveloperServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IDocumentService, DocumentServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IImageStorageService, ImageStorageServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IJobService, JobServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IJobSkillService, JobSkillServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ILocalFileStorageService, FileStorageServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IMatchService, MatchServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IPersonalityTestService, PersonalityTestServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IPreferenceService, PreferenceServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IRecommendationService, RecommendationServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ISkillGapService, SkillGapServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ISkillService, SkillServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ISkillTestService, SkillTestServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IUserProfileService, UserProfileServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IUserRecommendationService, UserRecommendationServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IUserService, UserServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IUserSkillService, UserSkillServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<IUserStatusService, UserStatusServiceProxy>(services, apiConfiguration);
+        RegisterServiceProxy<ILocalDocumentFileService, DocumentServiceProxy>(services, apiConfiguration);
+
+        services.AddHttpClient<CvExportProxy>(client =>
+            client.BaseAddress = new Uri(apiConfiguration.BaseUrl))
+            .AddHttpMessageHandler<JwtForwardingHandler>();
+
+        // TI (Tests & Interviews) API services — these live on a separate API
+        // (TiBaseUrl, :5179), NOT the PussyCats API. The PussyCats API has no
+        // applicants/tests/etc. controllers, so using BaseUrl here makes every
+        // TI write (e.g. submitting a job application) 404.
+        // The TI job catalog + skills are served by the PussyCats API (single owner),
+        // so the TI Jobs UI now uses IJobService / ISkillService (registered above on
+        // BaseUrl) instead of a dedicated TI jobs client. tiBaseUrl is reserved for the
+        // genuinely TI-only resources below.
+        var tiBaseUrl = apiConfiguration.TiBaseUrl;
+        services.AddHttpClient<ITiAuthService, TiAuthService>(client => client.BaseAddress = new Uri(tiBaseUrl))
+            .AddHttpMessageHandler<JwtForwardingHandler>();
+        services.AddHttpClient<ITiTestService, TiTestService>(client => client.BaseAddress = new Uri(tiBaseUrl))
+    .AddHttpMessageHandler<JwtForwardingHandler>();
+        services.AddHttpClient<ITiLeaderboardService, TiLeaderboardService>(client => client.BaseAddress = new Uri(tiBaseUrl))
+            .AddHttpMessageHandler<JwtForwardingHandler>();
+        services.AddHttpClient<ITiEventsService, TiEventsService>(client => client.BaseAddress = new Uri(tiBaseUrl))
+            .AddHttpMessageHandler<JwtForwardingHandler>();
+        services.AddHttpClient<ITiApplicantService, TiApplicantService>(client => client.BaseAddress = new Uri(tiBaseUrl))
+            .AddHttpMessageHandler<JwtForwardingHandler>();
+        services.AddHttpClient<ITiSlotsService, TiSlotsService>(client => client.BaseAddress = new Uri(tiBaseUrl))
+            .AddHttpMessageHandler<JwtForwardingHandler>();
+        services.AddHttpClient<ITiPaymentService, TiPaymentService>(client => client.BaseAddress = new Uri(tiBaseUrl))
+            .AddHttpMessageHandler<JwtForwardingHandler>();
+        RegisterViewModels(services);
+    }
+
+    private static void RegisterServiceProxy<TService, TProxy>(
+        IServiceCollection services,
+        ApiConfiguration apiConfiguration)
+        where TService : class
+        where TProxy : class, TService
+    {
+        services.AddHttpClient<TService, TProxy>(client =>
+            client.BaseAddress = new Uri(apiConfiguration.BaseUrl))
+            .AddHttpMessageHandler<JwtForwardingHandler>();
+    }
+
+    private static void RegisterViewModels(IServiceCollection services)
+    {
+        var viewModelTypes = typeof(App).Assembly.GetTypes()
+            .Where(type => type.IsClass && !type.IsAbstract && type.Name.EndsWith("ViewModel", StringComparison.Ordinal));
+
+        foreach (var viewModelType in viewModelTypes)
         {
-            _window = new MainWindow();
-            _window.Activate();
+            services.AddTransient(viewModelType);
         }
     }
 }

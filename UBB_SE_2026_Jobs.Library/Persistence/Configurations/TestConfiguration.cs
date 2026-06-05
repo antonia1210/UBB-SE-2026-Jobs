@@ -17,6 +17,13 @@ public class TestConfiguration : IEntityTypeConfiguration<Test>
             .WithOne(q => q.Test)
             .HasForeignKey(q => q.TestId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // Seed starter tests so candidates have something to take on a fresh database.
+        // Their questions are seeded in QuestionConfiguration.
+        builder.HasData(
+            new Test { Id = 1, Title = "C# Fundamentals", Category = "Programming", CreatedAt = new DateTime(2026, 1, 1) },
+            new Test { Id = 2, Title = "SQL Basics", Category = "Databases", CreatedAt = new DateTime(2026, 1, 1) },
+            new Test { Id = 3, Title = "JavaScript Essentials", Category = "Web Development", CreatedAt = new DateTime(2026, 1, 1) });
     }
 }
 

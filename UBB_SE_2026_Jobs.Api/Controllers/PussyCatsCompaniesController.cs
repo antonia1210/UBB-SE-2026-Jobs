@@ -18,6 +18,10 @@ public class PussyCatsCompaniesController : ControllerBase
         this.companyService = companyService;
     }
 
+    // Anonymous: the recruiter sign-up screen loads this list to populate the company
+    // picker before the user is authenticated. The list is non-sensitive (public company
+    // names/logos), so allow it without a token while the rest of the controller stays secured.
+    [AllowAnonymous]
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<Company>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllAsync(CancellationToken cancellationToken)

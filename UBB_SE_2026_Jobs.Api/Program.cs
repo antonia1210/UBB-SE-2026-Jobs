@@ -181,6 +181,14 @@ builder.Services.AddScoped<ICompanyStatsService, CompanyStatsService>();
 builder.Services.AddScoped<ITestsAuthService, TestsAuthService>();
 
 // Infrastructure
+builder.Services.AddSingleton<IPdfExportService>(serviceProvider =>
+{
+    var webHostEnvironment = serviceProvider.GetRequiredService<IWebHostEnvironment>();
+    var templatePath = Path.Combine(webHostEnvironment.WebRootPath, "templates", "CVHtmlTemplate.html");
+    var templateHtml = File.ReadAllText(templatePath);
+    return new PdfExportService(templateHtml);
+});
+
 builder.Services.AddSingleton<ILocalFileStorageService>(serviceProvider =>
 {
     var uploadsPath = Path.Combine(AppContext.BaseDirectory, "uploads", "files");
