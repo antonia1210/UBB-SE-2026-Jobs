@@ -13,6 +13,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
     public class CollaboratorsController : ControllerBase
     {
         private readonly ICollaboratorsService _service;
+        private const int MinimumValidEntityId = 1;
 
         public CollaboratorsController(ICollaboratorsService service)
         {
@@ -22,7 +23,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
         [HttpPost]
         public ActionResult AddCollaborator([FromBody] CollaboratorDto collaboratorDto, [FromQuery] int loggedInUserID)
         {
-            Event eventOfCollaboration = collaboratorDto.EventId > 0
+            Event eventOfCollaboration = collaboratorDto.EventId >= MinimumValidEntityId
                 ? new Event { Id = collaboratorDto.EventId }
                 : new Event();
 
@@ -41,7 +42,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (collaborators is null || !collaborators.Any())
                 return NotFound($"No collaborators found for company ID {loggedInCompanyId}.");
 
-            return Ok(collaborators.Select(c => c.ToDto()).ToList());
+            return Ok(collaborators.Select(collaborator => collaborator.ToDto()).ToList());
         }
 
         [HttpGet("event/{eventId}")]
@@ -52,7 +53,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (collaborators is null || !collaborators.Any())
                 return NotFound($"No collaborators found for event ID {eventId}.");
 
-            return Ok(collaborators.Select(c => c.ToDto()).ToList());
+            return Ok(collaborators.Select(collaborator => collaborator.ToDto()).ToList());
         }
     }
 

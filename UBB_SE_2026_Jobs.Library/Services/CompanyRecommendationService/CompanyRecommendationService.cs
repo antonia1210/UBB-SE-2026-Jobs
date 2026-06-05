@@ -14,7 +14,7 @@ public class CompanyRecommendationService : ICompanyRecommendationService
 {
     private readonly IMatchService matchService;
     private readonly IUserService userService;
-    private readonly IPussyCatsJobService PussyCatsJobService;
+    private readonly IPussyCatsJobService jobService;
     private readonly IUserSkillService userSkillService;
     private readonly IJobSkillService jobSkillService;
     private readonly IRecommendationAlgorithm algorithm;
@@ -25,14 +25,14 @@ public class CompanyRecommendationService : ICompanyRecommendationService
     public CompanyRecommendationService(
         IMatchService matchService,
         IUserService userService,
-        IPussyCatsJobService PussyCatsJobService,
+        IPussyCatsJobService jobService,
         IUserSkillService userSkillService,
         IJobSkillService jobSkillService,
         IRecommendationAlgorithm algorithm)
     {
         this.matchService = matchService;
         this.userService = userService;
-        this.PussyCatsJobService = PussyCatsJobService;
+        this.jobService = jobService;
         this.userSkillService = userSkillService;
         this.jobSkillService = jobSkillService;
         this.algorithm = algorithm;
@@ -40,7 +40,7 @@ public class CompanyRecommendationService : ICompanyRecommendationService
 
     public async Task<IReadOnlyList<UserApplicationResult>> GetRankedApplicantsAsync(int companyId, CancellationToken cancellationToken = default)
     {
-        var companyJobs = await PussyCatsJobService.GetByCompanyIdAsync(companyId, cancellationToken).ConfigureAwait(false);
+        var companyJobs = await jobService.GetByCompanyIdAsync(companyId, cancellationToken).ConfigureAwait(false);
         var companyJobIds = GetJobIds(companyJobs);
 
         if (companyJobIds.Count == 0)
@@ -62,7 +62,7 @@ public class CompanyRecommendationService : ICompanyRecommendationService
         foreach (var match in appliedMatches)
         {
             var user = match.User;
-            var job = await PussyCatsJobService.GetByIdAsync(match.Job.JobId, cancellationToken).ConfigureAwait(false);
+            var job = await jobService.GetByIdAsync(match.Job.JobId, cancellationToken).ConfigureAwait(false);
             if (job is null)
             {
                 continue;

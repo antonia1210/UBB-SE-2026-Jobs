@@ -3,8 +3,9 @@ using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
 using UBB_SE_2026_Jobs.Library.Repositories.Messages;
-using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 using UBB_SE_2026_Jobs.Library.Services.FileStorage;
+using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
 using UBB_SE_2026_Jobs.Library.Services.Users;
 
 namespace UBB_SE_2026_Jobs.Library.Services.ChatService;
@@ -33,7 +34,7 @@ public class ChatService : IChatService
     private readonly IChatRepository chatRepository;
     private readonly IMessageRepository messageRepository;
     private readonly IUserService userService;
-    private readonly IPussyCatsCompanyService PussyCatsCompanyService;
+    private readonly IPussyCatsCompanyService companyService;
     private readonly ILocalFileStorageService fileStorage;
     private readonly IRecruiterRepository recruiterRepository;
 
@@ -41,14 +42,14 @@ public class ChatService : IChatService
         IChatRepository chatRepository,
         IMessageRepository messageRepository,
         IUserService userService,
-        IPussyCatsCompanyService PussyCatsCompanyService,
+        IPussyCatsCompanyService companyService,
         ILocalFileStorageService fileStorage,
         IRecruiterRepository recruiterRepository)
     {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
         this.userService = userService;
-        this.PussyCatsCompanyService = PussyCatsCompanyService;
+        this.companyService = companyService;
         this.fileStorage = fileStorage;
         this.recruiterRepository = recruiterRepository;
     }
@@ -56,13 +57,13 @@ public class ChatService : IChatService
     public async Task<Chat?> FindOrCreateUserCompanyChatAsync(int userId, Company company, Job? job = null,
         CancellationToken cancellationToken = default)
     {
-        var existing = await chatRepository.FindUserCompanyChatAsync(userId, company, job?.JobId, cancellationToken).ConfigureAwait(false);
-        if (existing is not null)
+        var existingChat = await chatRepository.FindUserCompanyChatAsync(userId, company, job?.JobId, cancellationToken).ConfigureAwait(false);
+        if (existingChat is not null)
         {
-            existing.DeletedAtByUser = null;
-            existing.DeletedAtBySecondParty = null;
-            await chatRepository.UpdateAsync(existing, cancellationToken).ConfigureAwait(false);
-            return existing;
+            existingChat.DeletedAtByUser = null;
+            existingChat.DeletedAtBySecondParty = null;
+            await chatRepository.UpdateAsync(existingChat, cancellationToken).ConfigureAwait(false);
+            return existingChat;
         }
 
         return await chatRepository.AddAsync(new Chat { User = await GetUserAsync(userId, cancellationToken), Company = company, Job = job }, cancellationToken).ConfigureAwait(false);
@@ -82,13 +83,13 @@ public class ChatService : IChatService
         if (callerIsRecruiter && callerCompanyId != targetCompanyId)
             throw new InvalidOperationException("Recruiters can only chat with recruiters from the same company.");
 
-        var existing = await chatRepository.FindUserUserChatAsync(userId, secondUserId, cancellationToken).ConfigureAwait(false);
-        if (existing is not null)
+        var existingChat = await chatRepository.FindUserUserChatAsync(userId, secondUserId, cancellationToken).ConfigureAwait(false);
+        if (existingChat is not null)
         {
-            existing.DeletedAtByUser = null;
-            existing.DeletedAtBySecondParty = null;
-            await chatRepository.UpdateAsync(existing, cancellationToken).ConfigureAwait(false);
-            return existing;
+            existingChat.DeletedAtByUser = null;
+            existingChat.DeletedAtBySecondParty = null;
+            await chatRepository.UpdateAsync(existingChat, cancellationToken).ConfigureAwait(false);
+            return existingChat;
         }
 
         return await chatRepository.AddAsync(new Chat { User = await GetUserAsync(userId, cancellationToken), SecondUser = await GetUserAsync(secondUserId, cancellationToken) }, cancellationToken).ConfigureAwait(false);
@@ -131,7 +132,7 @@ public class ChatService : IChatService
             return Array.Empty<Company>();
         }
 
-        var companies = await PussyCatsCompanyService.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        var companies = await companyService.GetAllAsync(cancellationToken).ConfigureAwait(false);
         return companies
             .Where(company => company.Name.Contains(companyNameSearchTerm, StringComparison.OrdinalIgnoreCase))
             .Take(MaxSearchResults)
@@ -163,7 +164,7 @@ public class ChatService : IChatService
 
         var users = await userService.GetAllAsync(cancellationToken).ConfigureAwait(false);
         return users
-            .Where(u => recruiterUserIds.Contains(u.UserId) && GetUserName(u).Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Where(user => recruiterUserIds.Contains(user.UserId) && GetUserName(user).Contains(query, StringComparison.OrdinalIgnoreCase))
             .Take(MaxSearchResults)
             .ToList();
     }
@@ -297,7 +298,6 @@ public class ChatService : IChatService
 
     private static void EnsureParticipant(Chat chat, int callerId, int? companyId = null)
     {
-        // For user-to-user chats: check if caller is one of the two users
         if (chat.SecondUser != null)
         {
             if (chat.User.UserId != callerId && chat.SecondUser.UserId != callerId)
@@ -307,7 +307,6 @@ public class ChatService : IChatService
             return;
         }
 
-        // For user-to-company chats: the caller must be the user OR a representative of the company
         if (chat.Company != null)
         {
             if (chat.User.UserId == callerId)
@@ -321,7 +320,6 @@ public class ChatService : IChatService
             throw new UnauthorizedAccessException("Only chat participants or company representatives can access this chat.");
         }
 
-        // Fallback for other chat types
         if (chat.User.UserId != callerId)
         {
             throw new UnauthorizedAccessException("Only chat participants can access this chat.");

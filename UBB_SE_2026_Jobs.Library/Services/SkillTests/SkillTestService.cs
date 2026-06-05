@@ -11,6 +11,11 @@ namespace UBB_SE_2026_Jobs.Library.Services.SkillTests;
 /// </summary>
 public class SkillTestService : ISkillTestService
 {
+    private const float MaximumScoreWhenNoQuestions = 0f;
+    private const float PercentageMultiplier = 100f;
+    private const int ZeroPercentage = 0;
+    private const int FallbackUserId = 0;
+
     private readonly ITestAttemptRepository testAttemptRepository;
 
     public SkillTestService(ITestAttemptRepository testAttemptRepository)
@@ -56,22 +61,22 @@ public class SkillTestService : ISkillTestService
 
     private static SkillTestViewDto ProjectToView(Domain.Core.TestAttempt attempt)
     {
-        float maxPossible = attempt.Test?.Questions
-            .Sum(q => q.QuestionScore) ?? 0f;
+        float maximumPossibleScore = attempt.Test?.Questions
+            .Sum(question => question.QuestionScore) ?? MaximumScoreWhenNoQuestions;
 
-        int percentage = maxPossible > 0
-            ? (int)Math.Round((float)(attempt.Score ?? 0m) / maxPossible * 100f)
-            : 0;
+        int scorePercentage = maximumPossibleScore > MaximumScoreWhenNoQuestions
+            ? (int)Math.Round((float)(attempt.Score ?? 0m) / maximumPossibleScore * PercentageMultiplier)
+            : ZeroPercentage;
 
         return new SkillTestViewDto
         {
             SkillTestId = attempt.Id,
             Name = attempt.Test?.Title ?? string.Empty,
-            Score = percentage,
+            Score = scorePercentage,
             AchievedDate = attempt.CompletedAt.HasValue
                                ? DateOnly.FromDateTime(attempt.CompletedAt.Value)
                                : DateOnly.MinValue,
-            UserId = attempt.ExternalUserId ?? 0,
+            UserId = attempt.ExternalUserId ?? FallbackUserId,
         };
     }
 }
