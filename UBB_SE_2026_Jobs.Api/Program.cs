@@ -16,7 +16,6 @@ using UBB_SE_2026_Jobs.Library.Repositories.Messages;
 using UBB_SE_2026_Jobs.Library.Repositories.PersonalityTests;
 using UBB_SE_2026_Jobs.Library.Repositories.Recommendations;
 using UBB_SE_2026_Jobs.Library.Repositories.Skills;
-using UBB_SE_2026_Jobs.Library.Repositories.SkillTests;
 using UBB_SE_2026_Jobs.Library.Repositories.Users;
 using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.ChatService;
@@ -102,7 +101,6 @@ builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IJobSkillRepository, JobSkillRepository>();
 builder.Services.AddScoped<IUserSkillRepository, UserSkillRepository>();
 builder.Services.AddScoped<ISkillGroupRepository, SkillGroupRepository>();
-builder.Services.AddScoped<ISkillTestRepository, SkillTestRepository>();
 builder.Services.AddScoped<IPersonalityTestRepository, PersonalityTestRepository>();
 builder.Services.AddScoped<IRecommendationRepository, RecommendationRepository>();
 

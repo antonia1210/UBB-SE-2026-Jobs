@@ -13,74 +13,91 @@
     public class TestAttemptRepository : ITestAttemptRepository
     {
 
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext jobsDbContext;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TestAttemptRepository"/> class.
-        /// TestAttemptRepository constructor initializes the connection string from the environment variable.
-        /// </summary>
-        public TestAttemptRepository(JobsDbContext JobsDbContext)
+        public TestAttemptRepository(JobsDbContext jobsDbContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.jobsDbContext = jobsDbContext;
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public async Task<TestAttempt?> FindByIdAsync(int id)
         {
-            return await this.JobsDbContext.TestAttempts
-                .Include(testAttempt => testAttempt.Answers)
-                .ThenInclude(answer => answer.Question)
-                .FirstOrDefaultAsync(testAttempt => testAttempt.Id == id);
+            return await jobsDbContext.TestAttempts
+                .Include(a => a.Answers)
+                    .ThenInclude(answer => answer.Question)
+                .Include(a => a.Test)
+                .FirstOrDefaultAsync(a => a.Id == id);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public async Task<TestAttempt?> FindByUserAndTestAsync(int userId, int testId)
         {
-            return await this.JobsDbContext.TestAttempts
-                .Include(testAttempt => testAttempt.Answers)
-                .FirstOrDefaultAsync(testAttempt => testAttempt.ExternalUserId == userId && testAttempt.TestId == testId);
+            return await jobsDbContext.TestAttempts
+                .Include(a => a.Answers)
+                .FirstOrDefaultAsync(a => a.ExternalUserId == userId && a.TestId == testId);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public async Task SaveAsync(TestAttempt attempt)
         {
-            this.JobsDbContext.TestAttempts.Add(attempt);
-            await this.JobsDbContext.SaveChangesAsync();
+            jobsDbContext.TestAttempts.Add(attempt);
+            await jobsDbContext.SaveChangesAsync();
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public async Task<TestAttempt?> UpdateAsync(TestAttempt attempt)
         {
             try
             {
-                await this.JobsDbContext.SaveChangesAsync();
+                await jobsDbContext.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await this.JobsDbContext.TestAttempts.AnyAsync(entry => entry.Id == attempt.Id))
+                if (!await jobsDbContext.TestAttempts.AnyAsync(e => e.Id == attempt.Id))
                 {
                     return null;
                 }
-
                 throw;
             }
 
             return attempt;
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public async Task<List<TestAttempt>> FindValidAttemptsByTestIdAsync(int testId)
         {
-            return await this.JobsDbContext.TestAttempts
-                .Include(testAttempt => testAttempt.User)
-                .Where(testAttempt => testAttempt.TestId == testId
-                          && testAttempt.Status == "COMPLETED"
-                          && testAttempt.IsValidated
-                          && testAttempt.PercentageScore != null
-                          && testAttempt.CompletedAt != null)
-                .OrderByDescending(testAttempt => testAttempt.PercentageScore)
-                .ThenBy(testAttempt => testAttempt.CompletedAt)
+            return await jobsDbContext.TestAttempts
+                .Include(a => a.User)
+                .Where(a => a.TestId == testId
+                         && a.Status == "COMPLETED"
+                         && a.IsValidated
+                         && a.PercentageScore != null
+                         && a.CompletedAt != null)
+                .OrderByDescending(a => a.PercentageScore)
+                .ThenBy(a => a.CompletedAt)
                 .ToListAsync();
+        }
+
+        /// <inheritdoc/>
+        /// <remarks>
+        /// Replaces the former SkillTestRepository.GetByUserIdAsync.
+        /// Includes the Test navigation so callers can read Test.Title
+        /// without a second round-trip (previously stored as SkillTest.Name).
+        /// </remarks>
+        public async Task<IReadOnlyList<TestAttempt>> FindCompletedByUserIdAsync(
+            int userId,
+            CancellationToken cancellationToken = default)
+        {
+            return await jobsDbContext.TestAttempts
+                .AsNoTracking()
+                .Include(a => a.Test)
+                .Where(a => a.ExternalUserId == userId
+                         && a.Status == "COMPLETED"
+                         && a.CompletedAt != null)
+                .OrderByDescending(a => a.CompletedAt)
+                .ToListAsync(cancellationToken)
+                .ConfigureAwait(false);
         }
     }
 }

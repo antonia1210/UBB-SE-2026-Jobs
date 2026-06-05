@@ -1,5 +1,6 @@
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.Library.DTOs;
 
 namespace UBB_SE_2026_Jobs.Library.Services;
 
@@ -20,7 +21,7 @@ public static class SimpleModelOperations
     public const int Level4ExperiencePoints = 500;
     public const int Level5ExperiencePoints = 800;
 
-    public static int GetExperiencePoints(SkillTest skillTest)
+    public static int GetExperiencePoints(SkillTestViewDto skillTest)
     {
         if (skillTest.Score >= GoldScoreThreshold)
         {
