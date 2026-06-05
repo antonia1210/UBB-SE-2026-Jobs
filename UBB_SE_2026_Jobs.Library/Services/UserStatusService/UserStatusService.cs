@@ -62,11 +62,11 @@ public class UserStatusService : IUserStatusService
                 MatchId = match.MatchId,
                 JobId = match.Job.JobId,
                 CompanyName = company?.Name ?? "Unknown Company",
-                JobDescription = job.JobDescription,
+                JobDescription = job.JobDescription ?? string.Empty,
                 AppliedDate = match.Timestamp,
                 Status = match.Status,
                 CompatibilityScore = compatibilityScore,
-                FeedbackMessage = match.FeedbackMessage,
+                FeedbackMessage = match.FeedbackMessage ?? string.Empty,
             });
         }
 

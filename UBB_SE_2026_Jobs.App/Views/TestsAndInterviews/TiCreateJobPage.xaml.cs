@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.App.ViewModels.TI;
 using UBB_SE_2026_Jobs.App;
 
@@ -21,6 +22,32 @@ public sealed partial class TiCreateJobPage : Page
     {
         base.OnNavigatedTo(e);
         await ViewModel.InitializeAsync();
+
+        if (e.Parameter is TiJobPostingDto job)
+        {
+            ViewModel.LoadForEdit(job);
+            PageTitleText.Text = "Edit Job";
+            SaveButton.Content = "Save Changes";
+
+            SelectComboByTag(IndustryCombo, job.IndustryField);
+            SelectComboByTag(JobTypeCombo, job.JobType);
+            SelectComboByTag(ExpLevelCombo, job.ExperienceLevel);
+        }
+    }
+
+    private static void SelectComboByTag(ComboBox combo, string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return;
+
+        foreach (var item in combo.Items)
+        {
+            if (item is ComboBoxItem comboItem && comboItem.Tag as string == value)
+            {
+                combo.SelectedItem = comboItem;
+                return;
+            }
+        }
     }
 
     private void Combo_SelectionChanged(object sender, SelectionChangedEventArgs e)

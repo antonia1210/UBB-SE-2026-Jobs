@@ -17,7 +17,6 @@ public class InterviewSessionServiceTests
         interviewSessionService = new InterviewSessionService(interviewSessionRepository, applicantRepository);
     }
 
-    // Helpers
 
     private static InterviewSession SessionWithCandidate(int sessionId, int positionId, int candidateId) => new()
     {
@@ -260,9 +259,9 @@ public class InterviewSessionServiceTests
     public async Task SetInterviewDecision_ApplicantNotFound_ThrowsInvalidDataException()
     {
         interviewSessionRepository.Seed(SessionWithCandidate(sessionId: 1, positionId: 10, candidateId: 5));
-        // no matching applicant seeded
 
-        Func<Task> act = () => interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted");
+
+       Func < Task > act = () => interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted");
 
         var exception = await Assert.ThrowsAsync<InvalidDataException>(act);
         Assert.Contains("Application", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -307,8 +306,6 @@ public class InterviewSessionServiceTests
     [Fact]
     public async Task SetInterviewDecision_ApplicantNotFound_SessionIsStillMarkedCompleted()
     {
-        // The service updates the session status before looking up the applicant,
-        // so even when the applicant lookup throws, the session update already happened.
         interviewSessionRepository.Seed(SessionWithCandidate(sessionId: 1, positionId: 10, candidateId: 5));
 
         await Assert.ThrowsAsync<InvalidDataException>(
@@ -317,15 +314,4 @@ public class InterviewSessionServiceTests
         var session = await interviewSessionRepository.GetInterviewSessionByIdAsync(1);
         Assert.Equal(InterviewStatus.Completed.ToString(), session!.Status);
     }
-
-
-    // -------------------------------------------------------------------------
-    // UploadVideoAsync / GetVideoAsync
-    // NOTE: These methods are tightly coupled to the real file system
-    // (Directory.CreateDirectory, FileStream, File.ReadAllBytes) with no
-    // injected abstraction.  Unit-testing them without touching disk requires
-    // extracting an IFileSystem interface first — tracked as a refactor task.
-    // Integration-level coverage for those two methods should live in a
-    // separate integration test project that runs against a temp directory.
-    // -------------------------------------------------------------------------
 }

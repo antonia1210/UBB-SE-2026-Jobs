@@ -11,6 +11,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
     using UBB_SE_2026_Jobs.Library.Persistence;
     using UBB_SE_2026_Jobs.Library.Domain.Core;
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+    using UBB_SE_2026_Jobs.Library.Repositories.Skills;
     using UBB_SE_2026_Jobs.Library.Repositories.Users;
     using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 
@@ -20,6 +21,8 @@ namespace UBB_SE_2026_Jobs.Library.Services
         private readonly IUserRepository userRepository;
         private readonly ITestAttemptRepository attemptRepository;
         private readonly ITestRepository testRepository;
+        private readonly ISkillRepository skillRepository;
+        private readonly IUserSkillRepository userSkillRepository;
 
         private const string CompletedStatus = "COMPLETED";
         private const decimal MinimumScore = 0m;
@@ -28,11 +31,15 @@ namespace UBB_SE_2026_Jobs.Library.Services
         public DataProcessingService(
             IUserRepository userRepository,
             ITestAttemptRepository attemptRepository,
-            ITestRepository testRepository)
+            ITestRepository testRepository,
+            ISkillRepository skillRepository,
+            IUserSkillRepository userSkillRepository)
         {
             this.userRepository = userRepository;
             this.attemptRepository = attemptRepository;
             this.testRepository = testRepository;
+            this.skillRepository = skillRepository;
+            this.userSkillRepository = userSkillRepository;
         }
 
         /// <inheritdoc/>
@@ -69,7 +76,54 @@ namespace UBB_SE_2026_Jobs.Library.Services
             attempt.RejectedAt = null;
 
             await this.attemptRepository.UpdateAsync(attempt);
+
+            if (attempt.IsValidated && attempt.PercentageScore.HasValue)
+            {
+                await this.UpdateUserSkillsFromAttemptAsync(attempt);
+            }
+
             return true;
+        }
+
+        private async Task UpdateUserSkillsFromAttemptAsync(TestAttempt attempt)
+        {
+            if (attempt.ExternalUserId == null) return;
+
+            var test = await this.testRepository.FindByIdAsync(attempt.TestId);
+            if (test == null || string.IsNullOrWhiteSpace(test.Category)) return;
+
+            var skills = await this.skillRepository.GetAllAsync();
+            var skill = skills.FirstOrDefault(s => s.Name.ToLower() == test.Category.ToLower());
+
+            if (skill == null) return;
+
+            int userId = attempt.ExternalUserId.Value;
+            var userSkill = await this.userSkillRepository.GetAsync(userId, skill.SkillId);
+
+            int newScore = (int)Math.Round(attempt.PercentageScore.Value);
+
+            if (userSkill == null)
+            {
+                var user = await this.userRepository.GetByIdAsync(userId);
+                if (user == null) return;
+
+                userSkill = new Domain.UserSkill
+                {
+                    Skill = skill,
+                    User = user,
+                    Score = newScore,
+                    IsVerified = true,
+                    AchievedDate = DateOnly.FromDateTime(DateTime.UtcNow)
+                };
+                await this.userSkillRepository.AddAsync(userSkill);
+            }
+            else if (newScore > userSkill.Score)
+            {
+                userSkill.Score = newScore;
+                userSkill.IsVerified = true;
+                userSkill.AchievedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                await this.userSkillRepository.UpdateAsync(userSkill);
+            }
         }
 
         /// <summary>
