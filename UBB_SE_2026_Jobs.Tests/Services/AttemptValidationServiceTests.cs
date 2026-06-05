@@ -70,7 +70,7 @@ namespace UBB_SE_2026_Jobs.Tests.Services
         }
 
         [Fact]
-        public async Task CheckExistingAttemptsAsync_ExistingAttempt_NoException()
+        public async Task CheckExistingAttemptsAsync_ExistingAttempt_ThrowsException()
         {
             int userId = 1;
             int testId = 10;
@@ -79,7 +79,7 @@ namespace UBB_SE_2026_Jobs.Tests.Services
                 .Returns((TestAttempt)new TestAttempt());
 
             InvalidOperationException exception =await Assert.ThrowsAsync<InvalidOperationException>(() => this.service.CheckExistingAttemptsAsync(userId, testId));
-            Assert.Contains("has already attempted test", exception.Message);
+            Assert.Contains("has an active in-progress attempt for test", exception.Message);
 
 
             await this.attemptRepository
