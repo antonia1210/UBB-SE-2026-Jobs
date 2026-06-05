@@ -69,7 +69,9 @@ public sealed partial class UserProfilePage : Page
         buttonPersonalityTest.Content = viewModel.GetPersonalityButtonText();
         if (!string.IsNullOrEmpty(user.ProfilePicturePath))
         {
-            var fullUrl = $"https://localhost:7134/api/files/{user.ProfilePicturePath}";
+            var baseUrl = ApiConfigurationLoader.Load().BaseUrl.TrimEnd('/');
+            var fileName = Uri.EscapeDataString(Path.GetFileName(user.ProfilePicturePath));
+            var fullUrl = $"{baseUrl}/api/files/{fileName}";
             publicAvatar.ProfilePicture = new BitmapImage(new Uri(fullUrl));
         }
         else
@@ -150,6 +152,9 @@ public sealed partial class UserProfilePage : Page
 
     private void OnPublicProfileClick(object sender, RoutedEventArgs eventArguments)
         => Frame.Navigate(typeof(PublicProfilePage), viewModel.UserProfile?.UserId ?? 0);
+
+    private void OnSkillTestsClick(object sender, RoutedEventArgs eventArguments)
+        => Frame.Navigate(typeof(TestDashboardPage), viewModel.UserProfile);
 
     private void OnPreferencesClick(object sender, RoutedEventArgs eventArguments)
         => Frame.Navigate(typeof(PreferencesPage));

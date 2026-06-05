@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media.Imaging;
+using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 
@@ -16,7 +17,9 @@ public class MessageImageSourceConverter : IValueConverter
 
         if (!Uri.TryCreate(message.Content, UriKind.Absolute, out var uri))
         {
-            return null;
+            var baseUrl = ApiConfigurationLoader.Load().BaseUrl.TrimEnd('/');
+            var fileName = Uri.EscapeDataString(Path.GetFileName(message.Content));
+            uri = new Uri($"{baseUrl}/api/files/{fileName}");
         }
 
         return new BitmapImage(uri);

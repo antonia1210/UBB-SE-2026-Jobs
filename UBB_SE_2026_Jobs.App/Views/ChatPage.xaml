@@ -239,26 +239,6 @@
                                Foreground="{StaticResource ChatColorTextPrimary}"
                                CharacterSpacing="-20" />
 
-                    <Border x:Name="TabSwitcher"
-                            Visibility="{Binding IsUserMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                            Background="{StaticResource ChatColorContactChipBackground}"
-                            CornerRadius="10"
-                            Padding="3">
-                        <Grid ColumnDefinitions="*,*" ColumnSpacing="2">
-                            <ToggleButton Grid.Column="0"
-                                          x:Name="UsersTabButton"
-                                          Content="Users"
-                                          IsChecked="{Binding IsUsersTabActive, Mode=TwoWay}"
-                                          Click="UsersTab_Click"
-                                          Style="{StaticResource PillTabStyle}" />
-                            <ToggleButton Grid.Column="1"
-                                          x:Name="CompanyTabButton"
-                                          Content="Companies"
-                                          IsChecked="{Binding IsCompaniesTabActive, Mode=TwoWay}"
-                                          Click="CompanyTab_Click"
-                                          Style="{StaticResource PillTabStyle}" />
-                        </Grid>
-                    </Border>
                 </StackPanel>
             </Border>
 
@@ -735,6 +715,17 @@
                     BorderThickness="0,0.5,0,0"
                     Padding="16,12,16,14">
                 <StackPanel Spacing="8">
+                    <Border Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibilityConverter}}"
+                            Background="#FFF8E1"
+                            BorderBrush="#FFD54F"
+                            BorderThickness="0.5"
+                            CornerRadius="6"
+                            Padding="10,5">
+                        <TextBlock Text="{Binding StatusMessage}"
+                                   FontSize="12"
+                                   Foreground="#E65100" />
+                    </Border>
+
                     <Border Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}"
                             Background="{StaticResource ChatColorErrorSurface}"
                             BorderBrush="{StaticResource ChatColorErrorBorderSoft}"
