@@ -1,8 +1,9 @@
-namespace UBB_SE_2026_Jobs.Web.Models;
-
-public class ErrorViewModel
+namespace UBB_SE_2026_Jobs.Web.Models
 {
-    public string? RequestId { get; set; }
+    public class ErrorViewModel
+    {
+        public string? RequestId { get; set; }
 
-    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
 }
