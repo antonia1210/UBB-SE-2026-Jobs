@@ -35,12 +35,12 @@ public class SkillTestsController : ControllerBase
     }
 
     /// <summary>
-    /// Returns a single completed test result by its attempt ID.
+    /// Returns a single completed test result by its attempt identifier.
     /// </summary>
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    [HttpGet("{attemptId}")]
+    public async Task<IActionResult> GetById(int attemptId, CancellationToken cancellationToken)
     {
-        var result = await skillTestService.GetSkillTestByIdAsync(id, cancellationToken);
+        var result = await skillTestService.GetSkillTestByIdAsync(attemptId, cancellationToken);
         return result is null ? NotFound() : Ok(result);
     }
 }
