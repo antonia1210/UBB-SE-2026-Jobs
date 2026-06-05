@@ -15,26 +15,26 @@ public class RecruiterRepository : IRecruiterRepository
     public async Task<IReadOnlyList<int>> GetUserIdsByCompanyAsync(int companyId, CancellationToken cancellationToken = default)
     {
         return await databaseContext.Recruiters
-            .Where(r => r.CompanyId == companyId)
-            .Select(r => r.UserId)
+            .Where(recruiter => recruiter.CompanyId == companyId)
+            .Select(recruiter => recruiter.UserId)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }
 
     public async Task<IReadOnlyCollection<int>> GetAllRecruiterUserIdsAsync(CancellationToken cancellationToken = default)
     {
-        var ids = await databaseContext.Recruiters
-            .Select(r => r.UserId)
+        var recruiterUserIds = await databaseContext.Recruiters
+            .Select(recruiter => recruiter.UserId)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
-        return new HashSet<int>(ids);
+        return new HashSet<int>(recruiterUserIds);
     }
 
     public async Task<int?> GetCompanyIdForUserAsync(int userId, CancellationToken cancellationToken = default)
     {
         return await databaseContext.Recruiters
-            .Where(r => r.UserId == userId)
-            .Select(r => (int?)r.CompanyId)
+            .Where(recruiter => recruiter.UserId == userId)
+            .Select(recruiter => (int?)recruiter.CompanyId)
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
     }

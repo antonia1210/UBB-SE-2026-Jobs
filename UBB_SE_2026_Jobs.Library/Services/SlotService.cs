@@ -19,6 +19,9 @@ namespace UBB_SE_2026_Jobs.Library.Services
     {
         private const int MINIMUMPOSITIONID = 0;
         private const int MINIMUMINTERVIEWSCORE = 0;
+        private const int WorkdayStartHour = 8;
+        private const int WorkdayEndHour = 18;
+        private const int DefaultSlotDurationMinutes = 30;
 
         private readonly ISlotRepository _slotRepository;
 
@@ -46,13 +49,13 @@ namespace UBB_SE_2026_Jobs.Library.Services
         public async Task<List<SlotDto>> GetAvailableSlotsForDateAsync(DateTime date)
         {
             List<Slot> slots = await this._slotRepository.GetAvailableByDateAsync(date);
-            return slots.Select(s => s.ToDto()).ToList();
+            return slots.Select(slot => slot.ToDto()).ToList();
         }
 
         public async Task<List<SlotDto>> GetSlotsByCandidateAsync(int candidateId)
         {
             List<Slot> slots = await this._slotRepository.GetByCandidateAsync(candidateId);
-            return slots.Select(s => s.ToDto()).ToList();
+            return slots.Select(slot => slot.ToDto()).ToList();
         }
 
         /// <summary>
@@ -150,13 +153,13 @@ namespace UBB_SE_2026_Jobs.Library.Services
             List<Slot> existing = await this._slotRepository.GetSlotsAsync(recruiterId, date);
 
             var visibleSlots = new List<Slot>();
-            var currentTime = date.AddHours(8);
-            var endOfDay = date.AddHours(18);
+            var currentTime = date.AddHours(WorkdayStartHour);
+            var endOfDay = date.AddHours(WorkdayEndHour);
 
             while (currentTime < endOfDay)
             {
-                var overlappingSlot = existing.FirstOrDefault(s =>
-                    s.StartTime < currentTime.AddMinutes(30) && s.EndTime > currentTime);
+                var overlappingSlot = existing.FirstOrDefault(slot =>
+                    slot.StartTime < currentTime.AddMinutes(DefaultSlotDurationMinutes) && slot.EndTime > currentTime);
 
                 if (overlappingSlot != null)
                 {
@@ -169,12 +172,12 @@ namespace UBB_SE_2026_Jobs.Library.Services
                     {
                         RecruiterId = recruiterId,
                         StartTime = currentTime,
-                        EndTime = currentTime.AddMinutes(30),
-                        Duration = 30,
+                        EndTime = currentTime.AddMinutes(DefaultSlotDurationMinutes),
+                        Duration = DefaultSlotDurationMinutes,
                         Status = SlotStatus.Free,
                         InterviewType = string.Empty,
                     });
-                    currentTime = currentTime.AddMinutes(30);
+                    currentTime = currentTime.AddMinutes(DefaultSlotDurationMinutes);
                 }
             }
 
@@ -202,7 +205,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
         /// <inheritdoc/>
         public async Task UpdateRecruiterSlotAsync(SlotDto initialSlot, DateTime startTime, int duration)
         {
-            if (startTime.Hour < 8 || startTime.Hour > 18)
+            if (startTime.Hour < WorkdayStartHour || startTime.Hour > WorkdayEndHour)
             {
                 throw new ArgumentException("Slots should be between hours 8 and 18.");
             }
@@ -226,7 +229,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
         {
             List<Slot> availableSlots = await this._slotRepository.GetAvailableByDateAsync(slotDate);
             return availableSlots
-                .Where(s => s.RecruiterCompanyId == companyId)
+                .Where(slot => slot.RecruiterCompanyId == companyId)
                 .ToList();
         }
     }
