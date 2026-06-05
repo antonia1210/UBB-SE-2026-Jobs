@@ -4,7 +4,7 @@ using UBB_SE_2026_Jobs.Library.Services.CompletenessService;
 using UBB_SE_2026_Jobs.Tests.Helpers;
 
 
-namespace PussyCats.Tests.Services;
+namespace UBB_SE_2026_Jobs.Tests.Services;
 
 public class CompletenessServiceTests
 {
