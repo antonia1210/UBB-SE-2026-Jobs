@@ -21,6 +21,12 @@ public class FakeSkillRepository : ISkillRepository
         return Task.FromResult(skill);
     }
 
+    public Task<Skill?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        var skill = skillsById.Values.FirstOrDefault(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(skill);
+    }
+
     public Task<IReadOnlyList<Skill>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         IReadOnlyList<Skill> snapshot = skillsById.Values.ToList();

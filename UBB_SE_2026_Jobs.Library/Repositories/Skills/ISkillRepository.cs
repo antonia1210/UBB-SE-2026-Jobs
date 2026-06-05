@@ -6,6 +6,8 @@ public interface ISkillRepository
 {
     Task<Skill?> GetByIdAsync(int skillId, CancellationToken cancellationToken = default);
 
+    Task<Skill?> GetByNameAsync(string name, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<Skill>> GetAllAsync(CancellationToken cancellationToken = default);
 
     Task<Skill> AddAsync(Skill skill, CancellationToken cancellationToken = default);

@@ -20,6 +20,13 @@ public class SkillRepository : ISkillRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<Skill?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        return await databaseContext.Skills
+            .FirstOrDefaultAsync(skill => skill.Name.ToLower() == name.ToLower(), cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     /// <summary>
     /// Catalog listing â€” read-only, ordered by name for stable UI rendering.
     /// </summary>
