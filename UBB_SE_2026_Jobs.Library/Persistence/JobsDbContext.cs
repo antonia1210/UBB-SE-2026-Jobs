@@ -21,7 +21,6 @@ public class JobsDbContext : DbContext
     public DbSet<PersonalityTestResult> PersonalityTestResults => Set<PersonalityTestResult>();
     public DbSet<SkillGroup> SkillGroups => Set<SkillGroup>();
     public DbSet<Recommendation> Recommendations => Set<Recommendation>();
-    public DbSet<SkillTest> SkillTests => Set<SkillTest>();
     public DbSet<UserSkill> UserSkills => Set<UserSkill>();
     public DbSet<JobSkill> JobSkills => Set<JobSkill>();
     public DbSet<Chat> Chats => Set<Chat>();

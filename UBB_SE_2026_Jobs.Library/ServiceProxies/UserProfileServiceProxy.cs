@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
 
-
 namespace UBB_SE_2026_Jobs.Library.ServiceProxies
 {
     public class UserProfileServiceProxy : IUserProfileService
@@ -40,19 +39,6 @@ namespace UBB_SE_2026_Jobs.Library.ServiceProxies
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<IReadOnlyList<SkillTest>> GetSkillTestsForUserAsync(int userId, CancellationToken cancellationToken = default)
-        {
-            /*
-           var response = await _http.GetAsync($"api/users/{userId}/skill-tests", cancellationToken);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<List<SkillTest>>(_jsonOptions, cancellationToken) ?? new List<SkillTest>(); 
-            */
-
-            var response = await _http.GetAsync($"api/skill-tests?userId={userId}", cancellationToken); 
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<List<SkillTest>>(_jsonOptions, cancellationToken) ?? new List<SkillTest>();
-        }
-
         public async Task<bool> IsProfileAvailableAsync(int userId, CancellationToken cancellationToken = default)
         {
             var response = await _http.GetAsync($"api/users/{userId}/is-active", cancellationToken);
@@ -61,7 +47,6 @@ namespace UBB_SE_2026_Jobs.Library.ServiceProxies
             return data ?? false;
         }
 
-        // This is techincally not really correct because SaveAsync should create a new user if the userId doesn't exist, but I think it should work.
         public async Task SaveAsync(int userId, User user, CancellationToken cancellationToken = default)
         {
             var response = await _http.PutAsJsonAsync($"api/users/{userId}/profile", user, _jsonOptions, cancellationToken);

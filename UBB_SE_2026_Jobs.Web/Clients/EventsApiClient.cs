@@ -51,12 +51,20 @@ namespace UBB_SE_2026_Jobs.Web.Clients
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<List<CollaboratorDto>> GetCollaborators(int companyId)
+        public async Task<List<CompanyDto>> GetEventCollaborators(int eventId)
         {
-            var response = await this._http.GetAsync($"api/collaborators/{companyId}");
+            var response = await this._http.GetAsync($"api/collaborators/event/{eventId}");
             if (!response.IsSuccessStatusCode)
-                return new List<CollaboratorDto>();
-            return await response.Content.ReadFromJsonAsync<List<CollaboratorDto>>() ?? new List<CollaboratorDto>();
+                return new List<CompanyDto>();
+            return await response.Content.ReadFromJsonAsync<List<CompanyDto>>() ?? new List<CompanyDto>();
+        }
+
+        public async Task<List<CompanyDto>> GetAllCompanies()
+        {
+            var response = await this._http.GetAsync("api/companies");
+            if (!response.IsSuccessStatusCode)
+                return new List<CompanyDto>();
+            return await response.Content.ReadFromJsonAsync<List<CompanyDto>>() ?? new List<CompanyDto>();
         }
 
         public async Task<List<EventDto>> GetAllCurrentEvents()

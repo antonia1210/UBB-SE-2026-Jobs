@@ -1,5 +1,6 @@
 namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
 {
+
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using UBB_SE_2026_Jobs.Library.Domain.Core;
@@ -44,5 +45,7 @@ namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
         /// <param name="testId">The unique identifier of the test.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of valid test attempts for the specified test.</returns>
         Task<List<TestAttempt>> FindValidAttemptsByTestIdAsync(int testId);
+
+        Task<List<TestAttempt>> FindByUserId(int userId);
     }
 }

@@ -1,9 +1,8 @@
-﻿namespace UBB_SE_2026_Jobs.Library.Repositories
+namespace UBB_SE_2026_Jobs.Library.Repositories
 {
     using Microsoft.EntityFrameworkCore;
     using System;
     using System.Collections.ObjectModel;
-    using System.ComponentModel.Design;
     using System.Linq;
     using UBB_SE_2026_Jobs.Library.Persistence;
     using UBB_SE_2026_Jobs.Library.Domain;
@@ -11,46 +10,50 @@
 
     public class EventsRepo : IEventsRepo
     {
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext databaseContext;
 
-        public EventsRepo(JobsDbContext JobsDbContext)
+        public EventsRepo(JobsDbContext databaseContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <inheritdoc/>
         public void AddEventToRepo(Event eventToBeAdded)
         {
-            using var transaction = this.JobsDbContext.Database.BeginTransaction();
+            using var transaction = this.databaseContext.Database.BeginTransaction();
 
             try
             {
                 eventToBeAdded.PostedAt = DateTime.Now;
 
-                this.JobsDbContext.Events.Add(eventToBeAdded);
-                this.JobsDbContext.SaveChanges();
+                var companyIds = eventToBeAdded.Collaborators?.Select(collaborator => collaborator.CompanyId).ToList() ?? new List<int>();
+                var newCompanyIds = new List<int>();
 
-                if (eventToBeAdded.Collaborators != null)
+                foreach (var companyId in companyIds)
                 {
-                    foreach (var collaborator in eventToBeAdded.Collaborators)
+                    bool alreadyCollaborates = this.databaseContext.Collaborators.Any(collaborator => collaborator.CompanyId == companyId);
+                    if (!alreadyCollaborates)
                     {
-                        bool alreadyCollaborates = this.JobsDbContext.Collaborators
-                            .Any(c => c.CompanyId == collaborator.CompanyId);
-
-                        collaborator.EventId = eventToBeAdded.Id;
-                        this.JobsDbContext.Collaborators.Add(collaborator);
-                        this.JobsDbContext.SaveChanges();
-
-                        if (!alreadyCollaborates)
-                        {
-                            var company = this.JobsDbContext.Companies.Find(collaborator.CompanyId);
-                            if (company != null)
-                            {
-                                company.CollaboratorsCount += 1;
-                                this.JobsDbContext.SaveChanges();
-                            }
-                        }
+                        newCompanyIds.Add(companyId);
                     }
+                }
+
+                // EF Core will automatically insert the Event and its Collaborators
+                this.databaseContext.Events.Add(eventToBeAdded);
+                this.databaseContext.SaveChanges();
+
+                foreach (var companyId in newCompanyIds)
+                {
+                    var company = this.databaseContext.Companies.Find(companyId);
+                    if (company != null)
+                    {
+                        company.CollaboratorsCount += 1;
+                    }
+                }
+
+                if (newCompanyIds.Any())
+                {
+                    this.databaseContext.SaveChanges();
                 }
 
                 transaction.Commit();
@@ -65,48 +68,48 @@
         /// <inheritdoc/>
         public void RemoveEventFromRepo(Event eventToBeRemoved)
         {
-            var existing = this.JobsDbContext.Events.Find(eventToBeRemoved.Id);
+            var existing = this.databaseContext.Events.Find(eventToBeRemoved.Id);
             if (existing != null)
             {
-                this.JobsDbContext.Events.Remove(existing);
-                this.JobsDbContext.SaveChanges();
+                this.databaseContext.Events.Remove(existing);
+                this.databaseContext.SaveChanges();
             }
         }
 
         /// <inheritdoc/>
-        public ObservableCollection<Event> GetCurrentEventsFromRepo(int? loggedInUser=null)
+        public ObservableCollection<Event> GetCurrentEventsFromRepo(int? loggedInUser = null)
         {
-            var query = this.JobsDbContext.Events
-                .Where(e => e.EndDate >= DateTime.Now.Date);
+            var query = this.databaseContext.Events
+                .Where(eventEntity => eventEntity.EndDate >= DateTime.Now.Date);
 
-                if (loggedInUser.HasValue)
-                {
-                    query = query.Where(e => e.HostCompanyId == loggedInUser);
-                }
+            if (loggedInUser.HasValue)
+            {
+                query = query.Where(eventEntity => eventEntity.HostCompanyId == loggedInUser);
+            }
 
-                var events = query.ToList();
-                return new ObservableCollection<Event>(events);
+            var events = query.ToList();
+            return new ObservableCollection<Event>(events);
         }
 
         /// <inheritdoc/>
-        public ObservableCollection<Event> GetPastEventsFromRepo(int? loggedInUser=null)
+        public ObservableCollection<Event> GetPastEventsFromRepo(int? loggedInUser = null)
         {
-            var query = this.JobsDbContext.Events
-                .Where(e => e.EndDate < DateTime.Now.Date);
+            var query = this.databaseContext.Events
+                .Where(eventEntity => eventEntity.EndDate < DateTime.Now.Date);
 
-                if (loggedInUser.HasValue)
-                {
-                    query = query.Where(e => e.HostCompanyId == loggedInUser);
-                }
+            if (loggedInUser.HasValue)
+            {
+                query = query.Where(eventEntity => eventEntity.HostCompanyId == loggedInUser);
+            }
 
-                var events = query.ToList();
-                return new ObservableCollection<Event>(events);
+            var events = query.ToList();
+            return new ObservableCollection<Event>(events);
         }
 
         /// <inheritdoc/>
-        public void UpdateEventToRepo(int id, string photo, string title, string description, DateTime start, DateTime end, string location)
+        public void UpdateEventToRepo(int eventId, string photo, string title, string description, DateTime start, DateTime end, string location, List<int> collaboratorCompanyIds)
         {
-            var existing = this.JobsDbContext.Events.Find(id);
+            var existing = this.databaseContext.Events.Find(eventId);
             if (existing == null)
             {
                 return;
@@ -120,8 +123,43 @@
             existing.Location = location;
             existing.PostedAt = DateTime.Now;
 
-            this.JobsDbContext.SaveChanges();
+            // Sync collaborators
+            var existingCollaborators = this.databaseContext.Collaborators.Where(collaborator => collaborator.EventId == eventId).ToList();
+            var existingCompanyIds = existingCollaborators.Select(collaborator => collaborator.CompanyId).ToList();
+
+            var toRemove = existingCollaborators.Where(collaborator => !collaboratorCompanyIds.Contains(collaborator.CompanyId)).ToList();
+            var toAddIds = collaboratorCompanyIds.Where(collaboratorCompanyId => !existingCompanyIds.Contains(collaboratorCompanyId)).ToList();
+
+            if (toRemove.Any())
+            {
+                this.databaseContext.Collaborators.RemoveRange(toRemove);
+            }
+
+            foreach (var collaboratorCompanyId in toAddIds)
+            {
+                bool alreadyCollaborates = this.databaseContext.Collaborators
+                    .Any(collaborator => collaborator.CompanyId == collaboratorCompanyId);
+
+                var newCollaborator = new Collaborator
+                {
+                    EventId = eventId,
+                    CompanyId = collaboratorCompanyId
+                };
+
+                this.databaseContext.Collaborators.Add(newCollaborator);
+                this.databaseContext.SaveChanges();
+
+                if (!alreadyCollaborates)
+                {
+                    var company = this.databaseContext.Companies.Find(collaboratorCompanyId);
+                    if (company != null)
+                    {
+                        company.CollaboratorsCount += 1;
+                    }
+                }
+            }
+
+            this.databaseContext.SaveChanges();
         }
     }
 }
-

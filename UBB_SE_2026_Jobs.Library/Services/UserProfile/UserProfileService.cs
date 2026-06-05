@@ -1,26 +1,27 @@
 using System.Text;
-using UBB_SE_2026_Jobs.Library.Domain;
-using UBB_SE_2026_Jobs.Library.Repositories.SkillTests;
+using UBB_SE_2026_Jobs.Library.DTOs;
+using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
 using UBB_SE_2026_Jobs.Library.Repositories.Users;
 using UBB_SE_2026_Jobs.Library.Services.CvParsing;
+using UBB_SE_2026_Jobs.Library.Domain;
 
 namespace UBB_SE_2026_Jobs.Library.Services.UserProfileService;
 
 public class UserProfileService : IUserProfileService
 {
     private readonly IUserRepository userRepository;
-    private readonly ISkillTestRepository skillTestRepository;
+    private readonly ITestAttemptRepository testAttemptRepository;
     private readonly ICvParsingService cvParsingService;
 
-    public UserProfileService(IUserRepository userRepository, ISkillTestRepository skillTestRepository)
-        : this(userRepository, skillTestRepository, new CvParsingService())
+    public UserProfileService(IUserRepository userRepository, ITestAttemptRepository testAttemptRepository)
+        : this(userRepository, testAttemptRepository, new CvParsingService())
     {
     }
 
-    public UserProfileService(IUserRepository userRepository, ISkillTestRepository skillTestRepository, ICvParsingService cvParsingService)
+    public UserProfileService(IUserRepository userRepository, ITestAttemptRepository testAttemptRepository, ICvParsingService cvParsingService)
     {
         this.userRepository = userRepository;
-        this.skillTestRepository = skillTestRepository;
+        this.testAttemptRepository = testAttemptRepository;
         this.cvParsingService = cvParsingService;
     }
 
@@ -29,20 +30,13 @@ public class UserProfileService : IUserProfileService
         return await userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<SkillTest>> GetSkillTestsForUserAsync(int userId, CancellationToken cancellationToken = default)
-    {
-        return await skillTestRepository.GetByUserIdAsync(userId, cancellationToken).ConfigureAwait(false);
-    }
-
     public async Task<bool> IsProfileAvailableAsync(int userId, CancellationToken cancellationToken = default)
     {
         var user = await userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false);
-
         if (user is null)
         {
             throw new Exception($"No profile found for ID {userId}");
         }
-
         return user.ActiveAccount;
     }
 
@@ -74,8 +68,6 @@ public class UserProfileService : IUserProfileService
         else
         {
             user.UserId = userId;
-
-            // Always preserve fields that the profile form must not overwrite.
             user.PasswordHash = existing.PasswordHash;
             user.ProfilePicturePath = existing.ProfilePicturePath;
             user.ParsedCv = existing.ParsedCv;
@@ -84,8 +76,6 @@ public class UserProfileService : IUserProfileService
             user.ActiveAccount = existing.ActiveAccount;
             user.CreatedAt = existing.CreatedAt;
 
-            // If the client omitted a field (JSON null), fall back to the existing
-            // DB value so we never write NULL into a NOT NULL string column.
             user.FirstName = user.FirstName ?? existing.FirstName;
             user.LastName = user.LastName ?? existing.LastName;
             user.Gender = user.Gender ?? existing.Gender;
@@ -100,16 +90,11 @@ public class UserProfileService : IUserProfileService
             user.LinkedIn = user.LinkedIn ?? existing.LinkedIn;
             user.Motivation = user.Motivation ?? existing.Motivation;
             user.WorkModePreference = string.IsNullOrEmpty(user.WorkModePreference)
-                ? existing.WorkModePreference
-                : user.WorkModePreference;
-
+                ? existing.WorkModePreference : user.WorkModePreference;
             user.PreferredEmploymentType = string.IsNullOrEmpty(user.PreferredEmploymentType)
-                ? existing.PreferredEmploymentType
-                : user.PreferredEmploymentType;
-
+                ? existing.PreferredEmploymentType : user.PreferredEmploymentType;
             user.LocationPreference = string.IsNullOrEmpty(user.LocationPreference)
-                ? existing.LocationPreference
-                : user.LocationPreference;
+                ? existing.LocationPreference : user.LocationPreference;
 
             await userRepository.UpdateAsync(user, cancellationToken).ConfigureAwait(false);
         }
@@ -137,12 +122,21 @@ public class UserProfileService : IUserProfileService
             return 0;
         }
 
-        var skillTests = await skillTestRepository.GetByUserIdAsync(user.UserId, cancellationToken).ConfigureAwait(false);
-        int totalExperiencePoints = 0;
+        var completedAttempts = await testAttemptRepository
+            .FindCompletedByUserIdAsync(user.UserId, cancellationToken)
+            .ConfigureAwait(false);
 
-        foreach (var skillTest in skillTests)
+        int totalExperiencePoints = 0;
+        foreach (var attempt in completedAttempts)
         {
-            totalExperiencePoints += SimpleModelOperations.GetExperiencePoints(skillTest);
+            var view = new SkillTestViewDto
+            {
+                Score = (int)Math.Round(attempt.PercentageScore ?? 0m),
+                AchievedDate = attempt.CompletedAt.HasValue
+                    ? DateOnly.FromDateTime(attempt.CompletedAt.Value)
+                    : DateOnly.MinValue,
+            };
+            totalExperiencePoints += SimpleModelOperations.GetExperiencePoints(view);
         }
 
         user.TotalExperiencePoints = totalExperiencePoints;

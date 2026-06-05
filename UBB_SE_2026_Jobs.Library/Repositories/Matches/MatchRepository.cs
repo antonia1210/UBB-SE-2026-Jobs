@@ -14,7 +14,7 @@ public class MatchRepository : IMatchRepository
     }
 
     /// <summary>
-    /// Includes User and Job (with Company) â€” recruiters viewing a match need both sides.
+    /// Includes User and Job (with Company) — recruiters viewing a match need both sides.
     /// Tracked because MatchService.SubmitDecision mutates.
     /// </summary>
     public async Task<Match?> GetByIdAsync(int matchId, CancellationToken cancellationToken = default)
@@ -31,13 +31,13 @@ public class MatchRepository : IMatchRepository
         return await databaseContext.Matches
             .AsNoTracking()
             .Include(match => match.Job).ThenInclude(job => job.Company)
-            .Include(match=>match.User)
+            .Include(match => match.User)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Original: PussyCatsApp MatchRepository.GetMatchesByUserId â€” preserves the
+    /// Original: PussyCatsApp MatchRepository.GetMatchesByUserId — preserves the
     /// "ORDER BY matchDate DESC" ordering. Read-only, includes Job/Company so the My Applications
     /// list can render without N+1.
     /// </summary>
@@ -55,7 +55,7 @@ public class MatchRepository : IMatchRepository
 
     /// <summary>
     /// Original: matchmaking SqlMatchRepository.GetByUserIdAndJobId. LINQ translation of the
-    /// raw "WHERE UserID = @UserId AND JobID = @JobId" â€” same predicate, no extra checks.
+    /// raw "WHERE UserID = @UserId AND JobID = @JobId" — same predicate, no extra checks.
     /// </summary>
     public async Task<Match?> GetByUserIdAndJobIdAsync(int userId, int jobId, CancellationToken cancellationToken = default)
     {
@@ -81,10 +81,10 @@ public class MatchRepository : IMatchRepository
 
     public async Task UpdateAsync(Match match, CancellationToken cancellationToken = default)
     {
-        var tracked = databaseContext.Matches.Local.FirstOrDefault(existing => existing.MatchId == match.MatchId);
-        if (tracked is not null)
+        var trackedMatch = databaseContext.Matches.Local.FirstOrDefault(existingMatch => existingMatch.MatchId == match.MatchId);
+        if (trackedMatch is not null)
         {
-            databaseContext.Entry(tracked).CurrentValues.SetValues(match);
+            databaseContext.Entry(trackedMatch).CurrentValues.SetValues(match);
         }
         else
         {
@@ -104,4 +104,3 @@ public class MatchRepository : IMatchRepository
         await databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }
-

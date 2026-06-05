@@ -42,34 +42,30 @@ public class TestDashboardViewModel : DispatchableObservableObject
 
         try
         {
-            var tests = await tiTestService.GetAllAsync();
+            // Two calls total instead of N+1
+            var attempts = await tiTestService.GetAttemptsByUserAsync(userId);
+            var attemptByTestId = attempts.ToDictionary(a => a.TestId);
 
+            // Only fetch tests the user has actually attempted
             var cards = new List<SkillTestCardViewModel>();
-            foreach (var test in tests)
+            foreach (var attempt in attempts)
             {
-                // No "all attempts for a user" endpoint on the TI API — fetch the single
-                // attempt per test (≈5 tests, acceptable fan-out).
-                var attempt = await tiTestService.GetAttemptByUserAndTestAsync(userId, test.Id);
+                var test = await tiTestService.GetByIdAsync(attempt.TestId);
+                if (test is null) continue;
 
-                // The attempt's Score is raw earned points; the card converts it to a real
-                // percentage using the test's max possible score (sum of question scores).
-                float maxPossibleScore = 0f;
-                if (attempt is not null)
-                {
-                    var questions = await tiTestService.GetQuestionsByTestIdAsync(test.Id);
-                    maxPossibleScore = questions.Sum(question => question.QuestionScore);
-                }
+                var questions = await tiTestService.GetQuestionsByTestIdAsync(test.Id);
+                float maxPossibleScore = questions.Sum(q => q.QuestionScore);
 
                 cards.Add(new SkillTestCardViewModel(test, attempt, maxPossibleScore));
             }
 
             TestCards = cards;
-            ErrorMessage = cards.Count == 0 ? "No skill tests are available yet." : null;
+            ErrorMessage = cards.Count == 0 ? "No completed skill tests yet." : null;
         }
         catch (Exception exception)
         {
             TestCards = new List<SkillTestCardViewModel>();
-            ErrorMessage = $"Couldn't load skill tests. Is the Tests service running? ({exception.Message})";
+            ErrorMessage = $"Couldn't load skill tests. ({exception.Message})";
         }
     }
 }

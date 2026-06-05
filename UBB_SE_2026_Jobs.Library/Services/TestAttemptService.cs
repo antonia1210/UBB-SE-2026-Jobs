@@ -1,8 +1,10 @@
 namespace UBB_SE_2026_Jobs.Library.Services
 {
+    using Microsoft.AspNetCore.Mvc;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using UBB_SE_2026_Jobs.Library.Domain.Core;
+    using UBB_SE_2026_Jobs.Library.DTOs;
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
     using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 
@@ -71,6 +73,12 @@ namespace UBB_SE_2026_Jobs.Library.Services
         public async Task<List<TestAttempt>> FindValidAttemptsByTestIdAsync(int testId)
         {
             return await this._repository.FindValidAttemptsByTestIdAsync(testId);
+        }
+
+        public async Task<List<TestAttempt>> FindByUserId(int userId)
+        {
+            var attempts = await _repository.FindCompletedByUserIdAsync(userId);
+            return attempts.ToList();
         }
     }
 }

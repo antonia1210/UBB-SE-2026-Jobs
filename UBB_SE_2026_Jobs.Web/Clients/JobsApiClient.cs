@@ -46,6 +46,18 @@ namespace UBB_SE_2026_Jobs.Web.Clients
         }
 
         /// <summary>
+        /// Retrieves job postings belonging to a specific company.
+        /// </summary>
+        /// <param name="companyId">The company ID to filter by.</param>
+        /// <returns>A list of job postings for the given company.</returns>
+        public async Task<List<JobPostingDto>> GetJobsByCompanyIdAsync(int companyId)
+        {
+            List<JobPostingDto>? result =
+                await this.httpClient.GetFromJsonAsync<List<JobPostingDto>>($"api/TestsJobs?companyId={companyId}");
+            return result ?? new List<JobPostingDto>();
+        }
+
+        /// <summary>
         /// Retrieves a single job posting by its ID.
         /// </summary>
         /// <param name="jobId">The job posting ID.</param>
