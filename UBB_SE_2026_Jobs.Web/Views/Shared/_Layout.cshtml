@@ -135,11 +135,14 @@
 				    <li class="nav-item mt-2">
 					    <small class="text-muted ps-2 sidebar-label fw-semibold">RECRUITMENT &amp; TESTS</small>
 				    </li>
-				    <li class="nav-item">
-					    <a class="nav-link text-dark" asp-controller="Jobs" asp-action="Index">
-						    <i class="bi bi-suitcase-lg me-2"></i><span class="sidebar-label">Jobs</span>
-					    </a>
-				    </li>
+				    @if (User.IsInRole("Recruiter"))
+				    {
+					    <li class="nav-item">
+						    <a class="nav-link text-dark" asp-controller="Jobs" asp-action="Index">
+							    <i class="bi bi-suitcase-lg me-2"></i><span class="sidebar-label">Jobs</span>
+						    </a>
+					    </li>
+				    }
 				    <li class="nav-item">
 					    <a class="nav-link text-dark" asp-controller="Tests" asp-action="Index">
 						    <i class="bi bi-journal-check me-2"></i><span class="sidebar-label">Tests</span>
