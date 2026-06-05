@@ -11,6 +11,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
     {
         private const string SessionKeyEmploymentTypes = "Filter_EmploymentTypes";
         private const string SessionKeyExperienceLevels = "Filter_ExperienceLevels";
+        private const string SessionKeyWorkModes = "Filter_WorkModes";
         private const string SessionKeyLocation = "Filter_Location";
 
         private readonly IUserRecommendationService recommendationService;
@@ -60,6 +61,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         {
             HttpContext.Session.Remove(SessionKeyEmploymentTypes);
             HttpContext.Session.Remove(SessionKeyExperienceLevels);
+            HttpContext.Session.Remove(SessionKeyWorkModes);
             HttpContext.Session.Remove(SessionKeyLocation);
             return RedirectToAction(nameof(Index));
         }
@@ -76,6 +78,11 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
                 .Where(v => !string.IsNullOrWhiteSpace(v))
                 .ToList();
             HttpContext.Session.SetString(SessionKeyExperienceLevels, string.Join(",", expLevels));
+
+            var workModes = form["WorkModes"]
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .ToList();
+            HttpContext.Session.SetString(SessionKeyWorkModes, string.Join(",", workModes));
 
             HttpContext.Session.SetString(SessionKeyLocation, form["Location"].ToString() ?? string.Empty);
 
@@ -95,6 +102,11 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             if (!string.IsNullOrEmpty(expLevels))
                 foreach (var l in expLevels.Split(',', StringSplitOptions.RemoveEmptyEntries))
                     filters.ExperienceLevels.Add(l);
+
+            var workModes = HttpContext.Session.GetString(SessionKeyWorkModes);
+            if (!string.IsNullOrEmpty(workModes))
+                foreach (var w in workModes.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    filters.WorkModes.Add(w);
 
             filters.LocationSubstring = HttpContext.Session.GetString(SessionKeyLocation) ?? string.Empty;
 

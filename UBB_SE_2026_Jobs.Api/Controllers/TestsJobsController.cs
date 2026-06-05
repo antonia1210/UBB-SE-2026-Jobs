@@ -26,10 +26,11 @@ using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
         }
 
         [HttpGet]
-        public ActionResult<List<JobDto>> GetAllJobs()
+        public ActionResult<List<JobDto>> GetAllJobs([FromQuery] int? companyId = null)
         {
             IEnumerable<Job> jobs = this._service.GetAllJobs();
-
+            if (companyId.HasValue)
+                jobs = jobs.Where(j => j.CompanyId == companyId.Value);
             return Ok(jobs.Select(j => j.ToDto()).ToList());
         }
 

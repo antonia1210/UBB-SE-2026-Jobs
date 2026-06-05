@@ -229,6 +229,14 @@ public sealed class UserRecommendationService : IUserRecommendationService
             }
         }
 
+        if (filters.WorkModes.Count > 0)
+        {
+            if (job.JobLocation is null || !filters.WorkModes.Contains(job.JobLocation))
+            {
+                return false;
+            }
+        }
+
         if (!string.IsNullOrWhiteSpace(filters.LocationSubstring))
         {
             if ((job.JobLocation ?? string.Empty).IndexOf(filters.LocationSubstring.Trim(), StringComparison.OrdinalIgnoreCase) < 0)
