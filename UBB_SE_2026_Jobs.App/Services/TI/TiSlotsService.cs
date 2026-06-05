@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.Library.DTOs;
 
@@ -25,8 +26,13 @@ public interface ITiSlotsService
 public class TiSlotsService : ITiSlotsService
 {
     private readonly HttpClient http;
+    private readonly SessionContext session;
 
-    public TiSlotsService(HttpClient http) => this.http = http;
+    public TiSlotsService(HttpClient http, SessionContext session)
+    {
+        this.http = http;
+        this.session = session;
+    }
 
     public async Task<List<TiApplicationDto>> GetApplicationsAsync(int candidateId)
     {
@@ -102,20 +108,27 @@ public class TiSlotsService : ITiSlotsService
 
     public async Task<List<TiSlotDto>> GetAllSlotsAsync()
     {
-        var response = await http.GetAsync("api/slots");
+        var response = await http.GetAsync($"api/slots/recruiter/{session.UserId}");
         if (!response.IsSuccessStatusCode) return new();
         return await response.Content.ReadFromJsonAsync<List<TiSlotDto>>() ?? new();
     }
 
     public async Task<bool> CreateSlotAsync(TiSlotDto slot)
     {
-        var response = await http.PostAsJsonAsync("api/slots", slot);
+        var dto = new { BaseSlot = ToSlotDto(slot), Duration = slot.Duration };
+        var response = await http.PostAsJsonAsync("api/slots/recruiter/create", dto);
         return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> UpdateSlotAsync(TiSlotDto slot)
     {
-        var response = await http.PutAsJsonAsync($"api/slots/{slot.Id}", slot);
+        var dto = new UpdateSlotDto
+        {
+            InitialSlot = ToSlotDto(slot),
+            StartTime = slot.StartTime,
+            Duration = slot.Duration
+        };
+        var response = await http.PutAsJsonAsync("api/slots/recruiter/update", dto);
         return response.IsSuccessStatusCode;
     }
 
@@ -131,4 +144,17 @@ public class TiSlotsService : ITiSlotsService
         if (!response.IsSuccessStatusCode) return new();
         return await response.Content.ReadFromJsonAsync<List<TiCompanyDto>>() ?? new();
     }
+
+    private static SlotDto ToSlotDto(TiSlotDto slot) => new SlotDto
+    {
+        Id = slot.Id,
+        RecruiterId = slot.RecruiterId,
+        CompanyId = slot.CompanyId,
+        CandidateId = slot.CandidateId,
+        StartTime = slot.StartTime,
+        EndTime = slot.EndTime,
+        Duration = slot.Duration,
+        Status = slot.Status,
+        InterviewType = slot.InterviewType
+    };
 }

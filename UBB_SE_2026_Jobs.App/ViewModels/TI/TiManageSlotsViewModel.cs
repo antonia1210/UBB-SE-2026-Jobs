@@ -21,6 +21,7 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
 
     public ObservableCollection<TiSlotDto> Slots { get; } = new();
     public ObservableCollection<TiCompanyDto> Companies { get; } = new();
+    public ObservableCollection<CalendarRow> CalendarRows { get; } = new();
 
     public TiManageSlotsViewModel(ITiSlotsService slotsService, SessionContext session)
     {
@@ -73,7 +74,7 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
         }
     }
 
-    private async Task LoadSlotsAsync()
+    public async Task LoadSlotsAsync()
     {
         try
         {
@@ -88,6 +89,7 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
                 foreach (var slot in weekSlots.OrderBy(s => s.StartTime))
                     Slots.Add(slot);
                 NoSlots = Slots.Count == 0;
+                RebuildCalendarRows();
             });
         }
         catch (Exception ex)
@@ -96,23 +98,49 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
         }
     }
 
-    [RelayCommand]
-    public void PreviousWeek()
+    public async Task DeleteSlotDirectAsync(int slotId)
     {
-        WeekStart = WeekStart.AddDays(-7);
+        await slotsService.DeleteSlotAsync(slotId);
+        await LoadSlotsAsync();
+    }
+
+    private void RebuildCalendarRows()
+    {
+        CalendarRows.Clear();
+        for (int h = 8; h < 18; h++)
+        {
+            for (int m = 0; m < 60; m += 30)
+            {
+                var row = new CalendarRow { TimeLabel = $"{h:D2}:{m:D2}" };
+                for (int day = 0; day < 7; day++)
+                {
+                    var cellDate = WeekStart.AddDays(day).Date;
+                    var slot = Slots.FirstOrDefault(s =>
+                        s.StartTime.Date == cellDate &&
+                        s.StartTime.Hour == h &&
+                        s.StartTime.Minute == m);
+                    row.Cells.Add(new CalendarCell
+                    {
+                        Slot = slot,
+                        DayIndex = day,
+                        Hour = h,
+                        Minute = m
+                    });
+                }
+                CalendarRows.Add(row);
+            }
+        }
+        OnPropertyChanged(nameof(CalendarRows));
     }
 
     [RelayCommand]
-    public void NextWeek()
-    {
-        WeekStart = WeekStart.AddDays(7);
-    }
+    public void PreviousWeek() => WeekStart = WeekStart.AddDays(-7);
 
     [RelayCommand]
-    public void Today()
-    {
-        WeekStart = GetMonday(DateTime.Now);
-    }
+    public void NextWeek() => WeekStart = WeekStart.AddDays(7);
+
+    [RelayCommand]
+    public void Today() => WeekStart = GetMonday(DateTime.Now);
 
     public void CreateSlot(int dayIndex, int hour, int minute)
     {
@@ -122,13 +150,12 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
         {
             Id = 0,
             RecruiterId = session.UserId,
+            CompanyId = session.CompanyId ?? Companies.FirstOrDefault()?.CompanyId ?? 0,
             StartTime = startTime,
             EndTime = startTime.AddMinutes(60),
             Duration = 60,
             Status = 0
         };
-        if (Companies.Any())
-            EditingSlot.CompanyId = Companies.First().CompanyId;
     }
 
     public void EditSlot(TiSlotDto slot)
@@ -158,7 +185,6 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
         try
         {
             var slot = EditingSlot;
-
             bool success = slot.Id == 0
                 ? await slotsService.CreateSlotAsync(slot)
                 : await slotsService.UpdateSlotAsync(slot);
@@ -177,37 +203,6 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
         catch (Exception ex)
         {
             StatusMessage = $"Error saving slot: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    [RelayCommand]
-    public async Task DeleteSlot()
-    {
-        if (EditingSlot == null)
-            return;
-
-        IsLoading = true;
-        StatusMessage = string.Empty;
-        try
-        {
-            if (await slotsService.DeleteSlotAsync(EditingSlot.Id))
-            {
-                StatusMessage = "Slot deleted successfully";
-                EditingSlot = null;
-                await LoadSlotsAsync();
-            }
-            else
-            {
-                StatusMessage = "Failed to delete slot";
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"Error deleting slot: {ex.Message}";
         }
         finally
         {

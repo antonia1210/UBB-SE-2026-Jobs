@@ -1,10 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI;
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Text;
 using Windows.UI;
 using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.App.ViewModels.TI;
@@ -13,16 +13,12 @@ namespace UBB_SE_2026_Jobs.App.Views.TestsAndInterviews;
 
 public sealed partial class TiManageSlotsPage : Page
 {
-    private const int START_HOUR = 8;
-    private const int END_HOUR = 18;
-
     public TiManageSlotsViewModel ViewModel { get; }
 
     public TiManageSlotsPage()
     {
         ViewModel = App.Services.GetRequiredService<TiManageSlotsViewModel>();
         InitializeComponent();
-        this.DataContext = this;
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -30,45 +26,21 @@ public sealed partial class TiManageSlotsPage : Page
         base.OnNavigatedTo(e);
         await ViewModel.InitializeAsync();
         RenderCalendar();
-        ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-        UpdateWeekLabel();
-    }
-
-    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(ViewModel.Slots) || e.PropertyName == nameof(ViewModel.WeekStart))
+        ViewModel.PropertyChanged += (s, args) =>
         {
-            RenderCalendar();
-            UpdateWeekLabel();
-        }
-    }
-
-    private void UpdateWeekLabel()
-    {
-        WeekLabel.Text = ViewModel.WeekLabel;
-        NoSlotsMessage.Visibility = ViewModel.NoSlots ? Visibility.Visible : Visibility.Collapsed;
+            if (args.PropertyName == nameof(ViewModel.CalendarRows))
+                RenderCalendar();
+        };
     }
 
     private void Back_Click(object sender, RoutedEventArgs e)
     {
-        if (Frame.CanGoBack)
-            Frame.GoBack();
+        if (Frame.CanGoBack) Frame.GoBack();
     }
 
-    private void PreviousWeek_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.PreviousWeekCommand.Execute(null);
-    }
-
-    private void NextWeek_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.NextWeekCommand.Execute(null);
-    }
-
-    private void Today_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.TodayCommand.Execute(null);
-    }
+    private void PreviousWeek_Click(object sender, RoutedEventArgs e) => ViewModel.PreviousWeekCommand.Execute(null);
+    private void NextWeek_Click(object sender, RoutedEventArgs e) => ViewModel.NextWeekCommand.Execute(null);
+    private void Today_Click(object sender, RoutedEventArgs e) => ViewModel.TodayCommand.Execute(null);
 
     private void RenderCalendar()
     {
@@ -76,30 +48,32 @@ public sealed partial class TiManageSlotsPage : Page
         CalendarGrid.RowDefinitions.Clear();
         CalendarGrid.ColumnDefinitions.Clear();
 
-        CalendarGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        for (int h = START_HOUR; h < END_HOUR; h++)
-        {
-            CalendarGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            CalendarGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        }
-
-        CalendarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        CalendarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
         for (int i = 0; i < 7; i++)
-        {
             CalendarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        }
+
+        CalendarGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        foreach (var _ in ViewModel.CalendarRows)
+            CalendarGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         var days = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
         for (int i = 0; i < 7; i++)
         {
             var date = ViewModel.WeekStart.AddDays(i);
             var isToday = date.Date == DateTime.Now.Date;
-            var header = new TextBlock
+            var header = new Border
             {
-                Text = $"{days[i]}\n{date.Day}",
-                TextAlignment = TextAlignment.Center,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = isToday ? new SolidColorBrush(Colors.Blue) : null
+                Background = isToday
+                    ? new SolidColorBrush(Color.FromArgb(255, 221, 214, 254))
+                    : new SolidColorBrush(Colors.Transparent),
+                Padding = new Thickness(4),
+                Child = new TextBlock
+                {
+                    Text = $"{days[i]} {date.Day}",
+                    TextAlignment = TextAlignment.Center,
+                    FontWeight = FontWeights.SemiBold,
+                    FontSize = 13
+                }
             };
             Grid.SetColumn(header, i + 1);
             Grid.SetRow(header, 0);
@@ -107,102 +81,86 @@ public sealed partial class TiManageSlotsPage : Page
         }
 
         int rowIndex = 1;
-        for (int h = START_HOUR; h < END_HOUR; h++)
+        foreach (var row in ViewModel.CalendarRows)
         {
-            for (int m = 0; m < 60; m += 30)
+            var timeLabel = new TextBlock
             {
-                var timeLabel = new TextBlock
-                {
-                    Text = $"{h:D2}:{m:D2}",
-                    TextAlignment = TextAlignment.Right,
-                    Padding = new Thickness(8, 4, 8, 4),
-                    FontSize = 11,
-                    Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
-                };
-                Grid.SetColumn(timeLabel, 0);
-                Grid.SetRow(timeLabel, rowIndex);
-                CalendarGrid.Children.Add(timeLabel);
+                Text = row.TimeLabel,
+                FontSize = 11,
+                TextAlignment = TextAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(0, 0, 8, 0),
+                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            };
+            Grid.SetColumn(timeLabel, 0);
+            Grid.SetRow(timeLabel, rowIndex);
+            CalendarGrid.Children.Add(timeLabel);
 
-                for (int day = 0; day < 7; day++)
-                {
-                    var cellDate = ViewModel.WeekStart.AddDays(day).Date;
-                    var cellSlots = ViewModel.Slots
-                        .Where(s => s.StartTime.Date == cellDate &&
-                                    s.StartTime.Hour == h &&
-                                    s.StartTime.Minute == m)
-                        .ToList();
+            for (int col = 0; col < row.Cells.Count; col++)
+            {
+                var cell = row.Cells[col];
+                FrameworkElement cellElement;
 
-                    if (cellSlots.Count > 0)
+                if (cell.Slot != null)
+                {
+                    var isBooked = cell.Slot.Status != 0;
+                    var bg = isBooked
+                        ? Color.FromArgb(255, 165, 214, 167)
+                        : Color.FromArgb(255, 221, 214, 254);
+                    var fg = isBooked
+                        ? Colors.DarkGreen
+                        : Color.FromArgb(255, 80, 56, 200);
+                    var capturedSlot = cell.Slot;
+                    var btn = new Button
                     {
-                        foreach (var slot in cellSlots)
+                        Content = new TextBlock
                         {
-                            var slotButton = CreateSlotButton(slot);
-                            Grid.SetColumn(slotButton, day + 1);
-                            Grid.SetRow(slotButton, rowIndex);
-                            CalendarGrid.Children.Add(slotButton);
-                        }
-                    }
-                    else
+                            Text = $"{capturedSlot.StartTime:HH:mm} · {capturedSlot.Duration}m",
+                            FontSize = 11,
+                            Foreground = new SolidColorBrush(fg),
+                            TextAlignment = TextAlignment.Center
+                        },
+                        Background = new SolidColorBrush(bg),
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                        VerticalAlignment = VerticalAlignment.Stretch,
+                        MinHeight = 50,
+                        Padding = new Thickness(4, 2, 4, 2),
+                        IsEnabled = !isBooked
+                    };
+                    if (!isBooked)
+                        btn.Click += async (s, e) => await OnSlotClick(capturedSlot);
+                    cellElement = btn;
+                }
+                else
+                {
+                    var capturedCell = cell;
+                    var border = new Border
                     {
-                        int capturedDay = day;
-                        var emptyCell = new Button
-                        {
-                            Content = string.Empty,
-                            Padding = new Thickness(0),
-                            MinHeight = 50,
-                            Background = new SolidColorBrush(Colors.Transparent),
-                            BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"]
-                        };
-                        emptyCell.Click += (s, e) => CellClick(capturedDay, h, m);
-                        Grid.SetColumn(emptyCell, day + 1);
-                        Grid.SetRow(emptyCell, rowIndex);
-                        CalendarGrid.Children.Add(emptyCell);
-                    }
+                        BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+                        BorderThickness = new Thickness(0.5),
+                        MinHeight = 50,
+                        Background = new SolidColorBrush(Colors.Transparent)
+                    };
+                    border.Tapped += async (s, e) => await OnEmptyCellClick(capturedCell.DayIndex, capturedCell.Hour, capturedCell.Minute);
+                    cellElement = border;
                 }
 
-                rowIndex++;
+                Grid.SetColumn(cellElement, col + 1);
+                Grid.SetRow(cellElement, rowIndex);
+                CalendarGrid.Children.Add(cellElement);
             }
+
+            rowIndex++;
         }
     }
 
-    private Button CreateSlotButton(TiSlotDto slot)
-    {
-        var isBooked = slot.Status != 0;
-        var bgColor = isBooked
-            ? Color.FromArgb(255, 165, 214, 167)
-            : Color.FromArgb(255, 221, 214, 254);
-        var fgColor = isBooked
-            ? Colors.DarkGreen
-            : Color.FromArgb(255, 80, 56, 200);
-
-        var button = new Button
-        {
-            Content = new TextBlock
-            {
-                Text = $"{slot.StartTime:HH:mm} · {slot.Duration}m",
-                Foreground = new SolidColorBrush(fgColor),
-                FontSize = 11,
-                TextAlignment = TextAlignment.Center
-            },
-            Background = new SolidColorBrush(bgColor),
-            Padding = new Thickness(4, 2, 4, 2),
-            MinHeight = 50,
-            IsEnabled = !isBooked
-        };
-
-        if (!isBooked)
-            button.Click += (s, e) => SlotClick(slot);
-
-        return button;
-    }
-
-    private async void CellClick(int dayIndex, int hour, int minute)
+    private async Task OnEmptyCellClick(int dayIndex, int hour, int minute)
     {
         ViewModel.CreateSlot(dayIndex, hour, minute);
         await ShowSlotDialog();
     }
 
-    private async void SlotClick(TiSlotDto slot)
+    private async Task OnSlotClick(TiSlotDto slot)
     {
         ViewModel.EditSlot(slot);
         await ShowSlotDialog();
@@ -239,18 +197,16 @@ public sealed partial class TiManageSlotsPage : Page
         stackPanel.Children.Add(new TextBlock { Text = "Duration (minutes)", FontWeight = FontWeights.SemiBold, FontSize = 12 });
         stackPanel.Children.Add(durationCombo);
 
-        var companyCombo = new ComboBox
-        {
-            ItemsSource = ViewModel.Companies.ToList()
-        };
+        var companyCombo = new ComboBox { ItemsSource = ViewModel.Companies.ToList() };
         companyCombo.DisplayMemberPath = "Name";
-        var matchingCompany = ViewModel.Companies.FirstOrDefault(c => c.CompanyId == ViewModel.EditingSlot.CompanyId);
-        companyCombo.SelectedItem = matchingCompany ?? ViewModel.Companies.FirstOrDefault();
+        companyCombo.SelectedItem = ViewModel.Companies.FirstOrDefault(c => c.CompanyId == ViewModel.EditingSlot.CompanyId)
+                                    ?? ViewModel.Companies.FirstOrDefault();
         stackPanel.Children.Add(new TextBlock { Text = "Company", FontWeight = FontWeights.SemiBold, FontSize = 12 });
         stackPanel.Children.Add(companyCombo);
 
         if (ViewModel.EditingSlot.Id != 0)
         {
+            var capturedSlot = ViewModel.EditingSlot;
             var deleteBtn = new Button
             {
                 Content = "Delete Slot",
@@ -260,7 +216,7 @@ public sealed partial class TiManageSlotsPage : Page
             deleteBtn.Click += async (s, e) =>
             {
                 dialog.Hide();
-                await DeleteSlot_Click();
+                await DeleteSlot_Click(capturedSlot);
             };
             stackPanel.Children.Add(deleteBtn);
         }
@@ -283,7 +239,6 @@ public sealed partial class TiManageSlotsPage : Page
                 ViewModel.EditingSlot.EndTime = startTime.AddMinutes(duration);
                 ViewModel.EditingSlot.Duration = duration;
                 ViewModel.EditingSlot.CompanyId = companyId.Value;
-
                 await ViewModel.SaveSlotCommand.ExecuteAsync(null);
             }
             else
@@ -304,24 +259,18 @@ public sealed partial class TiManageSlotsPage : Page
         }
     }
 
-    private async Task DeleteSlot_Click()
+    private async Task DeleteSlot_Click(TiSlotDto slot)
     {
-        if (ViewModel.EditingSlot == null)
-            return;
-
         var confirmDialog = new ContentDialog
         {
             Title = "Delete Slot",
-            Content = $"Delete this slot on {ViewModel.EditingSlot.DisplayDate}?",
+            Content = $"Delete this slot on {slot.DisplayDate}?",
             PrimaryButtonText = "Delete",
             CloseButtonText = "Cancel",
-            XamlRoot = this.XamlRoot,
+            XamlRoot = this.XamlRoot
         };
 
-        var result = await confirmDialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
-        {
-            await ViewModel.DeleteSlotCommand.ExecuteAsync(null);
-        }
+        if (await confirmDialog.ShowAsync() == ContentDialogResult.Primary)
+            await ViewModel.DeleteSlotDirectAsync(slot.Id);
     }
 }
