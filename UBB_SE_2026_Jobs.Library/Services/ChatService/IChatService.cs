@@ -20,6 +20,8 @@ public interface IChatService
 
     Task<IReadOnlyList<User>> SearchUsersAsync(string query, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<User>> SearchRecruitersByCompanyAsync(int companyId, string query, CancellationToken cancellationToken = default);
+
     Task SendMessageAsync(int chatId, string content, int senderId, MessageType type, int? companyId = null, CancellationToken cancellationToken = default);
 
     Task SendStoredAttachmentAsync(int chatId, string storedPath, string originalFileName, int senderId, MessageType type, int? companyId = null, CancellationToken cancellationToken = default);

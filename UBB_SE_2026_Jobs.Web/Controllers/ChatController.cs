@@ -29,41 +29,16 @@ public class ChatController : Controller
     public async Task<IActionResult> Index(string? tab, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var isCompanyMode = IsCompanyMode();
-
-        if (isCompanyMode)
-        {
-            var companyId = GetCompanyId();
-            var chats = await chat.GetChatsForCompanyAsync(companyId, cancellationToken);
-            ViewBag.IsCompanyMode = true;
-            ViewBag.ActiveTab = (tab == "companies") ? "companies" : "users";
-            return View(chats);
-        }
-
-        var userChats = await chat.GetChatsForUserAsync(userId, cancellationToken);
-        ViewBag.IsCompanyMode = false;
+        var chats = await chat.GetChatsForUserAsync(userId, cancellationToken);
+        ViewBag.IsCompanyMode = IsCompanyMode();
         ViewBag.ActiveTab = (tab == "companies") ? "companies" : "users";
-        return View(userChats);
+        return View(chats);
     }
 
     public async Task<IActionResult> Show(int id, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var isCompanyMode = IsCompanyMode();
-        int? companyId = null;
-
-        // Verify authorization for company chats
-        if (isCompanyMode)
-        {
-            companyId = GetCompanyId();
-            var chatExists = await VerifyChatAuthorizationAsync(id, companyId.Value, cancellationToken);
-            if (!chatExists)
-            {
-                return Forbid();
-            }
-        }
-
-        var messages = await chat.GetMessagesAsync(id, userId, companyId, cancellationToken);
+        var messages = await chat.GetMessagesAsync(id, userId, null, cancellationToken);
         await chat.MarkMessagesAsReadAsync(id, userId, cancellationToken);
         ViewBag.ChatId = id;
         ViewBag.CurrentUserId = userId;
@@ -75,21 +50,8 @@ public class ChatController : Controller
     public async Task<IActionResult> Send(int id, string content, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var isCompanyMode = IsCompanyMode();
-        int? companyId = null;
-
-        if (isCompanyMode)
-        {
-            companyId = GetCompanyId();
-            var chatExists = await VerifyChatAuthorizationAsync(id, companyId.Value, cancellationToken);
-            if (!chatExists)
-            {
-                return Forbid();
-            }
-        }
-
         if (!string.IsNullOrWhiteSpace(content))
-            await chat.SendMessageAsync(id, content, userId, MessageType.Text, companyId, cancellationToken);
+            await chat.SendMessageAsync(id, content, userId, MessageType.Text, null, cancellationToken);
         return RedirectToAction(nameof(Show), new { id });
     }
 
@@ -97,18 +59,6 @@ public class ChatController : Controller
     public async Task<IActionResult> SendAttachment(int id, IFormFile attachment, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var isCompanyMode = IsCompanyMode();
-        int? companyId = null;
-
-        if (isCompanyMode)
-        {
-            companyId = GetCompanyId();
-            var chatExists = await VerifyChatAuthorizationAsync(id, companyId.Value, cancellationToken);
-            if (!chatExists)
-            {
-                return Forbid();
-            }
-        }
 
         if (attachment is null || attachment.Length == 0)
         {
@@ -122,7 +72,7 @@ public class ChatController : Controller
             var path = await fileStorage.SaveFileAsync(stream, attachment.FileName, cancellationToken);
             var attachementExtension = Path.GetExtension(attachment.FileName);
             var type = ImageExtensions.Contains(attachementExtension) ? MessageType.Image : MessageType.File;
-            await chat.SendStoredAttachmentAsync(id, path, attachment.FileName, userId, type, companyId, cancellationToken);
+            await chat.SendStoredAttachmentAsync(id, path, attachment.FileName, userId, type, null, cancellationToken);
         }
         catch (Exception exception)
         {
@@ -135,21 +85,32 @@ public class ChatController : Controller
     [HttpGet]
     public async Task<IActionResult> SearchUsers(string q, CancellationToken cancellationToken)
     {
-        if (IsCompanyMode() || string.IsNullOrWhiteSpace(q))
+        if (string.IsNullOrWhiteSpace(q))
             return Json(Array.Empty<object>());
 
         var currentUserId = GetUserId();
+
+        if (IsCompanyMode())
+        {
+            var companyId = GetCompanyId();
+            var recruiters = await chat.SearchRecruitersByCompanyAsync(companyId, q, cancellationToken);
+            return Json(recruiters
+                .Where(u => u.UserId != currentUserId)
+                .Select(u => new { id = u.UserId, name = $"{u.FirstName} {u.LastName}".Trim() }));
+        }
+
         var users = await chat.SearchUsersAsync(q, cancellationToken);
-        var results = users
+        return Json(users
             .Where(u => u.UserId != currentUserId)
-            .Select(u => new { id = u.UserId, name = $"{u.FirstName} {u.LastName}".Trim() });
-        return Json(results);
+            .Select(u => new { id = u.UserId, name = $"{u.FirstName} {u.LastName}".Trim() }));
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> StartChat(int targetUserId, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
+        if (targetUserId == userId)
+            return RedirectToAction(nameof(Index));
         var newChat = await chat.FindOrCreateUserChatAsync(userId, targetUserId, cancellationToken);
         if (newChat is null)
             return RedirectToAction(nameof(Index));
@@ -160,20 +121,7 @@ public class ChatController : Controller
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var isCompanyMode = IsCompanyMode();
-        int? companyId = null;
-
-        if (isCompanyMode)
-        {
-            companyId = GetCompanyId();
-            var chatExists = await VerifyChatAuthorizationAsync(id, companyId.Value, cancellationToken);
-            if (!chatExists)
-            {
-                return Forbid();
-            }
-        }
-
-        await chat.DeleteChatAsync(id, userId, companyId, cancellationToken);
+        await chat.DeleteChatAsync(id, userId, null, cancellationToken);
         return RedirectToAction(nameof(Index));
     }
 
@@ -181,20 +129,7 @@ public class ChatController : Controller
     public async Task<IActionResult> Block(int id, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var isCompanyMode = IsCompanyMode();
-        int? companyId = null;
-
-        if (isCompanyMode)
-        {
-            companyId = GetCompanyId();
-            var chatExists = await VerifyChatAuthorizationAsync(id, companyId.Value, cancellationToken);
-            if (!chatExists)
-            {
-                return Forbid();
-            }
-        }
-
-        await chat.BlockChatAsync(id, userId, companyId, cancellationToken);
+        await chat.BlockChatAsync(id, userId, null, cancellationToken);
         return RedirectToAction(nameof(Show), new { id });
     }
 
@@ -202,20 +137,7 @@ public class ChatController : Controller
     public async Task<IActionResult> Unblock(int id, CancellationToken cancellationToken)
     {
         var userId = GetUserId();
-        var isCompanyMode = IsCompanyMode();
-        int? companyId = null;
-
-        if (isCompanyMode)
-        {
-            companyId = GetCompanyId();
-            var chatExists = await VerifyChatAuthorizationAsync(id, companyId.Value, cancellationToken);
-            if (!chatExists)
-            {
-                return Forbid();
-            }
-        }
-
-        await chat.UnblockChatAsync(id, userId, companyId, cancellationToken);
+        await chat.UnblockChatAsync(id, userId, null, cancellationToken);
         return RedirectToAction(nameof(Show), new { id });
     }
 
@@ -240,20 +162,6 @@ public class ChatController : Controller
 
         // Fallback for backwards compatibility
         return apiConfiguration.TemporaryCompanyId;
-    }
-
-    private int GetCallerId()
-    {
-        // Messages should always be sent by the actual user, regardless of mode
-        // Company mode only determines which chats are accessible
-        return GetUserId();
-    }
-
-    private async Task<bool> VerifyChatAuthorizationAsync(int chatId, int companyId, CancellationToken cancellationToken)
-    {
-        // Get all company chats and verify the requested chat belongs to this company
-        var companyChats = await chat.GetChatsForCompanyAsync(companyId, cancellationToken);
-        return companyChats.Any(c => c.ChatId == chatId);
     }
 
     private bool IsCompanyMode()

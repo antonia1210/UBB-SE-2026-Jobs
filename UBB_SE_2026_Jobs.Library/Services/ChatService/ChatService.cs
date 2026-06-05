@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.Library.Persistence;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
 using UBB_SE_2026_Jobs.Library.Repositories.Messages;
 using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
@@ -34,19 +36,22 @@ public class ChatService : IChatService
     private readonly IUserService userService;
     private readonly IPussyCatsCompanyService PussyCatsCompanyService;
     private readonly ILocalFileStorageService fileStorage;
+    private readonly JobsDbContext dbContext;
 
     public ChatService(
         IChatRepository chatRepository,
         IMessageRepository messageRepository,
         IUserService userService,
         IPussyCatsCompanyService PussyCatsCompanyService,
-        ILocalFileStorageService fileStorage)
+        ILocalFileStorageService fileStorage,
+        JobsDbContext dbContext)
     {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
         this.userService = userService;
         this.PussyCatsCompanyService = PussyCatsCompanyService;
         this.fileStorage = fileStorage;
+        this.dbContext = dbContext;
     }
 
     public async Task<Chat?> FindOrCreateUserCompanyChatAsync(int userId, Company company, Job? job = null,
@@ -129,6 +134,24 @@ public class ChatService : IChatService
         var users = await userService.GetAllAsync(cancellationToken).ConfigureAwait(false);
         return users
             .Where(user => GetUserName(user).Contains(userNameSearchTerm, StringComparison.OrdinalIgnoreCase))
+            .Take(MaxSearchResults)
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<User>> SearchRecruitersByCompanyAsync(int companyId, string query, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return Array.Empty<User>();
+
+        var recruiterUserIds = await dbContext.Recruiters
+            .Where(r => r.CompanyId == companyId)
+            .Select(r => r.UserId)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var users = await userService.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        return users
+            .Where(u => recruiterUserIds.Contains(u.UserId) && GetUserName(u).Contains(query, StringComparison.OrdinalIgnoreCase))
             .Take(MaxSearchResults)
             .ToList();
     }

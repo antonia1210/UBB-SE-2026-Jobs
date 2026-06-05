@@ -171,6 +171,10 @@ public class ChatsController : ControllerBase
     public async Task<IActionResult> SearchCompanies([FromQuery] string companyQuery, CancellationToken cancellationToken)
         => Ok(await chat.SearchCompaniesAsync(companyQuery ?? string.Empty, cancellationToken));
 
+    [HttpGet("search/recruiters")]
+    public async Task<IActionResult> SearchRecruiters([FromQuery] int companyId, [FromQuery] string query, CancellationToken cancellationToken)
+        => Ok(await chat.SearchRecruitersByCompanyAsync(companyId, query ?? string.Empty, cancellationToken));
+
     public record FindOrCreateChatRequest(int UserId, int? SecondUserId, Company? Company, Job? Job);
     public record SendMessageRequest(int SenderId, string Content, MessageType Type);
     public record SendStoredAttachmentRequest(int SenderId, string StoredPath, string OriginalFileName, MessageType Type);

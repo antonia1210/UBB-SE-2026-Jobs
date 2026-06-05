@@ -87,6 +87,10 @@ public class ChatServiceProxy : IChatService
         => await http.GetFromJsonAsync<List<Company>>($"api/chats/search/companies?companyQuery={Uri.EscapeDataString(query)}", JsonOptions, cancellationToken)
            ?? new List<Company>();
 
+    public async Task<IReadOnlyList<User>> SearchRecruitersByCompanyAsync(int companyId, string query, CancellationToken cancellationToken = default)
+        => await http.GetFromJsonAsync<List<User>>($"api/chats/search/recruiters?companyId={companyId}&query={Uri.EscapeDataString(query)}", JsonOptions, cancellationToken)
+           ?? new List<User>();
+
     public async Task SendStoredAttachmentAsync(int chatId, string storedPath, string originalFileName, int senderId, MessageType type, int? companyId = null, CancellationToken cancellationToken = default)
     {
         var response = await http.PostAsJsonAsync(WithCompany($"api/chats/{chatId}/attachments", companyId),

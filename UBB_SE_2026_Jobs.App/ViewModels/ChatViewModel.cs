@@ -236,10 +236,7 @@ public class ChatViewModel : DispatchableObservableObject
             Messages.Clear();
             SearchResults.Clear();
 
-            var callerId = GetCallerId();
-            var chats = session.Mode == AppMode.Company
-                ? await chatService.GetChatsForCompanyAsync(callerId)
-                : await chatService.GetChatsForUserAsync(callerId);
+            var chats = await chatService.GetChatsForUserAsync(session.UserId);
 
             foreach (var chat in chats)
             {
@@ -281,12 +278,12 @@ public class ChatViewModel : DispatchableObservableObject
                     results.Insert(0, chat);
                 }
             }
-            else if (IsCompanyMode)
+            else if (IsCompanyMode && session.CompanyId is int companyId)
             {
-                var users = await chatService.SearchUsersAsync(SearchQuery);
-                results.AddRange(users);
+                var recruiters = await chatService.SearchRecruitersByCompanyAsync(companyId, SearchQuery);
+                results.AddRange(recruiters.Where(user => user.UserId != session.UserId));
 
-                var matchingChats = FindCompanyModeMatchingChats(Chats, SearchQuery);
+                var matchingChats = FindUserTabMatchingChats(Chats, SearchQuery);
                 foreach (var chat in matchingChats)
                 {
                     results.Insert(0, chat);
@@ -332,26 +329,15 @@ public class ChatViewModel : DispatchableObservableObject
             }
             else if (result.Kind == ContactSearchResultKind.User)
             {
-                if (IsCompanyMode && session.CompanyId is int companyId)
+                if (result.Id == session.UserId)
+                    return;
+                var createdChat = await chatService.FindOrCreateUserChatAsync(session.UserId, result.Id);
+                if (createdChat is null)
                 {
-                    var createdChat = await chatService.FindOrCreateUserCompanyChatAsync(result.Id, new Company{CompanyId=companyId}); //TODO: avoid creating a new company instance, change session
-                    if (createdChat is null)
-                    {
-                        return;
-                    }
-
-                    chat = createdChat;
+                    return;
                 }
-                else
-                {
-                    var createdChat = await chatService.FindOrCreateUserChatAsync(session.UserId, result.Id);
-                    if (createdChat is null)
-                    {
-                        return;
-                    }
 
-                    chat = createdChat;
-                }
+                chat = createdChat;
             }
             else
             {
@@ -528,20 +514,9 @@ public class ChatViewModel : DispatchableObservableObject
 
     public MessageType SelectedMessageType { get; private set; } = MessageType.Text;
 
-    private int GetCallerId()
-    {
-        return session.Mode switch
-        {
-            AppMode.Company => session.CompanyId ?? throw new InvalidOperationException("No company session is active."),
-            AppMode.Developer => session.DeveloperId ?? throw new InvalidOperationException("No developer session is active."),
-            _ => session.UserId,
-        };
-    }
+    private int GetCallerId() => session.UserId;
 
-    private int? GetCompanyContextId()
-    {
-        return IsCompanyMode ? session.CompanyId : null;
-    }
+    private int? GetCompanyContextId() => null;
 
     private async Task RunSafelyAsync(Func<Task> action)
     {
@@ -592,9 +567,7 @@ public class ChatViewModel : DispatchableObservableObject
 
         await RunSafelyAsync(async () =>
         {
-            var latestChats = IsCompanyMode
-                ? await chatService.GetChatsForCompanyAsync(callerId)
-                : await chatService.GetChatsForUserAsync(callerId);
+            var latestChats = await chatService.GetChatsForUserAsync(session.UserId);
 
             var chatsChanged = MergeChats(latestChats);
             if (IsCandidateMode && chatsChanged)
@@ -1039,11 +1012,6 @@ public class ChatViewModel : DispatchableObservableObject
 
         if (IsCompanyMode)
         {
-            if (session.CompanyId is int companyId && senderId == companyId)
-            {
-                return companyString;
-            }
-
             return userString;
         }
 

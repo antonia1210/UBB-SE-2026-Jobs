@@ -9,23 +9,15 @@
     <h2 class="mb-3">Messages</h2>
 
     <div class="mb-3 position-relative">
-        @if (!isCompanyMode)
-        {
-            @Html.AntiForgeryToken()
-        }
+        @Html.AntiForgeryToken()
         <input id="chatSearch" type="search" class="form-control"
-               placeholder="@(isCompanyMode ? "Search conversations..." : "Search or find a user to chat with...")"
+               placeholder="@(isCompanyMode ? "Search co-recruiters to chat with..." : "Search or find a user to chat with...")"
                autocomplete="off" />
-        @if (!isCompanyMode)
-        {
-            <div id="userSearchResults" class="list-group position-absolute w-100 shadow-sm" style="z-index:1000;display:none;"></div>
-        }
+        <div id="userSearchResults" class="list-group position-absolute w-100 shadow-sm" style="z-index:1000;display:none;"></div>
     </div>
 
     @{
-        var visible = isCompanyMode
-            ? Model.ToList()
-            : Model.Where(c => c.SecondUser != null).ToList();
+        var visible = Model.Where(c => c.SecondUser != null).ToList();
     }
 
     @if (!visible.Any())
