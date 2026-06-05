@@ -59,6 +59,15 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
         private IActionResult RedirectToModeHome(string mode)
         {
+            if (string.Equals(mode, AppModes.Unified, StringComparison.OrdinalIgnoreCase))
+            {
+                var unifiedLanding = Url.Action("Index", "Home") ?? "/";
+
+                return User.Identity?.IsAuthenticated == true
+                    ? Redirect(unifiedLanding)
+                    : RedirectToAction("Login", "Account", new { returnUrl = unifiedLanding });
+            }
+
             if (string.Equals(mode, AppModes.User, StringComparison.OrdinalIgnoreCase))
             {
                 var userLanding = Url.Action("Index", "UserProfile") ?? "/";
@@ -69,13 +78,15 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
             if (string.Equals(mode, AppModes.Company, StringComparison.OrdinalIgnoreCase))
             {
-                return RedirectToAction("Index", "Matches");
+                var companyLanding = Url.Action("Index", "Matches") ?? "/";
+                return User.Identity?.IsAuthenticated == true
+                    ? Redirect(companyLanding)
+                    : RedirectToAction("Login", "Account", new { returnUrl = companyLanding });
             }
 
             TempData["ModeError"] = "Select a valid mode to continue.";
             return RedirectToAction(nameof(Index));
         }
-
         private IActionResult RedirectToAuthenticatedHome()
         {
             if (User.IsInRole("Recruiter"))

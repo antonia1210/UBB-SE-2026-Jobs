@@ -1,4 +1,4 @@
-﻿// <copyright file="DataProcessingService.cs" company="PlaceholderCompany">
+// <copyright file="DataProcessingService.cs" company="PlaceholderCompany">
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
@@ -11,12 +11,13 @@ namespace UBB_SE_2026_Jobs.Library.Services
     using UBB_SE_2026_Jobs.Library.Persistence;
     using UBB_SE_2026_Jobs.Library.Domain.Core;
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+    using UBB_SE_2026_Jobs.Library.Repositories.Users;
     using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 
     /// <inheritdoc cref="IDataProcessingService"/>
     public class DataProcessingService : IDataProcessingService
     {
-        private readonly JobsDbContext dbContext;
+        private readonly IUserRepository userRepository;
         private readonly ITestAttemptRepository attemptRepository;
         private readonly ITestRepository testRepository;
 
@@ -25,11 +26,11 @@ namespace UBB_SE_2026_Jobs.Library.Services
 
 
         public DataProcessingService(
-            JobsDbContext dbContext,
+            IUserRepository userRepository,
             ITestAttemptRepository attemptRepository,
             ITestRepository testRepository)
         {
-            this.dbContext = dbContext;
+            this.userRepository = userRepository;
             this.attemptRepository = attemptRepository;
             this.testRepository = testRepository;
         }
@@ -83,7 +84,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
                 return "User does not exist.";
             }
 
-            var user = await this.dbContext.Users.FindAsync(attempt.ExternalUserId.Value);
+            var user = await this.userRepository.GetByIdAsync(attempt.ExternalUserId.Value);
             if (user == null)
             {
                 return "User does not exist.";
