@@ -34,7 +34,6 @@
                             <th class="py-3">Position</th>
                             <th class="py-3">Date &amp; Time</th>
                             <th class="py-3">Status</th>
-                            <th class="py-3">Score</th>
                             <th class="py-3">Actions</th>
                         </tr>
                     </thead>
@@ -68,16 +67,6 @@
                                     <span class="badge @badgeClass">
                                         @(session.Status ?? "Unknown")
                                     </span>
-                                </td>
-                                <td>
-                                    @if (session.Score.HasValue)
-                                    {
-                                        <span class="fw-semibold">@session.Score.Value.ToString("0.##")</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
-                                    }
                                 </td>
                                 <td>
                                     @if (session.Status == "Scheduled") {
