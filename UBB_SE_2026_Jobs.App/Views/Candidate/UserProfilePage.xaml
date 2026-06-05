@@ -176,7 +176,7 @@
 					<Button
 						HorizontalAlignment="Stretch"
 						Click="OnSkillTestsClick"
-						Content="Skill Tests" />
+						Content="Test Attempts" />
 					<Button
 						HorizontalAlignment="Stretch"
 						Click="OnPreferencesClick"

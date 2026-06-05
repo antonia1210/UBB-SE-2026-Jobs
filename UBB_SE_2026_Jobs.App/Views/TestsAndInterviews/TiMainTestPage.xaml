@@ -49,7 +49,7 @@
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Text="Test Information" FontWeight="SemiBold" FontSize="15" Foreground="#1a1a2e"/>
                     <TextBlock TextWrapping="Wrap" FontSize="13" Foreground="#555" Margin="0,3,0,0"
-                               Text="Each test contains a different number of questions and must be completed within 30 minutes. Tests can only be taken once."/>
+                               Text="Each test must be completed within 30 minutes. Tests are replayable — retake anytime. Your highest score counts on the leaderboard."/>
                 </StackPanel>
             </Grid>
         </Border>

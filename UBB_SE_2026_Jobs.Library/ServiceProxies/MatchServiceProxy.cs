@@ -51,6 +51,9 @@ public class MatchServiceProxy : IMatchService
     public async Task<IReadOnlyList<Match>> GetByCompanyIdAsync(int companyId, CancellationToken cancellationToken = default)
         => await GetListAsync($"api/matches?companyId={companyId}", cancellationToken);
 
+    public async Task<IReadOnlyList<Match>> GetByJobIdAsync(int jobId, CancellationToken cancellationToken = default)
+        => await GetListAsync($"api/matches?jobId={jobId}", cancellationToken);
+
     public async Task UpdateAsync(Match match, CancellationToken cancellationToken = default)
     {
         var response = await http.PutAsJsonAsync($"api/matches/{match.MatchId}", match, JsonOptions, cancellationToken);

@@ -41,6 +41,9 @@ public class MatchesController : ControllerBase
         if (userId.HasValue)
             return Ok(await matches.GetMatchesForUserAsync(userId.Value, cancellationToken));
 
+        if (jobId.HasValue)
+            return Ok(await matches.GetByJobIdAsync(jobId.Value, cancellationToken));
+
         if (companyId.HasValue)
             return Ok(await matches.GetByCompanyIdAsync(companyId.Value, cancellationToken));
 

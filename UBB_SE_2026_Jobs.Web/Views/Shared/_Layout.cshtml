@@ -1,4 +1,4 @@
-@inject UBB_SE_2026_Jobs.Web.Configuration.ApiConfiguration ApiConfiguration
+@using System.Security.Claims
 @using UBB_SE_2026_Jobs.Web.Infrastructure
 <!DOCTYPE html>
 <html lang="en">
@@ -83,7 +83,7 @@
 				    </li>
 				    <li class="nav-item">
 					    <a class="nav-link text-dark" asp-controller="SkillTests" asp-action="Index">
-						    <i class="bi bi-clipboard-check me-2"></i><span class="sidebar-label">Skill Tests</span>
+						    <i class="bi bi-clipboard-check me-2"></i><span class="sidebar-label">Test Attempts</span>
 					    </a>
 				    </li>
 				    <li class="nav-item">
@@ -110,7 +110,7 @@
 			    @if (isCompanyMode && User.IsInRole("Recruiter"))
 			    {
 				    <li class="nav-item">
-					    <a class="nav-link text-dark" asp-controller="Company" asp-action="Profile" asp-route-id="@ApiConfiguration.TemporaryCompanyId">
+					    <a class="nav-link text-dark" asp-controller="Company" asp-action="Profile" asp-route-id="@User.FindFirst("CompanyId")?.Value">
 						    <i class="bi bi-building me-2"></i><span class="sidebar-label">Company</span>
 					    </a>
 				    </li>
@@ -143,11 +143,14 @@
 						    </a>
 					    </li>
 				    }
-				    <li class="nav-item">
-					    <a class="nav-link text-dark" asp-controller="Tests" asp-action="Index">
-						    <i class="bi bi-journal-check me-2"></i><span class="sidebar-label">Tests</span>
-					    </a>
-				    </li>
+				    @if (User.IsInRole("Candidate"))
+				    {
+					    <li class="nav-item">
+						    <a class="nav-link text-dark" asp-controller="Tests" asp-action="Index">
+							    <i class="bi bi-journal-check me-2"></i><span class="sidebar-label">Tests</span>
+						    </a>
+					    </li>
+				    }
 				    <li class="nav-item">
 					    <a class="nav-link text-dark" asp-controller="Events" asp-action="Index">
 						    <i class="bi bi-calendar-event me-2"></i><span class="sidebar-label">Events</span>
