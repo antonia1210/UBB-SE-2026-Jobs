@@ -28,4 +28,9 @@ public sealed partial class TiRecruiterInterviewsPage : Page
         if (e.AddedDates.Count > 0)
             ViewModel.SelectedDate = new DateTimeOffset(e.AddedDates[0].DateTime);
     }
+
+    private void ManageSlots_Click(object sender, RoutedEventArgs e)
+    {
+        Frame.Navigate(typeof(TiManageSlotsPage));
+    }
 }

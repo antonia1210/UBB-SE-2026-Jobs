@@ -1,10 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.App.ViewModels.TI;
 using UBB_SE_2026_Jobs.App;
+using System.Diagnostics;
 
 namespace UBB_SE_2026_Jobs.App.Views.TestsAndInterviews;
 
@@ -22,30 +24,38 @@ public sealed partial class TiInterviewSlotsPage : Page
     {
         base.OnNavigatedTo(e);
         await ViewModel.LoadSlotsAsync();
-        slotsCalendar.SetDisplayDate(DateTimeOffset.Now);
     }
 
-    private void Calendar_SelectedDatesChanged(CalendarView sender, CalendarViewSelectedDatesChangedEventArgs e)
+    private void ApplicationCard_Click(object sender, TappedRoutedEventArgs e)
     {
-        if (e.AddedDates.Count > 0)
-            ViewModel.SelectedDate = e.AddedDates[0];
-    }
-
-    private void Calendar_DayItemChanging(CalendarView sender, CalendarViewDayItemChangingEventArgs args)
-    {
-        if (args.Phase == 0)
+        if (sender is Border border && border.Tag is TiApplicationDto app)
         {
-            args.RegisterUpdateCallback(Calendar_DayItemChanging);
-            return;
+            ViewModel.SelectedApplication = app;
+            Debug.WriteLine(app.JobId);
         }
+    }
 
-        var date = args.Item.Date.Date;
-        if (ViewModel.BookedDates.Contains(date))
+    private void AppCard_PointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
         {
-            args.Item.SetDensityColors(new[]
-            {
-                Windows.UI.Color.FromArgb(255, 132, 148, 255)
-            });
+            border.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
+        }
+    }
+
+    private void AppCard_PointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is Border border)
+        {
+            border.BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
+        }
+    }
+
+    private void DatePicker_DateChanged(CalendarDatePicker sender, CalendarDatePickerDateChangedEventArgs args)
+    {
+        if (args.NewDate.HasValue)
+        {
+            ViewModel.SelectedDate = args.NewDate.Value;
         }
     }
 
@@ -53,5 +63,10 @@ public sealed partial class TiInterviewSlotsPage : Page
     {
         if (sender is Button { Tag: TiSlotDto slot })
             await ViewModel.BookSlotAsync(slot);
+    }
+
+    private void ViewBookedInterviews_Click(object sender, RoutedEventArgs e)
+    {
+        Frame.Navigate(typeof(TiCandidateBookedInterviewsPage));
     }
 }
