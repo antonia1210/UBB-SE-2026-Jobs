@@ -30,7 +30,7 @@ public partial class TiEventDetailsViewModel : DispatchableObservableObject
 
     private async Task LoadCollaboratorsAsync(int eventId)
     {
-        var collaborators = await eventsService.GetCollaboratorsAsync(eventId);
-        this.collaborators = collaborators;
+        var newCollaborators = await eventsService.GetCollaboratorsAsync(eventId);
+        Collaborators = newCollaborators;
     }
 }

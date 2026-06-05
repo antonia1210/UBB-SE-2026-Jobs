@@ -85,7 +85,7 @@
                             </ItemsRepeater.Layout>
                             <ItemsRepeater.ItemTemplate>
                                 <DataTemplate x:DataType="dtos:TiCollaboratorDto">
-                                    <TextBlock Text="{x:Bind CompanyName}" FontSize="13"/>
+                                    <TextBlock Text="{x:Bind Name}" FontSize="13"/>
                                 </DataTemplate>
                             </ItemsRepeater.ItemTemplate>
                         </ItemsRepeater>
