@@ -50,6 +50,9 @@ using UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
 using UBB_SE_2026_Jobs.Library.Services.Users;
 using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
+using UBB_SE_2026_Jobs.Library.Services.UserRecommendations;
+using UBB_SE_2026_Jobs.Library.Services.Completeness;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 
 var builder = WebApplication.CreateBuilder(args);
 

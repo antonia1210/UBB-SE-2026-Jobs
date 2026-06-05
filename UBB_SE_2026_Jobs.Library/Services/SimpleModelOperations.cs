@@ -16,16 +16,34 @@ public static class SimpleModelOperations
     public const int ParticipantExperiencePoints = 10;
 
     public const int Level1ExperiencePoints = 0;
-    public const int Level2ExperiencePoints = 10;
+    public const int Level2ExperiencePoints = 100;
     public const int Level3ExperiencePoints = 250;
     public const int Level4ExperiencePoints = 500;
     public const int Level5ExperiencePoints = 800;
 
-    private const int Level1Number = 1;
-    private const int Level2Number = 2;
-    private const int Level3Number = 3;
-    private const int Level4Number = 4;
-    private const int Level5Number = 5;
+    public static readonly int[] LevelThresholds = new[]
+    {
+        Level1ExperiencePoints,
+        Level2ExperiencePoints,
+        Level3ExperiencePoints,
+        Level4ExperiencePoints,
+        Level5ExperiencePoints,
+    };
+
+    public static int CalculateLevelProgress(int xp, int level)
+    {
+        int bandIndex = Math.Clamp(level - 1, 0, LevelThresholds.Length - 2);
+        int start = LevelThresholds[bandIndex];
+        int end = LevelThresholds[bandIndex + 1];
+        if (end <= start) return 100;
+        return (int)Math.Clamp((xp - start) * 100.0 / (end - start), 0, 100);
+    }
+
+    public static int CalculateXpToNextLevel(int xp, int level)
+    {
+        if (level >= LevelThresholds.Length) return 0;
+        return Math.Max(0, LevelThresholds[level] - xp);
+    }
 
     public static int GetExperiencePoints(SkillTestViewDto skillTest)
     {
@@ -49,27 +67,14 @@ public static class SimpleModelOperations
 
     public static int CalculateLevelNumber(int experiencePoints)
     {
-        if (experiencePoints >= Level5ExperiencePoints)
+        for (int i = LevelThresholds.Length - 1; i >= 0; i--)
         {
-            return Level5Number;
+            if (experiencePoints >= LevelThresholds[i])
+            {
+                return i + 1;
+            }
         }
-
-        if (experiencePoints >= Level4ExperiencePoints)
-        {
-            return Level4Number;
-        }
-
-        if (experiencePoints >= Level3ExperiencePoints)
-        {
-            return Level3Number;
-        }
-
-        if (experiencePoints >= Level2ExperiencePoints)
-        {
-            return Level2Number;
-        }
-
-        return Level1Number;
+        return 1;
     }
 
     public static Badge AssignTier(float score)

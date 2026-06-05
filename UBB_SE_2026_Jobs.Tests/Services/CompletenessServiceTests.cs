@@ -1,5 +1,6 @@
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.Library.Services.Completeness;
 using UBB_SE_2026_Jobs.Library.Services.CompletenessService;
 using UBB_SE_2026_Jobs.Tests.Helpers;
 

@@ -18,9 +18,9 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
         }
 
         [HttpGet("scheduled")]
-        public async Task<ActionResult<List<InterviewSessionDto>>> GetScheduled()
+        public async Task<ActionResult<List<InterviewSessionDto>>> GetScheduled([FromQuery] int? recruiterId)
         {
-            List<InterviewSession> sessions = await this._service.GetScheduledSessionsAsync();
+            List<InterviewSession> sessions = await this._service.GetScheduledSessionsAsync(recruiterId);
 
             return Ok(sessions.Select(session => session.ToDto(Request)).ToList());
         }
@@ -129,6 +129,18 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             }
             catch (KeyNotFoundException error)
             {
+                return NotFound(error.Message);
+            }
+        }
+
+        [HttpPost("{sessionId}")]
+        public async Task<ActionResult> SetInterviewDecision(int sessionId, [FromQuery] string decision)
+        {
+            try {
+                await this._service.SetInterviewDecision(sessionId, decision);
+
+                return Ok();
+            } catch (KeyNotFoundException error) {
                 return NotFound(error.Message);
             }
         }

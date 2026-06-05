@@ -11,12 +11,13 @@ namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
     public interface IInterviewSessionService
     {
         /// <summary>
-        /// Asynchronously retrieves a list of all scheduled interview sessions.
+        /// Asynchronously retrieves a list of all scheduled interview sessions for all recruiters or for a specified recruiter.
         /// </summary>
+        /// <param name="recruiterId">Optional recruiter for which to retrieve scheduled sessions</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see
         /// cref="InterviewSession"/> objects representing the scheduled sessions. The list is empty if no sessions are
         /// scheduled.</returns>
-        public Task<List<InterviewSession>> GetScheduledSessionsAsync();
+        public Task<List<InterviewSession>> GetScheduledSessionsAsync(int? recruiterId);
 
         /// <summary>
         /// Asynchronously retrieves a list of scheduled interview sessions for a given candidate.
@@ -97,5 +98,15 @@ namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
         /// type is always "video/mp4".</returns>
         /// <exception cref="KeyNotFoundException">Thrown if a video file with the specified name does not exist in the storage location.</exception>
         public Task<(byte[], string)> GetVideoAsync(string videoName);
+
+        /// <summary>
+        /// Set the recruiter decision for an interview. Mark interview session as completed and if application was accespted or declined.
+        /// </summary>
+        /// <param name="id">The unique identifier of the interview session to update.</param>
+        /// <param name="decision">The decision of the recruiter after the in-person interview.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="KeyNotFoundException">Thrown if an interview session with the specified id does not exist.</exception>
+        /// <exception cref="InvalidDataException">Thrown if interview session is not valid for an interview.</exception>
+        public Task SetInterviewDecision(int sessionId, string decision);
     }
 }

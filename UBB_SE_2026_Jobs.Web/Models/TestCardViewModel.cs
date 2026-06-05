@@ -6,8 +6,6 @@ namespace UBB_SE_2026_Jobs.Web.Models
         public string Title { get; set; } = "";
         public string Category { get; set; } = "";
         public string QuestionTypeLabel { get; set; } = "";
-
-        public bool HasBeenTaken { get; set; } = false;
     }
 }
 
