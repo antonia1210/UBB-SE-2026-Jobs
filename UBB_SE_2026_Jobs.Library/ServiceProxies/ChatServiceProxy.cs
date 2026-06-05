@@ -22,6 +22,9 @@ public class ChatServiceProxy : IChatService
     private static string WithCompany(string url, int? companyId)
         => companyId.HasValue ? url + (url.Contains('?') ? "&" : "?") + "companyId=" + companyId.Value : url;
 
+    public async Task<Chat?> GetChatByIdAsync(int chatId, CancellationToken cancellationToken = default)
+        => await http.GetFromJsonAsync<Chat>($"api/chats/{chatId}", JsonOptions, cancellationToken);
+
     public async Task<IReadOnlyList<Chat>> GetChatsForUserAsync(int userId, CancellationToken cancellationToken = default)
         => await http.GetFromJsonAsync<List<Chat>>($"api/chats?userId={userId}&callerId={userId}", JsonOptions, cancellationToken)
            ?? new List<Chat>();
@@ -87,6 +90,10 @@ public class ChatServiceProxy : IChatService
         => await http.GetFromJsonAsync<List<Company>>($"api/chats/search/companies?companyQuery={Uri.EscapeDataString(query)}", JsonOptions, cancellationToken)
            ?? new List<Company>();
 
+    public async Task<IReadOnlyList<User>> SearchRecruitersByCompanyAsync(int companyId, string query, CancellationToken cancellationToken = default)
+        => await http.GetFromJsonAsync<List<User>>($"api/chats/search/recruiters?companyId={companyId}&query={Uri.EscapeDataString(query)}", JsonOptions, cancellationToken)
+           ?? new List<User>();
+
     public async Task SendStoredAttachmentAsync(int chatId, string storedPath, string originalFileName, int senderId, MessageType type, int? companyId = null, CancellationToken cancellationToken = default)
     {
         var response = await http.PostAsJsonAsync(WithCompany($"api/chats/{chatId}/attachments", companyId),
@@ -94,6 +101,18 @@ public class ChatServiceProxy : IChatService
         response.EnsureSuccessStatusCode();
     }
 
-    public Task<Stream> OpenMessageAttachmentAsync(string attachmentPath, CancellationToken cancellationToken = default)
-        => throw new NotSupportedException("File attachments are not supported in the web client.");
+    public async Task<Stream> OpenMessageAttachmentAsync(string attachmentPath, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(attachmentPath))
+            throw new ArgumentException("Attachment path cannot be empty.", nameof(attachmentPath));
+
+        var fileName = Uri.EscapeDataString(Path.GetFileName(attachmentPath));
+        var response = await http.GetAsync($"api/files/{fileName}", cancellationToken).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+
+        var memory = new MemoryStream();
+        await response.Content.CopyToAsync(memory, cancellationToken).ConfigureAwait(false);
+        memory.Position = 0;
+        return memory;
+    }
 }

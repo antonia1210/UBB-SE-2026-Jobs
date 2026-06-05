@@ -44,7 +44,7 @@ public class ChatConfiguration : IEntityTypeConfiguration<Chat>
         // BlockedByUser is the user who blocked the chat (nullable).
         builder.HasOne(chat => chat.BlockedByUser)
             .WithMany()
-            .HasForeignKey("BlockedByUserId")
+            .HasForeignKey(chat => chat.BlockedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
