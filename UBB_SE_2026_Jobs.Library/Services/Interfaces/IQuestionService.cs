@@ -22,5 +22,7 @@ namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
         /// <param name="positionId">The unique identifier of the position.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of interview questions for the specified position.</returns>
         Task<List<TestQuestion>> GetInterviewQuestionsByPositionAsync(int positionId);
+
+        Task<TestQuestion?> GetByIdAsync(int questionId);
     }
 }

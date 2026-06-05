@@ -41,5 +41,10 @@ namespace UBB_SE_2026_Jobs.Library.Services
         {
             return await this._repository.GetInterviewQuestionsByPositionAsync(positionId);
         }
+
+        public async Task<TestQuestion?> GetByIdAsync(int questionId)
+        {
+            return await this._repository.FindByIdWithAnswersAsync(questionId);
+        }
     }
 }
