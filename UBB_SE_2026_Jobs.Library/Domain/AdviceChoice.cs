@@ -40,20 +40,11 @@ namespace UBB_SE_2026_Jobs.Library.Domain
         /// <summary>
         /// Gets the advice text for this choice. This property represents the specific advice or recommendation that is presented to the user as an option in a game scenario, allowing the user to make a selection based on the advice provided.
         /// </summary>
-        public string Advice { get; private set; }
+        public string Advice { get; set; }
 
         /// <summary>
         /// Gets the feedback associated with this advice choice. This property represents the feedback or response that is provided to the user after selecting the advice, allowing the user to understand the consequences or outcomes of their choice.
         /// </summary>
-        public string Feedback { get; private set; }
-
-        /// <summary>
-        /// Determines if the advice choice is selected based on the feedback provided. This method evaluates the feedback associated with the advice choice to determine if it indicates that the choice has been selected or not, allowing for dynamic interactions and responses in game scenarios based on user selections.
-        /// </summary>
-        /// <returns>A string containing the feedback.</returns>
-        public string IsChosen()
-        {
-            return this.Feedback;
-        }
+        public string Feedback { get; set; }
     }
 }
