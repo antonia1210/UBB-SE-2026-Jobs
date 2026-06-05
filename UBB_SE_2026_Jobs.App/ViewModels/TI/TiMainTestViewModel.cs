@@ -47,22 +47,21 @@ public class TiMainTestViewModel : INotifyPropertyChanged
         IsLoading = true;
         Tests.Clear();
 
-        var categories = new[] { "Programming", "Database", "Computer Science" };
-        foreach (var category in categories)
+        // Show every test regardless of category. (Previously this filtered by a hardcoded
+        // category list, so tests in any other category — or with slightly different category
+        // names — silently never appeared.)
+        var tests = await testService.GetAllAsync();
+        foreach (var test in tests)
         {
-            var tests = await testService.GetByCategoryAsync(category);
-            foreach (var test in tests)
+            var card = new TiTestCardViewModel
             {
-                var card = new TiTestCardViewModel
-                {
-                    TestId = test.Id,
-                    Title = test.Title,
-                    Category = test.Category,
-                    QuestionTypeLabel = test.QuestionTypeLabel,
-                    CreatedAt = test.CreatedAt,
-                };
-                Tests.Add(card);
-            }
+                TestId = test.Id,
+                Title = test.Title,
+                Category = test.Category,
+                QuestionTypeLabel = test.QuestionTypeLabel,
+                CreatedAt = test.CreatedAt,
+            };
+            Tests.Add(card);
         }
 
         IsLoading = false;
