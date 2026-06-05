@@ -266,7 +266,7 @@ public class ChatServiceTests
         {
             User = new User { UserId = userId },
             IsBlocked = true,
-            BlockedByUserId = 2, 
+            BlockedByUserId = 2,
         };
         chatRepository.GetForUserAsync(userId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IReadOnlyList<Chat>>(new List<Chat> { chat }));

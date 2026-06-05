@@ -3,7 +3,6 @@ using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
 using UBB_SE_2026_Jobs.Library.Repositories.Messages;
-using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 using UBB_SE_2026_Jobs.Library.Services.FileStorage;
 using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
 using UBB_SE_2026_Jobs.Library.Services.Users;
