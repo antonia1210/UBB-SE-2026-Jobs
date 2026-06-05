@@ -25,6 +25,8 @@ namespace UBB_SE_2026_Jobs.Library.Services
         private readonly ITimerService timerService;
         private readonly IAttemptValidationService validationService;
         private readonly IDataProcessingService dataProcessingService;
+        private const float DefaultSubmissionScore = 0f;
+        private const decimal DefaultAttemptScore = 0m;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TestService"/> class.
@@ -152,7 +154,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
 
             if (attempt == null)
             {
-                return 0f;
+                return DefaultSubmissionScore;
             }
 
             foreach (AnswerDto answerDto in answers)
@@ -178,7 +180,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
             TestAttempt? finalAttempt =
                 await this.attemptRepository.FindByUserAndTestAsync(userId, testId);
 
-            return finalAttempt != null ? (float)(finalAttempt.Score ?? 0m) : 0f;
+            return finalAttempt != null ? (float)(finalAttempt.Score ?? DefaultAttemptScore) : DefaultSubmissionScore;
         }
 
         /// <summary>

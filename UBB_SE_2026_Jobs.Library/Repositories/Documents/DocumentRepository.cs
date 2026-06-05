@@ -23,7 +23,7 @@ public class DocumentRepository : IDocumentRepository
     }
 
     /// <summary>
-    /// Tracked â€” typical caller (FilesController.Delete) mutates immediately. No User include
+    /// Tracked — typical caller (FilesController.Delete) mutates immediately. No User include
     /// because the path is already enough to serve the file.
     /// </summary>
     public async Task<Document?> GetByIdAsync(int documentId, CancellationToken cancellationToken = default)
@@ -35,7 +35,7 @@ public class DocumentRepository : IDocumentRepository
     }
 
     /// <summary>
-    /// Original: PussyCatsApp DocumentRepository.GetDocumentsByUserId â€” straight predicate port.
+    /// Original: PussyCatsApp DocumentRepository.GetDocumentsByUserId — straight predicate port.
     /// Read-only listing.
     /// </summary>
     public async Task<IReadOnlyList<Document>> GetByUserIdAsync(int userId, CancellationToken cancellationToken = default)
@@ -61,11 +61,11 @@ public class DocumentRepository : IDocumentRepository
 
     public async Task UpdateAsync(Document document, CancellationToken cancellationToken = default)
     {
-        var existing = await databaseContext.Documents.FindAsync(new object?[] { document.DocumentId }, cancellationToken).ConfigureAwait(false);
-        if (existing is not null)
+        var existingDocument = await databaseContext.Documents.FindAsync(new object?[] { document.DocumentId }, cancellationToken).ConfigureAwait(false);
+        if (existingDocument is not null)
         {
-            existing.DocumentName = document.DocumentName;
-            existing.FilePath = document.FilePath;
+            existingDocument.DocumentName = document.DocumentName;
+            existingDocument.FilePath = document.FilePath;
             await databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         }
     }
@@ -81,5 +81,3 @@ public class DocumentRepository : IDocumentRepository
         await databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }
-
-

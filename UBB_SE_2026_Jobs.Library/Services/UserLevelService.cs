@@ -7,9 +7,17 @@ public static class UserLevelService
     private const int FullProgressPercentage = 100;
     private const int NoExperiencePointsRemaining = 0;
 
+    private const int MinimumExperiencePoints = 0;
+
+    private const int Level1Number = 1;
+    private const int Level2Number = 2;
+    private const int Level3Number = 3;
+    private const int Level4Number = 4;
+    private const int MaximumLevelNumber = 5;
+
     public static int GetLevelProgressPercent(int totalExperiencePoints, int currentLevel)
     {
-        if (totalExperiencePoints < 0)
+        if (totalExperiencePoints < MinimumExperiencePoints)
         {
             throw new ArgumentException("Experience Points cannot be negative.");
         }
@@ -36,7 +44,7 @@ public static class UserLevelService
 
     public static int GetExperiencePointsToNextLevel(int totalExperiencePoints, int currentLevel)
     {
-        if (totalExperiencePoints < 0)
+        if (totalExperiencePoints < MinimumExperiencePoints)
         {
             throw new ArgumentException("Experience Points cannot be negative.");
         }
@@ -51,7 +59,7 @@ public static class UserLevelService
 
     public static int CalculateLevelNumber(int experiencePoints)
     {
-        if (experiencePoints < 0)
+        if (experiencePoints < MinimumExperiencePoints)
         {
             throw new ArgumentException("Experience Points cannot be negative.");
         }
@@ -62,10 +70,10 @@ public static class UserLevelService
     {
         return level switch
         {
-            >= 5 => SimpleModelOperations.Level5ExperiencePoints,
-            4 => SimpleModelOperations.Level4ExperiencePoints,
-            3 => SimpleModelOperations.Level3ExperiencePoints,
-            2 => SimpleModelOperations.Level2ExperiencePoints,
+            >= MaximumLevelNumber => SimpleModelOperations.Level5ExperiencePoints,
+            Level4Number => SimpleModelOperations.Level4ExperiencePoints,
+            Level3Number => SimpleModelOperations.Level3ExperiencePoints,
+            Level2Number => SimpleModelOperations.Level2ExperiencePoints,
             _ => SimpleModelOperations.Level1ExperiencePoints,
         };
     }
@@ -74,10 +82,10 @@ public static class UserLevelService
     {
         return currentLevel switch
         {
-            >= 5 => SimpleModelOperations.Level1ExperiencePoints,
-            4 => SimpleModelOperations.Level5ExperiencePoints,
-            3 => SimpleModelOperations.Level4ExperiencePoints,
-            2 => SimpleModelOperations.Level3ExperiencePoints,
+            >= MaximumLevelNumber => SimpleModelOperations.Level1ExperiencePoints,
+            Level4Number => SimpleModelOperations.Level5ExperiencePoints,
+            Level3Number => SimpleModelOperations.Level4ExperiencePoints,
+            Level2Number => SimpleModelOperations.Level3ExperiencePoints,
             _ => SimpleModelOperations.Level2ExperiencePoints,
         };
     }

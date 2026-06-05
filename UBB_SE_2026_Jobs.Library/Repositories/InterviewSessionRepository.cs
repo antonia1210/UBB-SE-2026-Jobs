@@ -14,96 +14,95 @@
     /// </summary>
     public class InterviewSessionRepository : IInterviewSessionRepository
     {
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext databaseContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InterviewSessionRepository"/> class.
         /// </summary>
-        public InterviewSessionRepository(JobsDbContext JobsDbContext)
+        public InterviewSessionRepository(JobsDbContext databaseContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <inheritdoc/>
-        public async Task<InterviewSession> GetInterviewSessionByIdAsync(int id)
+        public async Task<InterviewSession> GetInterviewSessionByIdAsync(int sessionId)
         {
-            var session = await this.JobsDbContext.InterviewSessions
-                .FirstOrDefaultAsync(s => s.Id == id);
+            var interviewSession = await this.databaseContext.InterviewSessions
+                .FirstOrDefaultAsync(interviewSession => interviewSession.Id == sessionId);
 
-            if (session == null)
+            if (interviewSession == null)
             {
-                throw new KeyNotFoundException($"InterviewSession with ID {id} was not found.");
+                throw new KeyNotFoundException($"InterviewSession with ID {sessionId} was not found.");
             }
 
-            return session;
+            return interviewSession;
         }
 
         /// <inheritdoc/>
-        public InterviewSession GetInterviewSessionById(int id)
+        public InterviewSession GetInterviewSessionById(int sessionId)
         {
-            var session = this.JobsDbContext.InterviewSessions
-                .FirstOrDefault(s => s.Id == id);
+            var interviewSession = this.databaseContext.InterviewSessions
+                .FirstOrDefault(interviewSession => interviewSession.Id == sessionId);
 
-            if (session == null)
+            if (interviewSession == null)
             {
-                throw new KeyNotFoundException($"InterviewSession with ID {id} was not found.");
+                throw new KeyNotFoundException($"InterviewSession with ID {sessionId} was not found.");
             }
 
-            return session;
+            return interviewSession;
         }
 
         /// <inheritdoc/>
-        public async Task UpdateInterviewSessionAsync(InterviewSession updated)
+        public async Task UpdateInterviewSessionAsync(InterviewSession updatedInterviewSession)
         {
-            var existing = await this.JobsDbContext.InterviewSessions
-                .FirstOrDefaultAsync(s => s.Id == updated.Id);
+            var existingInterviewSession = await this.databaseContext.InterviewSessions
+                .FirstOrDefaultAsync(interviewSession => interviewSession.Id == updatedInterviewSession.Id);
 
-            if (existing == null)
+            if (existingInterviewSession == null)
             {
                 return;
             }
 
-            existing.InterviewerId = updated.InterviewerId;
-            existing.PositionId = updated.PositionId;
-            existing.ExternalUserId = updated.ExternalUserId;
-            existing.Status = updated.Status;
-            existing.DateStart = updated.DateStart;
-            existing.Video = updated.Video;
-            existing.Score = updated.Score;
+            existingInterviewSession.InterviewerId = updatedInterviewSession.InterviewerId;
+            existingInterviewSession.PositionId = updatedInterviewSession.PositionId;
+            existingInterviewSession.ExternalUserId = updatedInterviewSession.ExternalUserId;
+            existingInterviewSession.Status = updatedInterviewSession.Status;
+            existingInterviewSession.DateStart = updatedInterviewSession.DateStart;
+            existingInterviewSession.Video = updatedInterviewSession.Video;
+            existingInterviewSession.Score = updatedInterviewSession.Score;
 
-            await this.JobsDbContext.SaveChangesAsync();
+            await this.databaseContext.SaveChangesAsync();
         }
 
         /// <inheritdoc/>
-        public void Add(InterviewSession session)
+        public void Add(InterviewSession interviewSession)
         {
-            this.JobsDbContext.InterviewSessions.Add(session);
-            this.JobsDbContext.SaveChanges();
+            this.databaseContext.InterviewSessions.Add(interviewSession);
+            this.databaseContext.SaveChanges();
         }
 
         /// <inheritdoc/>
-        public void Delete(InterviewSession session)
+        public void Delete(InterviewSession interviewSession)
         {
-            this.JobsDbContext.InterviewSessions.Remove(session);
-            this.JobsDbContext.SaveChanges();
+            this.databaseContext.InterviewSessions.Remove(interviewSession);
+            this.databaseContext.SaveChanges();
         }
 
         /// <inheritdoc/>
         public async Task<List<InterviewSession>> GetScheduledSessionsAsync()
         {
-            return await this.JobsDbContext.InterviewSessions
-                .Where(s => s.Status == InterviewStatus.Scheduled.ToString())
+            return await this.databaseContext.InterviewSessions
+                .Where(interviewSession => interviewSession.Status == InterviewStatus.Scheduled.ToString())
                 .ToListAsync();
         }
 
         /// <inheritdoc/>
         public async Task<List<InterviewSession>> GetSessionsByStatusAsync(string status)
         {
-            return await this.JobsDbContext.InterviewSessions
-                .Where(s => s.Status == status)
-                .OrderByDescending(s => s.DateStart)
+            return await this.databaseContext.InterviewSessions
+                .Where(interviewSession => interviewSession.Status == status)
+                .OrderByDescending(interviewSession => interviewSession.DateStart)
                 .ToListAsync();
         }
     }
 }
-
