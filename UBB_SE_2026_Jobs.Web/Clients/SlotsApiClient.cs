@@ -73,6 +73,11 @@ namespace UBB_SE_2026_Jobs.Web.Clients
         {
             var payload = new { BaseSlot = baseSlot, Duration = duration };
             HttpResponseMessage response = await this.http.PostAsJsonAsync($"{ApiPath}/recruiter/create", payload);
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                string message = await response.Content.ReadAsStringAsync();
+                throw new InvalidOperationException(string.IsNullOrWhiteSpace(message) ? "Slot overlaps with an existing appointment." : message);
+            }
             response.EnsureSuccessStatusCode();
         }
 

@@ -12,6 +12,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
     using UBB_SE_2026_Jobs.Library.Domain.Enums;
     using UBB_SE_2026_Jobs.Library.Repositories;
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+    using UBB_SE_2026_Jobs.Library.Repositories.Matches;
     using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 
     /// <summary>
@@ -24,16 +25,13 @@ namespace UBB_SE_2026_Jobs.Library.Services
 
         private readonly ISlotRepository _slotRepository;
         private readonly IInterviewSessionRepository _interviewSessionRepository;
+        private readonly IMatchRepository _matchRepository;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BookingService"/> class with the specified repositories.
-        /// </summary>
-        /// <param name="slotRepository">The slot repository to be used by the service.</param>
-        /// <param name="interviewSessionRepository">The interview session repository to be used by the service.</param>
-        public BookingService(ISlotRepository slotRepository, IInterviewSessionRepository interviewSessionRepository)
+        public BookingService(ISlotRepository slotRepository, IInterviewSessionRepository interviewSessionRepository, IMatchRepository matchRepository)
         {
             this._slotRepository = slotRepository;
             this._interviewSessionRepository = interviewSessionRepository;
+            this._matchRepository = matchRepository;
         }
 
         /// <summary>
@@ -75,6 +73,13 @@ namespace UBB_SE_2026_Jobs.Library.Services
             };
 
             this._interviewSessionRepository.Add(newInterviewSession);
+
+            var match = await this._matchRepository.GetByUserIdAndJobIdAsync(candidateId, jobId);
+            if (match != null)
+            {
+                match.Status = MatchStatus.Advanced;
+                await this._matchRepository.UpdateAsync(match);
+            }
         }
     }
 }

@@ -125,8 +125,15 @@ public class SlotsController : ControllerBase
     [HttpPost("recruiter/create")]
     public async Task<ActionResult> CreateRecruiterSlot([FromBody] CreateSlotDto createSlotDto)
     {
-        await this.slotService.CreateRecruiterSlotAsync(createSlotDto.BaseSlot, createSlotDto.Duration);
-        return Ok();
+        try
+        {
+            await this.slotService.CreateRecruiterSlotAsync(createSlotDto.BaseSlot, createSlotDto.Duration);
+            return Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 
     [HttpPut("recruiter/update")]

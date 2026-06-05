@@ -1,8 +1,9 @@
-﻿using NSubstitute;
+using NSubstitute;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Core;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+using UBB_SE_2026_Jobs.Library.Repositories.Matches;
 using UBB_SE_2026_Jobs.Library.Services;
 using Xunit;
 
@@ -12,13 +13,15 @@ namespace UBB_SE_2026_Jobs.Tests.Services
     {
         private readonly ISlotRepository slotRepository;
         private readonly IInterviewSessionRepository interviewSessionRepository;
+        private readonly IMatchRepository matchRepository;
         private readonly BookingService service;
 
         public BookingServiceTests()
         {
             slotRepository = Substitute.For<ISlotRepository>();
             interviewSessionRepository = Substitute.For<IInterviewSessionRepository>();
-            service = new BookingService(slotRepository, interviewSessionRepository);
+            matchRepository = Substitute.For<IMatchRepository>();
+            service = new BookingService(slotRepository, interviewSessionRepository, matchRepository);
         }
 
         [Fact]

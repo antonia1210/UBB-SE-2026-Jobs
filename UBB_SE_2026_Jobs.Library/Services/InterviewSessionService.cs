@@ -5,6 +5,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
     using UBB_SE_2026_Jobs.Library.Domain.Core;
     using UBB_SE_2026_Jobs.Library.Domain.Enums;
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+    using UBB_SE_2026_Jobs.Library.Repositories.Matches;
     using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 
     /// <summary>
@@ -17,6 +18,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
     {
         private readonly IInterviewSessionRepository _repository;
         private readonly IApplicantRepository _applicantRepository;
+        private readonly IMatchRepository _matchRepository;
         private readonly string storageFolderPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
         "InterviewSessions");
@@ -27,10 +29,11 @@ namespace UBB_SE_2026_Jobs.Library.Services
         /// repository.
         /// </summary>
         /// <param name="repository">The repository used to manage interview session data. Cannot be null.</param>
-        public InterviewSessionService(IInterviewSessionRepository repository, IApplicantRepository applicantRepository)
+        public InterviewSessionService(IInterviewSessionRepository repository, IApplicantRepository applicantRepository, IMatchRepository matchRepository)
         {
             this._repository = repository;
             this._applicantRepository = applicantRepository;
+            this._matchRepository = matchRepository;
 
             Directory.CreateDirectory(Path.Combine(this.storageFolderPath, this.videosFolderName));
         }
@@ -241,13 +244,20 @@ namespace UBB_SE_2026_Jobs.Library.Services
             await this._repository.UpdateInterviewSessionAsync(session);
 
             Applicant? applicant = this._applicantRepository.GetPendingApplicantByJobAndUser(session.PositionId, session.ExternalUserId.Value);
-            
-            if (applicant == null) {
-                throw new InvalidDataException("Application corresponding to interview not found");
+            if (applicant != null)
+            {
+                applicant.ApplicationStatus = decision;
+                this._applicantRepository.UpdateApplicant(applicant);
             }
 
-            applicant.ApplicationStatus = decision;
-            this._applicantRepository.UpdateApplicant(applicant);
+            var match = await this._matchRepository.GetByUserIdAndJobIdAsync(session.ExternalUserId.Value, session.PositionId);
+            if (match != null)
+            {
+                match.Status = string.Equals(decision, "Accepted", StringComparison.OrdinalIgnoreCase)
+                    ? MatchStatus.Accepted
+                    : MatchStatus.Rejected;
+                await this._matchRepository.UpdateAsync(match);
+            }
         }
 
     }
