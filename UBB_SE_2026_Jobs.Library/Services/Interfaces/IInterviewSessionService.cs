@@ -97,5 +97,15 @@ namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
         /// type is always "video/mp4".</returns>
         /// <exception cref="KeyNotFoundException">Thrown if a video file with the specified name does not exist in the storage location.</exception>
         public Task<(byte[], string)> GetVideoAsync(string videoName);
+
+        /// <summary>
+        /// Set the recruiter decision for an interview. Mark interview session as completed and if application was accespted or declined.
+        /// </summary>
+        /// <param name="id">The unique identifier of the interview session to update.</param>
+        /// <param name="decision">The decision of the recruiter after the in-person interview.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="KeyNotFoundException">Thrown if an interview session with the specified id does not exist.</exception>
+        /// <exception cref="InvalidDataException">Thrown if interview session is not valid for an interview.</exception>
+        public Task SetInterviewDecision(int sessionId, string decision);
     }
 }

@@ -60,5 +60,11 @@ namespace UBB_SE_2026_Jobs.Web.Clients
                 $"{BookingsPath}/{slotId}/confirm?jobId={jobId}", candidateId);
             response.EnsureSuccessStatusCode();
         }
+
+        public async Task SetInterviewDecision(int sessionId, string decision)
+        {
+            var response = await this.http.PostAsync($"{SessionsPath}/{sessionId}?decision={decision}", null);
+            response.EnsureSuccessStatusCode();
+        }
     }
 }

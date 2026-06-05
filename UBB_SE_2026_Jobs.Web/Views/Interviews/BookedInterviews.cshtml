@@ -35,6 +35,7 @@
                             <th class="py-3">Date &amp; Time</th>
                             <th class="py-3">Status</th>
                             <th class="py-3">Score</th>
+                            <th class="py-3">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -78,6 +79,17 @@
                                         <span class="text-muted">—</span>
                                     }
                                 </td>
+                                <td>
+                                    @if (session.Status == "Scheduled") {
+                                        <button class="btn btn-sm text-white"
+                                                style="background:#7C5CFC;white-space:nowrap;"
+                                                onclick="openDecisionModal(@session.Id, @(session.ExternalUserId ?? 0), @session.PositionId)">
+                                            Confirm & Decide
+                                        </button>
+                                    } else {
+                                        <span class="text-muted small">—</span>
+                                    }
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -85,5 +97,51 @@
             </div>
         </div>
     }
-
+    <!-- Decision modal -->
+    <div class="modal fade" id="decisionModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header" style="background:#F0EEFF;">
+                    <h6 class="modal-title fw-bold">Candidate Decision</h6>
+                    <button type="button" class="btn-close" onclick="hideDecisionModal()"></button>
+                </div>
+                <div class="modal-body small">
+                    <p>Session <strong id="decisionSessionId"></strong></p>
+                    <p>Candidate <strong id="decisionCandidateLabel"></strong></p>
+                    <p class="mb-0 text-muted">Choose result for candidate:</p>
+                </div>
+                <div class="modal-footer gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="hideDecisionModal()">Cancel</button>
+                    <form method="post" asp-action="SubmitDecision" asp-controller="Interviews" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="sessionId" id="decisionSessionInput" />
+                        <input type="hidden" name="decision" value="Declined" />
+                        <button type="submit" class="btn btn-sm btn-danger">Decline</button>
+                    </form>
+                    <form method="post" asp-action="SubmitDecision" asp-controller="Interviews" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="sessionId" id="decisionSessionInput2" />
+                        <input type="hidden" name="decision" value="Accepted" />
+                        <button type="submit" class="btn btn-sm btn-success">Accept</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    function openDecisionModal(sessionId, candidateId, positionId) {
+        document.getElementById('decisionSessionId').textContent     = '#' + sessionId;
+        document.getElementById('decisionCandidateLabel').textContent = '#' + candidateId;
+        ['decisionSessionInput','decisionSessionInput2'].forEach(id =>
+            document.getElementById(id).value = sessionId);
+        document.getElementById('decisionModal').classList.add('show');
+        document.getElementById('decisionModal').style.display = 'block';
+    }
+
+    function hideDecisionModal() {
+        document.getElementById('decisionModal').classList.remove('show');
+        document.getElementById('decisionModal').style.display = 'none';
+    }
+</script>

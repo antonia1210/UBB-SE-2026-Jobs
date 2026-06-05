@@ -29,17 +29,7 @@
 
                         <div class="mb-3">
                             <span class="badge bg-primary">@s.Status</span>
-                            @if (s.Score.HasValue) {
-                                <span class="badge bg-success ms-1">Score: @s.Score</span>
-                            }
                         </div>
-
-                        <a asp-controller="Interviews"
-                               asp-action="StartInterview"
-                               asp-route-id="@s.Id"
-                               class="btn btn-sm btn-primary w-100">
-                            Start Interview
-                        </a>
                     </div>
                 </div>
             }

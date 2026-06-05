@@ -16,6 +16,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
     public class InterviewSessionService: IInterviewSessionService
     {
         private readonly IInterviewSessionRepository _repository;
+        private readonly IApplicantRepository _applicantRepository;
         private readonly string storageFolderPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
         "InterviewSessions");
@@ -26,9 +27,10 @@ namespace UBB_SE_2026_Jobs.Library.Services
         /// repository.
         /// </summary>
         /// <param name="repository">The repository used to manage interview session data. Cannot be null.</param>
-        public InterviewSessionService(IInterviewSessionRepository repository)
+        public InterviewSessionService(IInterviewSessionRepository repository, IApplicantRepository applicantRepository)
         {
             this._repository = repository;
+            this._applicantRepository = applicantRepository;
 
             Directory.CreateDirectory(Path.Combine(this.storageFolderPath, this.videosFolderName));
         }
@@ -209,5 +211,39 @@ namespace UBB_SE_2026_Jobs.Library.Services
 
             return (fileBytes, contentType);
         }
+
+        /// <summary>
+        /// Set the recruiter decision for an interview. Mark interview session as completed and if application was accespted or declined.
+        /// </summary>
+        /// <param name="id">The unique identifier of the interview session to update.</param>
+        /// <param name="decision">The decision of the recruiter after the in-person interview.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="KeyNotFoundException">Thrown if an interview session with the specified id does not exist.</exception>
+        /// <exception cref="InvalidDataException">Thrown if interview session is not valid for an interview.</exception>
+        public async Task SetInterviewDecision(int sessionId, string decision)
+        {
+            InterviewSession? session = await this._repository.GetInterviewSessionByIdAsync(sessionId);
+
+            if (session == null) {
+                throw new KeyNotFoundException("Interview session not found.");
+            }
+
+            if (!session.ExternalUserId.HasValue) {
+                throw new InvalidDataException("Interview not associated to a candidate.");
+            }
+
+            session.Status = InterviewStatus.Completed.ToString();
+            await this._repository.UpdateInterviewSessionAsync(session);
+
+            Applicant? applicant = this._applicantRepository.GetPendingApplicantByJobAndUser(session.PositionId, session.ExternalUserId.Value);
+            
+            if (applicant == null) {
+                throw new InvalidDataException("Application corresponding to interview not found");
+            }
+
+            applicant.ApplicationStatus = decision;
+            this._applicantRepository.UpdateApplicant(applicant);
+        }
+
     }
 }
