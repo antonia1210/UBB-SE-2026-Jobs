@@ -123,8 +123,7 @@
                 {
                     return false;
                 }
-
-                // Update scalar fields; CompanyId, PostedAt, Photo and JobRole are preserved.
+                
                 existing.JobTitle = updatedJob.JobTitle;
                 existing.IndustryField = updatedJob.IndustryField;
                 existing.JobType = updatedJob.JobType;
@@ -138,9 +137,6 @@
                 existing.Deadline = updatedJob.Deadline;
                 existing.AmountPayed = updatedJob.AmountPayed ?? existing.AmountPayed;
 
-                // Replace skill links only when the caller actually supplies them; otherwise
-                // preserve the existing links (e.g. the web Edit form has no skills editor and
-                // would otherwise wipe them on every save).
                 if (skillLinks != null && skillLinks.Count > 0)
                 {
                     if (existing.JobSkills != null)
@@ -197,9 +193,7 @@
                 {
                     return JobDeleteResult.NotFound;
                 }
-
-                // Applicants (Match records) are real application history; only remove them when the
-                // caller explicitly forces a cascade delete.
+                
                 List<Match> applicants = this.JobsDbContext.Matches
                     .Where(match => EF.Property<int>(match, "JobId") == jobId)
                     .ToList();
@@ -214,7 +208,6 @@
                     this.JobsDbContext.Matches.RemoveRange(applicants);
                 }
 
-                // Recommendations are derived data; always remove them so the FK does not block.
                 List<Recommendation> recommendations = this.JobsDbContext.Recommendations
                     .Where(recommendation => EF.Property<int>(recommendation, "JobId") == jobId)
                     .ToList();
@@ -223,7 +216,6 @@
                     this.JobsDbContext.Recommendations.RemoveRange(recommendations);
                 }
 
-                // Chats are kept but unlinked from the job (nullable FK).
                 List<Chat> linkedChats = this.JobsDbContext.Chats
                     .Where(chat => EF.Property<int?>(chat, "JobId") == jobId)
                     .ToList();
@@ -232,7 +224,6 @@
                     chat.Job = null;
                 }
 
-                // Remove skill links first to respect FK constraints
                 if (job.JobSkills != null)
                 {
                     this.databaseContext.JobSkills.RemoveRange(job.JobSkills);
@@ -240,7 +231,6 @@
 
                 this.databaseContext.Jobs.Remove(job);
 
-                // Decrement the company's posted job count
                 var company = this.databaseContext.Companies.Find(job.CompanyId);
                 if (company != null && company.PostedJobsCount > 0)
                 {
