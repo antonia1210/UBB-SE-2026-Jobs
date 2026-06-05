@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
-using UBB_SE_2026_Jobs.Web.Infrastructure;
 using System.Security.Claims;
 
 namespace UBB_SE_2026_Jobs.Web.Controllers
@@ -10,6 +9,10 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
     [Authorize(Roles = "Candidate")]
     public class JobBrowserController : Controller
     {
+        private const string SessionKeyEmploymentTypes = "Filter_EmploymentTypes";
+        private const string SessionKeyExperienceLevels = "Filter_ExperienceLevels";
+        private const string SessionKeyLocation = "Filter_Location";
+
         private readonly IUserRecommendationService recommendationService;
 
         private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -21,8 +24,10 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var filters = UserMatchmakingFilters.Empty();
-            var jobCard = await recommendationService.GetNextCardAsync(CurrentUserId, filters);
+            var filters = LoadFiltersFromSession();
+            ViewBag.AppliedFilters = filters;
+            var jobCard = await recommendationService.GetNextCardAsync(CurrentUserId, filters)
+                ?? await recommendationService.RecalculateTopCardIgnoringCooldownAsync(CurrentUserId, filters);
             return View(jobCard);
         }
 
@@ -34,10 +39,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
             try
             {
-                int matchId = await recommendationService.ApplyLikeAsync(CurrentUserId, card);
-                HttpContext.Session.SetInt32("LastMatchId", matchId);
-                HttpContext.Session.SetInt32("LastDisplayId", card.DisplayRecommendationId ?? 0);
-                HttpContext.Session.SetString("LastAction", "Like");
+                await recommendationService.ApplyLikeAsync(CurrentUserId, card);
             }
             catch (Exception exception)
             {
@@ -50,51 +52,53 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Dismiss(JobRecommendationResult card)
         {
-            int dismissId = await recommendationService.ApplyDismissAsync(CurrentUserId, card);
-            HttpContext.Session.SetInt32("LastDismissId", dismissId);
-            HttpContext.Session.SetInt32("LastDisplayId", card.DisplayRecommendationId ?? 0);
-            HttpContext.Session.SetString("LastAction", "Dismiss");
+            await recommendationService.ApplyDismissAsync(CurrentUserId, card);
+            return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult ResetFilters()
+        {
+            HttpContext.Session.Remove(SessionKeyEmploymentTypes);
+            HttpContext.Session.Remove(SessionKeyExperienceLevels);
+            HttpContext.Session.Remove(SessionKeyLocation);
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> Undo()
+        public IActionResult ApplyFilters(IFormCollection form)
         {
-            string? lastAction = HttpContext.Session.GetString("LastAction");
-            int? displayId = HttpContext.Session.GetInt32("LastDisplayId");
+            var empTypes = form["EmploymentTypes"]
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .ToList();
+            HttpContext.Session.SetString(SessionKeyEmploymentTypes, string.Join(",", empTypes));
 
-            if (lastAction == "Like" && HttpContext.Session.GetInt32("LastMatchId") is { } matchId)
-                await recommendationService.UndoLikeAsync(matchId, displayId);
-            else if (lastAction == "Dismiss" && HttpContext.Session.GetInt32("LastDismissId") is { } dismissId)
-                await recommendationService.UndoDismissAsync(dismissId, displayId);
+            var expLevels = form["ExperienceLevels"]
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .ToList();
+            HttpContext.Session.SetString(SessionKeyExperienceLevels, string.Join(",", expLevels));
 
-            HttpContext.Session.Remove("LastAction");
-            HttpContext.Session.Remove("LastMatchId");
-            HttpContext.Session.Remove("LastDismissId");
-            HttpContext.Session.Remove("LastDisplayId");
+            HttpContext.Session.SetString(SessionKeyLocation, form["Location"].ToString() ?? string.Empty);
 
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult ResetFilters() => RedirectToAction(nameof(Index));
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ApplyFilters(IFormCollection form)
+        private UserMatchmakingFilters LoadFiltersFromSession()
         {
             var filters = UserMatchmakingFilters.Empty();
-            filters.LocationSubstring = form["Location"].ToString() ?? string.Empty;
 
-            foreach (var empType in form["EmploymentTypes"])
-                if (!string.IsNullOrWhiteSpace(empType))
-                    filters.EmploymentTypes.Add(empType);
+            var empTypes = HttpContext.Session.GetString(SessionKeyEmploymentTypes);
+            if (!string.IsNullOrEmpty(empTypes))
+                foreach (var t in empTypes.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    filters.EmploymentTypes.Add(t);
 
-            foreach (var expLevel in form["ExperienceLevels"])
-                if (!string.IsNullOrWhiteSpace(expLevel))
-                    filters.ExperienceLevels.Add(expLevel);
+            var expLevels = HttpContext.Session.GetString(SessionKeyExperienceLevels);
+            if (!string.IsNullOrEmpty(expLevels))
+                foreach (var l in expLevels.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    filters.ExperienceLevels.Add(l);
 
-            var jobCard = await recommendationService.GetNextCardAsync(CurrentUserId, filters);
-            return View("Index", jobCard);
+            filters.LocationSubstring = HttpContext.Session.GetString(SessionKeyLocation) ?? string.Empty;
+
+            return filters;
         }
     }
 }
