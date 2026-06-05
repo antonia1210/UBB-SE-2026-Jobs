@@ -47,30 +47,12 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
                 foreach (TestDto test in tests)
                 {
-                    bool hasFinished = false;
-
-                    if (userId != -1 && User.IsInRole("Candidate"))
-                    {
-                        var existingAttempt = await this._api.GetAttemptByUserAndTestAsync(userId, test.Id);
-
-                        if (existingAttempt != null)
-                        {
-                            var savedAnswers = await this._api.GetAnswersByAttemptIdAsync(existingAttempt.Id);
-
-                            if (savedAnswers != null && savedAnswers.Any())
-                            {
-                                hasFinished = true;
-                            }
-                        }
-                    }
-
                     viewModel.Tests.Add(new TestCardViewModel
                     {
                         TestId = test.Id,
                         Title = test.Title,
                         Category = test.Category,
-                        QuestionTypeLabel = test.QuestionTypeLabel,
-                        HasBeenTaken = hasFinished
+                        QuestionTypeLabel = test.QuestionTypeLabel
                     });
                 }
             }
