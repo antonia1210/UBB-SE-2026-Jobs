@@ -119,6 +119,8 @@
                 .AsNoTracking()
                 .Include(testAttempt => testAttempt.Test)
                     .ThenInclude(test => test!.Questions)
+                .Include(testAttempt => testAttempt.Test)
+                    .ThenInclude(test => test!.Skill)
                 .Where(testAttempt => testAttempt.ExternalUserId == userId
                          && testAttempt.Status == "COMPLETED"
                          && testAttempt.CompletedAt != null)
