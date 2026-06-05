@@ -1,7 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
-using UBB_SE_2026_Jobs.Library.Persistence;
+using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
 using UBB_SE_2026_Jobs.Library.Repositories.Messages;
 using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
@@ -36,7 +35,7 @@ public class ChatService : IChatService
     private readonly IUserService userService;
     private readonly IPussyCatsCompanyService PussyCatsCompanyService;
     private readonly ILocalFileStorageService fileStorage;
-    private readonly JobsDbContext dbContext;
+    private readonly IRecruiterRepository recruiterRepository;
 
     public ChatService(
         IChatRepository chatRepository,
@@ -44,14 +43,14 @@ public class ChatService : IChatService
         IUserService userService,
         IPussyCatsCompanyService PussyCatsCompanyService,
         ILocalFileStorageService fileStorage,
-        JobsDbContext dbContext)
+        IRecruiterRepository recruiterRepository)
     {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
         this.userService = userService;
         this.PussyCatsCompanyService = PussyCatsCompanyService;
         this.fileStorage = fileStorage;
-        this.dbContext = dbContext;
+        this.recruiterRepository = recruiterRepository;
     }
 
     public async Task<Chat?> FindOrCreateUserCompanyChatAsync(int userId, Company company, Job? job = null,
@@ -146,11 +145,7 @@ public class ChatService : IChatService
         if (string.IsNullOrWhiteSpace(query))
             return Array.Empty<User>();
 
-        var recruiterUserIds = await dbContext.Recruiters
-            .Where(r => r.CompanyId == companyId)
-            .Select(r => r.UserId)
-            .ToListAsync(cancellationToken)
-            .ConfigureAwait(false);
+        var recruiterUserIds = await recruiterRepository.GetUserIdsByCompanyAsync(companyId, cancellationToken).ConfigureAwait(false);
 
         var users = await userService.GetAllAsync(cancellationToken).ConfigureAwait(false);
         return users
