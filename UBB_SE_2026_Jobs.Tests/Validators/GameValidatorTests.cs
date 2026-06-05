@@ -1,261 +1,199 @@
-﻿/*using System;
+﻿using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Tests_and_Interviews.Validators;
-using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
+using Xunit;
+using UBB_SE_2026_Jobs.Library.Validators;
 
-namespace PussyCats.Tests.Validators
+namespace UBB_SE_2026_Jobs.Tests.Validators
 {
-    [TestClass]
     public class GameValidatorTests
     {
-        private const char CharFiller = 'a';
-        private const int ExceededLength = 251;
-        private const int ValidScenarioIndex = 0;
+        
 
-        private const string StringEmpty = "";
+        private const string ValidScenarioText = "Valid scenario text";
+        private const string ValidAdviceText = "Valid advice text";
+        private const string ValidFeedbackText = "Valid feedback text";
+        private const string ValidConclusion = "Valid conclusion";
+
+        private const int StruggleOrAdviceLengthExceeded = 251;
+        private const char FillerCharacter = 'a';
+
+        private readonly IGameValidator gameValidator;
+
+        public GameValidatorTests()
+        {
+            gameValidator = new GameValidator();
+        }
+
 
         private const string ScenarioOneText = "First scenario";
+        private const string ScenarioTwoText = "Second scenario";
         private const string AdviceOne = "Advice 1";
         private const string ReactionOne = "Reaction 1";
         private const string AdviceTwo = "Advice 2";
         private const string ReactionTwo = "Reaction 2";
-
-        private const string ScenarioTwoText = "Second scenario";
         private const string AdviceThree = "Advice 3";
         private const string ReactionThree = "Reaction 3";
 
-        private const string TestScenarioOne = "Scenario 1";
-        private const string TestScenarioTwo = "Scenario 2";
-        private const string TestAdvice = "Advice";
-        private const string TestReaction = "Reaction";
-
-        private const string InvalidSingleScenario = "Only one scenario";
-
-        private const string ValidConclusion = "Well done!";
-        private const string EndingConclusion = "Good ending";
-
-        private GameValidator validator = null!;
-
-        [TestInitialize]
-        public void Setup()
-        {
-            validator = new GameValidator();
-        }
-
-        private List<(string scenarioText, IReadOnlyList<(string advice, string feedback)> choices)> GetValidScenarios()
+        private List<(string, IReadOnlyList<(string, string)>)> GetValidScenarios()
         {
             return new List<(string, IReadOnlyList<(string, string)>)>
-            {
-                (ScenarioOneText, new List<(string, string)>
-                    {
-                        (AdviceOne, ReactionOne),
-                        (AdviceTwo, ReactionTwo)
-                    }),
-
-                (ScenarioTwoText, new List<(string, string)>
-                    {
-                        (AdviceThree, ReactionThree)
-                    })
-            };
-        }
-
-        [TestMethod]
-        public void MandatoryFieldsValidator_ValidScenarios_ReturnsTrue()
+    {
+        (ScenarioOneText, new List<(string, string)>
         {
-            var scenarios = GetValidScenarios();
-            var result = validator.ValidateMandatoryFields(scenarios);
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public void MandatoryFieldsValidator_NullScenarios_ThrowsException()
+            (AdviceOne, ReactionOne),
+            (AdviceTwo, ReactionTwo)
+        }),
+        (ScenarioTwoText, new List<(string, string)>
         {
-            List<(string, IReadOnlyList<(string, string)>)> scenarios = null!;
-            Action action = () => validator.ValidateMandatoryFields(scenarios);
-            Assert.ThrowsException<Exception>(action);
+            (AdviceThree, ReactionThree)
+        })
+    };
         }
 
-        [TestMethod]
-        public void MandatoryFieldsValidator_ScenarioTextMissing_ThrowsException()
-        {
-            var scenarios = GetValidScenarios();
-            scenarios[ValidScenarioIndex] = (StringEmpty, scenarios[ValidScenarioIndex].choices);
-            Action action = () => validator.ValidateMandatoryFields(scenarios);
-            Assert.ThrowsException<Exception>(action);
-        }
 
-        [TestMethod]
-        public void MandatoryFieldsValidator_NoChoices_ThrowsException()
+        [Fact]
+        public void ValidateMandatoryFields_LessThanRequiredScenarios_ThrowsException()
         {
             var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
             {
-                (TestScenarioOne, new List<(string, string)>()),
-                (TestScenarioTwo, new List<(string, string)> { (TestAdvice, TestReaction) })
+                (ScenarioOneText, new List<(string, string)> { (AdviceOne, ReactionOne) })
             };
-
-            Action action = () => validator.ValidateMandatoryFields(scenarios);
-            Assert.ThrowsException<Exception>(action);
+            var exception = Assert.Throws<Exception>(() => gameValidator.ValidateMandatoryFields(scenarios));
         }
 
-        [TestMethod]
-        public void MandatoryFieldsValidator_AdviceMissing_ThrowsException()
+
+        [Fact]
+        public void ValidateMandatoryFields_ScenarioWhitespaceText_ThrowsException()
+        {
+           
+            var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
+            {
+                (ValidScenarioText, new List<(string, string)> { (ValidAdviceText, ValidFeedbackText) }),
+                ("   ", new List<(string, string)> { (ValidAdviceText, ValidFeedbackText) })
+            };
+
+            var exception = Assert.Throws<Exception>(() => gameValidator.ValidateMandatoryFields(scenarios));
+          
+        }
+
+
+        [Fact]
+        public void ValidateMandatoryFields_ScenarioEmptyChoices_ThrowsException()
         {
             var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
             {
-                (TestScenarioOne, new List<(string, string)>
-                {
-                    (StringEmpty, TestReaction)
-                }),
-
-                (TestScenarioTwo, new List<(string, string)>
-                {
-                    (TestAdvice, TestReaction)
-                })
+                (ValidScenarioText, new List<(string, string)> { (ValidAdviceText, ValidFeedbackText) }),
+                (ValidScenarioText, new List<(string, string)>())
             };
-
-            Action action = () => validator.ValidateMandatoryFields(scenarios);
-
-            Assert.ThrowsException<Exception>(action);
+            var exception = Assert.Throws<Exception>(() => gameValidator.ValidateMandatoryFields(scenarios));
+           
         }
 
-        [TestMethod]
-        public void MandatoryFieldsValidator_FeedbackMissing_ThrowsException()
+
+        [Fact]
+        public void ValidateMandatoryFields_ChoiceNullAdviceText_ThrowsException()
         {
             var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
             {
-            (TestScenarioOne, new List<(string, string)>
-                {
-                    (TestAdvice, StringEmpty)
-                }),
-
-                (TestScenarioTwo, new List<(string, string)>
-                {
-                    (TestAdvice, TestReaction)
-                })
+                (ValidScenarioText, new List<(string, string)> { (null, ValidFeedbackText) }),
+                (ValidScenarioText, new List<(string, string)> { (ValidAdviceText, ValidFeedbackText) })
             };
-
-            Action action = () => validator.ValidateMandatoryFields(scenarios);
-
-            Assert.ThrowsException<Exception>(action);
+            var exception = Assert.Throws<Exception>(() => gameValidator.ValidateMandatoryFields(scenarios));
+           
         }
 
-        [TestMethod]
-        public void MandatoryFieldsValidator_NotTwoScenarios_ThrowsException()
+        [Fact]
+        public void ValidateMandatoryFields_ChoiceWhitespaceFeedbackText_ThrowsException()
         {
             var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
             {
-                (InvalidSingleScenario, new List<(string, string)>
-                {
-                    (TestAdvice, TestReaction)
-                })
+                (ValidScenarioText, new List<(string, string)> { (ValidAdviceText, "   ") }),
+                (ValidScenarioText, new List<(string, string)> { (ValidAdviceText, ValidFeedbackText) })
             };
-
-            Action action = () => validator.ValidateMandatoryFields(scenarios);
-
-            Assert.ThrowsException<Exception>(action);
+            var exception = Assert.Throws<Exception>(() => gameValidator.ValidateMandatoryFields(scenarios));
+          
         }
 
-        [TestMethod]
-        public void CharacterLimitsValidator_ValidScenario_ReturnsTrue()
+        [Fact]
+        public void ValidateMandatoryFields_ValidScenarios_ReturnsTrue()
         {
-            var scenarios = GetValidScenarios();
-            var result = validator.ValidateCharacterLimits(scenarios);
-            Assert.IsTrue(result);
+            var result = gameValidator.ValidateMandatoryFields(GetValidScenarios());
+            Assert.True(result);
         }
 
-        [TestMethod]
-        public void CharacterLimitsValidator_ScenarioTooLong_ThrowsException()
+
+        [Fact]
+        public void ValidateCharacterLimits_NullScenarios_ReturnsTrue()
         {
-            var scenarios = GetValidScenarios();
-            scenarios[ValidScenarioIndex] = (new string(CharFiller, ExceededLength), scenarios[ValidScenarioIndex].choices);
-            Action action = () => validator.ValidateCharacterLimits(scenarios);
-            Assert.ThrowsException<Exception>(action);
+            var result = gameValidator.ValidateCharacterLimits(null);
+            Assert.True(result);
         }
 
-        [TestMethod]
-        public void CharacterLimitsValidator_AdviceTooLong_ThrowsException()
+        [Fact]
+        public void ValidateCharacterLimits_ScenarioTextExceedsMaxLength_ThrowsException()
+        {
+            var longText = new string(FillerCharacter, StruggleOrAdviceLengthExceeded);
+            var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
+            {
+                (longText, new List<(string, string)> { (ValidAdviceText, ValidFeedbackText) }),
+                (ValidScenarioText, new List<(string, string)> { (ValidAdviceText, ValidFeedbackText) })
+            };
+            var exception = Assert.Throws<Exception>(() => gameValidator.ValidateCharacterLimits(scenarios));
+           
+        }
+
+
+        [Fact]
+        public void ValidateCharacterLimits_AdviceTextExceedsMaxLength_ThrowsException()
+        {
+            var longAdvice = new string(FillerCharacter, StruggleOrAdviceLengthExceeded + 1);
+            var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
+            {
+                (ValidScenarioText, new List<(string, string)> { (longAdvice, ValidFeedbackText) }),
+                (ValidScenarioText, new List<(string, string)> { (ValidAdviceText, ValidFeedbackText) })
+            };
+            var exception = Assert.Throws<Exception>(() => gameValidator.ValidateCharacterLimits(scenarios));
+          
+        }
+
+        [Fact]
+        public void ValidateCharacterLimits_NullChoices_ReturnsTrue()
         {
             var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
             {
-                (TestScenarioOne, new List<(string, string)>
-                {
-                    (new string(CharFiller, ExceededLength), TestReaction)
-                }),
-
-                (TestScenarioTwo, new List<(string, string)>
-                {
-                    (TestAdvice, TestReaction)
-                })
+                (ValidScenarioText, null),
+                (ValidScenarioText, null)
             };
-
-            Action action = () => validator.ValidateCharacterLimits(scenarios);
-
-            Assert.ThrowsException<Exception>(action);
+            var result = gameValidator.ValidateCharacterLimits(scenarios);
+            Assert.True(result);
         }
 
-        [TestMethod]
-        public void CharacterLimitsValidator_NullScenarios_ReturnsTrue()
+        [Fact]
+        public void ValidateCharacterLimits_ValidScenarios_ReturnsTrue()
         {
-            List<(string, IReadOnlyList<(string, string)>)> scenarios = null!;
-            var result = validator.ValidateCharacterLimits(scenarios);
-            Assert.IsTrue(result);
+            var result = gameValidator.ValidateCharacterLimits(GetValidScenarios());
+            Assert.True(result);
         }
 
-        [TestMethod]
-        public void CharacterLimitsValidator_NullChoices_ReturnsTrue()
-        {
-            var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
-            {
-                (TestScenarioOne, null!),
-                (TestScenarioTwo, new List<(string, string)> { (TestAdvice, TestReaction) })
-            };
 
-            var result = validator.ValidateCharacterLimits(scenarios);
-            Assert.IsTrue(result);
+        [Fact]
+        public void ValidatePositiveConclusion_NullConclusion_ThrowsException()
+        {
+            var exception = Assert.Throws<Exception>(() => gameValidator.ValidatePositiveConclusion(null));
         }
 
-        [TestMethod]
-        public void CharacterLimitsValidator_ScenarioAtLimit_ReturnsTrue()
+        [Fact]
+        public void ValidatePositiveConclusion_ValidConclusion_ReturnsTrue()
         {
-            var scenarios = new List<(string, IReadOnlyList<(string, string)>)>
-            {
-                (new string(CharFiller, GameValidator.MaxStruggleOrAdviceLength),
-                 new List<(string, string)>
-                 {
-                    (TestAdvice, TestReaction)
-                 }),
-
-                (TestScenarioTwo, new List<(string, string)>
-                {
-                    (TestAdvice, TestReaction)
-                })
-            };
-
-            var result = validator.ValidateCharacterLimits(scenarios);
-            Assert.IsTrue(result);
+            var result = gameValidator.ValidatePositiveConclusion(ValidConclusion);
+            Assert.True(result);
         }
 
-        [TestMethod]
-        public void ConclusionPositiveValidator_ValidConclusion_ReturnsTrue()
+        [Fact]
+        public void ValidateForActivation_ValidScenariosAndConclusion_ReturnsTrue()
         {
-            var result = validator.ValidatePositiveConclusion(ValidConclusion);
-            Assert.IsTrue(result);
-        }
-
-        [TestMethod]
-        public void ConclusionPositiveValidator_EmptyConclusion_ThrowsException()
-        {
-            Action action = () => validator.ValidatePositiveConclusion(StringEmpty);
-            Assert.ThrowsException<Exception>(action);
-        }
-
-        [TestMethod]
-        public void ValidateForActivation_ValidData_ReturnsTrue()
-        {
-            var scenarios = GetValidScenarios();
-            var result = validator.ValidateForActivation(scenarios, EndingConclusion);
-            Assert.IsTrue(result);
+            var result = gameValidator.ValidateForActivation(GetValidScenarios(), ValidConclusion);
+            Assert.True(result);
         }
     }
-}*/
+}
