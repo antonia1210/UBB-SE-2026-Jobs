@@ -78,21 +78,27 @@
         <button type="submit" class="btn btn-primary">Send</button>
     </form>
 
-    <form asp-action="SendAttachment" asp-route-id="@chatId" method="post"
-          enctype="multipart/form-data" class="d-flex gap-2">
-        @Html.AntiForgeryToken()
-        <label class="btn btn-outline-secondary mb-0 flex-shrink-0">
-            &#128247; Image
-            <input type="file" name="attachment" accept=".jpg,.jpeg,.png" hidden
-                   onchange="this.form.submit()" />
-        </label>
-        <label class="btn btn-outline-secondary mb-0 flex-shrink-0">
-            &#128196; Document
-            <input type="file" name="attachment" accept=".pdf,.docx,.doc" hidden
-                   onchange="this.form.submit()" />
-        </label>
+    <div class="d-flex gap-2">
+        <form asp-action="SendAttachment" asp-route-id="@chatId" method="post"
+              enctype="multipart/form-data" class="d-inline">
+            @Html.AntiForgeryToken()
+            <label class="btn btn-outline-secondary mb-0 flex-shrink-0">
+                &#128247; Image
+                <input type="file" name="attachment" accept=".jpg,.jpeg,.png" hidden
+                       onchange="if(this.files && this.files.length > 0) this.form.submit()" />
+            </label>
+        </form>
+        <form asp-action="SendAttachment" asp-route-id="@chatId" method="post"
+              enctype="multipart/form-data" class="d-inline">
+            @Html.AntiForgeryToken()
+            <label class="btn btn-outline-secondary mb-0 flex-shrink-0">
+                &#128196; Document
+                <input type="file" name="attachment" accept=".pdf,.docx,.doc" hidden
+                       onchange="if(this.files && this.files.length > 0) this.form.submit()" />
+            </label>
+        </form>
         <small class="text-muted align-self-center">Max 20 MB</small>
-    </form>
+    </div>
 </div>
 
 <script>

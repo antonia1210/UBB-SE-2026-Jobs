@@ -132,6 +132,30 @@ public class ChatController : Controller
         return RedirectToAction(nameof(Show), new { id });
     }
 
+    [HttpGet]
+    public async Task<IActionResult> SearchUsers(string q, CancellationToken cancellationToken)
+    {
+        if (IsCompanyMode() || string.IsNullOrWhiteSpace(q))
+            return Json(Array.Empty<object>());
+
+        var currentUserId = GetUserId();
+        var users = await chat.SearchUsersAsync(q, cancellationToken);
+        var results = users
+            .Where(u => u.UserId != currentUserId)
+            .Select(u => new { id = u.UserId, name = $"{u.FirstName} {u.LastName}".Trim() });
+        return Json(results);
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> StartChat(int targetUserId, CancellationToken cancellationToken)
+    {
+        var userId = GetUserId();
+        var newChat = await chat.FindOrCreateUserChatAsync(userId, targetUserId, cancellationToken);
+        if (newChat is null)
+            return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(Show), new { id = newChat.ChatId });
+    }
+
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {

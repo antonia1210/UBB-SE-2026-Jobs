@@ -14,8 +14,8 @@ public class FilesController : ControllerBase
     private const int MaxFileSizeInMb = 20;
     private const int MaxFileSize = MaxFileSizeInMb * BytesPerMegabyte;
 
-    private readonly string uploadsPath = Path.Combine("uploads", "files");
-    private readonly string legacyAvatarPath = Path.Combine("uploads", "avatars");
+    private readonly string uploadsPath = Path.Combine(AppContext.BaseDirectory, "uploads", "files");
+    private readonly string legacyAvatarPath = Path.Combine(AppContext.BaseDirectory, "uploads", "avatars");
 
     public FilesController()
     {
