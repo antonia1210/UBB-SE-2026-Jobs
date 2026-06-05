@@ -102,6 +102,45 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             Assert.Null(returnedChat!.DeletedAtByUser);
             Assert.Null(returnedChat!.DeletedAtBySecondParty);
         }
+
+        [Fact]
+        public async Task FindOrCreateUserChatAsync_CandidateAndRecruiter_ThrowsInvalidOperationException()
+        {
+            recruiterRepository.GetCompanyIdForUserAsync(1, Arg.Any<CancellationToken>()).Returns((int?)null);
+            recruiterRepository.GetCompanyIdForUserAsync(2, Arg.Any<CancellationToken>()).Returns(10);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => chatService.FindOrCreateUserChatAsync(1, 2));
+        }
+
+        [Fact]
+        public async Task FindOrCreateUserChatAsync_RecruitersFromDifferentCompanies_ThrowsInvalidOperationException()
+        {
+            recruiterRepository.GetCompanyIdForUserAsync(1, Arg.Any<CancellationToken>()).Returns(10);
+            recruiterRepository.GetCompanyIdForUserAsync(2, Arg.Any<CancellationToken>()).Returns(20);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => chatService.FindOrCreateUserChatAsync(1, 2));
+        }
+
+        [Fact]
+        public async Task FindOrCreateUserChatAsync_RecruitersFromSameCompany_CreatesAndReturnsNewChat()
+        {
+            var user1 = new User { UserId = 1 };
+            var user2 = new User { UserId = 2 };
+            var newChat = new Chat();
+
+            recruiterRepository.GetCompanyIdForUserAsync(1, Arg.Any<CancellationToken>()).Returns(10);
+            recruiterRepository.GetCompanyIdForUserAsync(2, Arg.Any<CancellationToken>()).Returns(10);
+            chatRepository.FindUserUserChatAsync(1, 2, Arg.Any<CancellationToken>())
+                .Returns((Chat?)null);
+            chatRepository.AddAsync(Arg.Any<Chat>(), Arg.Any<CancellationToken>())
+                .Returns(newChat);
+            userService.GetAllAsync(Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<User>>(new List<User> { user1, user2 }));
+
+            var createdChat = await chatService.FindOrCreateUserChatAsync(1, 2);
+
+            Assert.Same(newChat, createdChat);
+        }
         #endregion
 
         #region GetChatsFor....
@@ -332,6 +371,71 @@ namespace UBB_SE_2026_Jobs.Tests.Services
 
             Assert.Equal(10, result.Count());
         }
+
+        [Fact]
+        public async Task SearchUsersAsync_ExcludesRecruiters()
+        {
+            var users = new List<User>
+            {
+                new() { UserId = 1, FirstName = "Peter", LastName = "Pann" },
+                new() { UserId = 2, FirstName = "Peter", LastName = "Recruiter" },
+            };
+
+            recruiterRepository.GetAllRecruiterUserIdsAsync(Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyCollection<int>>(new List<int> { 2 }));
+            userService.GetAllAsync(Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<User>>(users));
+
+            var result = await chatService.SearchUsersAsync("peter");
+
+            Assert.Equal(1, Assert.Single(result).UserId);
+        }
+
+        [Fact]
+        public async Task SearchRecruitersByCompanyAsync_EmptySearchTerm_ReturnsEmpty()
+        {
+            var result = await chatService.SearchRecruitersByCompanyAsync(1, "   ");
+
+            Assert.Empty(result);
+            await userService.DidNotReceive().GetAllAsync(Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task SearchRecruitersByCompanyAsync_MatchingTerm_ReturnsOnlyCompanyRecruitersMatchingName()
+        {
+            var users = new List<User>
+            {
+                new() { UserId = 1, FirstName = "Peter", LastName = "Pann" },     // company recruiter, name matches
+                new() { UserId = 2, FirstName = "Tink", LastName = "Bell" },      // company recruiter, name does not match
+                new() { UserId = 3, FirstName = "Peter", LastName = "Outsider" }, // name matches but not a company recruiter
+            };
+
+            recruiterRepository.GetUserIdsByCompanyAsync(1, Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<int>>(new List<int> { 1, 2 }));
+            userService.GetAllAsync(Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<User>>(users));
+
+            var result = await chatService.SearchRecruitersByCompanyAsync(1, "peter");
+
+            Assert.Equal(1, Assert.Single(result).UserId);
+        }
+
+        [Fact]
+        public async Task SearchRecruitersByCompanyAsync_MoreThanMaxResults_ReturnsOnlyMaxResults()
+        {
+            var users = Enumerable.Range(1, 15)
+                .Select(userNumber => new User { UserId = userNumber, FirstName = "Peter", LastName = $"Pann {userNumber}" })
+                .ToList();
+
+            recruiterRepository.GetUserIdsByCompanyAsync(1, Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<int>>(Enumerable.Range(1, 15).ToList()));
+            userService.GetAllAsync(Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<User>>(users));
+
+            var result = await chatService.SearchRecruitersByCompanyAsync(1, "peter");
+
+            Assert.Equal(10, result.Count);
+        }
         #endregion
 
 
@@ -451,6 +555,82 @@ namespace UBB_SE_2026_Jobs.Tests.Services
                 File.Delete(sentAttachmentPath);
             }
         }
+
+        [Fact]
+        public async Task SendMessageAsync_AttachmentFileDoesNotExist_ThrowsFileNotFoundException()
+        {
+            var chat = new Chat { User = new User { UserId = 1 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            await Assert.ThrowsAsync<FileNotFoundException>(
+                () => chatService.SendMessageAsync(1, "Z:/no/such/file.png", 1, MessageType.Image));
+        }
+
+        [Fact]
+        public async Task SendMessageAsync_AttachmentWrongExtensionForType_ThrowsNotSupportedException()
+        {
+            var chat = new Chat { User = new User { UserId = 1 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            var tempFile = Path.GetTempFileName();
+            var textPath = Path.ChangeExtension(tempFile, ".txt");
+            File.Move(tempFile, textPath);
+            await File.WriteAllBytesAsync(textPath, new byte[10]);
+
+            try
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(
+                    () => chatService.SendMessageAsync(1, textPath, 1, MessageType.Image));
+            }
+            finally
+            {
+                File.Delete(textPath);
+            }
+        }
+        #endregion
+
+        #region SendStoredAttachmentAsync
+        [Fact]
+        public async Task SendStoredAttachmentAsync_ChatNotFound_ThrowsKeyNotFoundException()
+        {
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns((Chat?)null);
+
+            await Assert.ThrowsAsync<KeyNotFoundException>(
+                () => chatService.SendStoredAttachmentAsync(1, "stored/path.jpg", "photo.jpg", 1, MessageType.Image));
+        }
+
+        [Fact]
+        public async Task SendStoredAttachmentAsync_CallerIsNotParticipant_ThrowsUnauthorizedAccessException()
+        {
+            var chat = new Chat { User = new User { UserId = 2 }, SecondUser = new User { UserId = 3 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(
+                () => chatService.SendStoredAttachmentAsync(1, "stored/path.jpg", "photo.jpg", 99, MessageType.Image));
+        }
+
+        [Fact]
+        public async Task SendStoredAttachmentAsync_BlockedChat_ThrowsInvalidOperationException()
+        {
+            var chat = new Chat { IsBlocked = true, User = new User { UserId = 1 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => chatService.SendStoredAttachmentAsync(1, "stored/path.jpg", "photo.jpg", 1, MessageType.Image));
+        }
+
+        [Fact]
+        public async Task SendStoredAttachmentAsync_ValidRequest_AddsMessageWithStoredPathAndFileName()
+        {
+            var chat = new Chat { User = new User { UserId = 1 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            await chatService.SendStoredAttachmentAsync(1, "stored/path.jpg", "photo.jpg", 1, MessageType.Image);
+
+            await messageRepository.Received(1).AddAsync(
+                Arg.Is<Message>(message => message.Content == "stored/path.jpg" && message.OriginalFileName == "photo.jpg"),
+                Arg.Any<CancellationToken>());
+        }
         #endregion
 
         [Fact]
@@ -500,7 +680,22 @@ namespace UBB_SE_2026_Jobs.Tests.Services
 
             Assert.True(chat.IsBlocked);
             Assert.Equal(1,chat.BlockedByUserId);
-            //Assert.Equal(1, chat.BlockedByUser!.UserId);
+            Assert.Equal(1, chat.BlockedByUser!.UserId);
+            await chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task BlockChatAsync_SecondUserBlocks_SetsBlockedByUserToSecondUser()
+        {
+            var secondUser = new User { UserId = 2 };
+            var chat = new Chat { User = new User { UserId = 1 }, SecondUser = secondUser };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            await chatService.BlockChatAsync(1, blockerId: 2);
+
+            Assert.True(chat.IsBlocked);
+            Assert.Equal(2, chat.BlockedByUserId);
+            Assert.Same(secondUser, chat.BlockedByUser);
             await chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
         }
 
@@ -532,8 +727,8 @@ namespace UBB_SE_2026_Jobs.Tests.Services
 
             Assert.False(chat.IsBlocked);
             Assert.Null(chat.BlockedByUserId);
-            //Assert.Null(chat.BlockedByUser);
-            chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
+            Assert.Null(chat.BlockedByUser);
+            await chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
         }
 
         #endregion
@@ -565,7 +760,7 @@ namespace UBB_SE_2026_Jobs.Tests.Services
 
             Assert.NotNull(chat.DeletedAtByUser);
             Assert.Null(chat.DeletedAtBySecondParty);
-            chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
+            await chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -578,7 +773,7 @@ namespace UBB_SE_2026_Jobs.Tests.Services
 
             Assert.NotNull(chat.DeletedAtBySecondParty);
             Assert.Null(chat.DeletedAtByUser);
-            chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
+            await chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
         }
     }
 }
