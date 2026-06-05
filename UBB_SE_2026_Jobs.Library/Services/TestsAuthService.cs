@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
@@ -8,7 +8,9 @@ using UBB_SE_2026_Jobs.Library.Persistence;
 using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Core;
+using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+using UBB_SE_2026_Jobs.Library.Repositories.Users;
 using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 
 namespace UBB_SE_2026_Jobs.Library.Services
@@ -20,18 +22,19 @@ namespace UBB_SE_2026_Jobs.Library.Services
         private const string Audience = "UBB-SE-Client";
 
         private readonly ITestsCompanyRepository companyRepository;
-        private readonly JobsDbContext dbContext;
+        private readonly IUserRepository userRepository;
+        private readonly IRecruiterRepository recruiterRepository;
 
-        public TestsAuthService(ITestsCompanyRepository companyRepository, JobsDbContext dbContext)
+        public TestsAuthService(ITestsCompanyRepository companyRepository, IUserRepository userRepository, IRecruiterRepository recruiterRepository)
         {
             this.companyRepository = companyRepository;
-            this.dbContext = dbContext;
+            this.userRepository = userRepository;
+            this.recruiterRepository = recruiterRepository;
         }
 
         public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
         {
-            var user = await this.dbContext.Users
-                .FirstOrDefaultAsync(user => user.Email == dto.Email);
+            var user = await this.userRepository.GetByEmailAsync(dto.Email);
 
             if (user == null) return null;
 
@@ -58,8 +61,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
         {
             // In the merged setup, PussyCats API owns the Users table and always creates
             // the user before calling this endpoint. We never INSERT into Users here.
-            var user = await this.dbContext.Users
-                .FirstOrDefaultAsync(user => user.Email == dto.Email);
+            var user = await this.userRepository.GetByEmailAsync(dto.Email);
 
             if (user == null) return null;
 
@@ -71,18 +73,16 @@ namespace UBB_SE_2026_Jobs.Library.Services
                 var company = this.companyRepository.GetById(dto.CompanyId.Value);
                 if (company == null) return null;
 
-                bool alreadyRecruiter = await this.dbContext.Recruiters
-                    .AnyAsync(recruiter => recruiter.UserId == user.Id);
+                bool alreadyRecruiter = (await this.recruiterRepository.GetCompanyIdForUserAsync(user.Id)) != null;
                 if (!alreadyRecruiter)
                 {
-                    this.dbContext.Recruiters.Add(new Recruiter
+                    await this.recruiterRepository.AddAsync(new Recruiter
                     {
                         CompanyId = company.CompanyId,
                         UserId = user.Id,
                         CompanyName = company.Name,
                         Company = company,
                     });
-                    await this.dbContext.SaveChangesAsync();
                 }
                 companyId = company.CompanyId;
             }
@@ -100,16 +100,13 @@ namespace UBB_SE_2026_Jobs.Library.Services
 
         private async Task<string> ResolveRoleAsync(int userId)
         {
-            bool isRecruiter = await this.dbContext.Recruiters
-                .AnyAsync(recruiter => recruiter.UserId == userId);
+            bool isRecruiter = (await this.recruiterRepository.GetCompanyIdForUserAsync(userId)) != null;
             return isRecruiter ? "Recruiter" : "Candidate";
         }
 
         private async Task<int?> GetCompanyIdForUserAsync(int userId)
         {
-            var recruiter = await this.dbContext.Recruiters
-                .FirstOrDefaultAsync(recruiter => recruiter.UserId == userId);
-            return recruiter?.CompanyId;
+            return await this.recruiterRepository.GetCompanyIdForUserAsync(userId);
         }
 
         private string GenerateJwt(User user)
