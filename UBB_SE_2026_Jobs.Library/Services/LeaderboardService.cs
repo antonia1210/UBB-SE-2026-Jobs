@@ -90,16 +90,16 @@ namespace UBB_SE_2026_Jobs.Library.Services
             await this._repository.DeleteByTestIdAsync(testId);
 
             var entries = new List<LeaderboardEntry>();
-            for (int i = 0; i < attempts.Count; i++)
+            for (int rankIndex = 0; rankIndex < attempts.Count; rankIndex++)
             {
-                var attempt = attempts[i];
+                var attempt = attempts[rankIndex];
                 entries.Add(new LeaderboardEntry
                 {
                     TestId = attempt.TestId,
                     UserId = attempt.ExternalUserId!.Value,
                     NormalizedScore = attempt.PercentageScore!.Value,
-                    RankPosition = i + 1,
-                    TieBreakPriority = i + 1,
+                    RankPosition = rankIndex + 1,
+                    TieBreakPriority = rankIndex + 1,
                     LastRecalculationAt = DateTime.UtcNow,
                 });
             }

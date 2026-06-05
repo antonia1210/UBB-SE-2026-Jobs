@@ -20,6 +20,12 @@ public static class SimpleModelOperations
     public const int Level4ExperiencePoints = 500;
     public const int Level5ExperiencePoints = 800;
 
+    private const int Level1Number = 1;
+    private const int Level2Number = 2;
+    private const int Level3Number = 3;
+    private const int Level4Number = 4;
+    private const int Level5Number = 5;
+
     public static int GetExperiencePoints(SkillTest skillTest)
     {
         if (skillTest.Score >= GoldScoreThreshold)
@@ -44,25 +50,25 @@ public static class SimpleModelOperations
     {
         if (experiencePoints >= Level5ExperiencePoints)
         {
-            return 5;
+            return Level5Number;
         }
 
         if (experiencePoints >= Level4ExperiencePoints)
         {
-            return 4;
+            return Level4Number;
         }
 
         if (experiencePoints >= Level3ExperiencePoints)
         {
-            return 3;
+            return Level3Number;
         }
 
         if (experiencePoints >= Level2ExperiencePoints)
         {
-            return 2;
+            return Level2Number;
         }
 
-        return 1;
+        return Level1Number;
     }
 
     public static Badge AssignTier(float score)
