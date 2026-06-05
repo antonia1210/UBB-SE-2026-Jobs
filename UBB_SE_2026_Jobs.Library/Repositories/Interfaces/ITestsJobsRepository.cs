@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using UBB_SE_2026_Jobs.Library.Domain;
+    using UBB_SE_2026_Jobs.Library.Services;
 
     public interface ITestsJobsRepository
     {
@@ -32,12 +33,14 @@
         /// <returns><c>true</c> if the update succeeded; <c>false</c> if the job was not found.</returns>
         bool UpdateJob(int jobId, Job updatedJob, IReadOnlyList<(int SkillId, int RequiredPercentage)> skillLinks);
 
+        /// <summary>Returns the number of applicants (Match records) for a job posting.</summary>
+        int GetApplicantCount(int jobId);
+
         /// <summary>
-        /// Deletes a job posting and all its associated skill links.
+        /// Deletes a job posting and its associated skill links. Applicants block deletion unless
+        /// <paramref name="force"/> is <c>true</c>, in which case they are cascade-deleted.
         /// </summary>
-        /// <param name="jobId">The unique identifier of the job posting to delete.</param>
-        /// <returns><c>true</c> if the deletion succeeded; <c>false</c> if the job was not found.</returns>
-        bool DeleteJob(int jobId);
+        JobDeleteResult DeleteJob(int jobId, bool force);
     }
 }
 

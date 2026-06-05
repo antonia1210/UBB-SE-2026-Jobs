@@ -69,12 +69,11 @@
                                     <Button Content="View Details" Tag="{x:Bind}" Click="ViewDetails_Click"
                                             Background="#8494FF" Foreground="White" Padding="14,8" CornerRadius="8"
                                             HorizontalAlignment="Left" Margin="0,4,0,0"/>
-                                    <!-- Company actions (hidden by default, shown when in Company mode) -->
-                                    <StackPanel Orientation="Horizontal" Spacing="8" Visibility="Collapsed">
-                                        <Button Content="Applicants" Tag="{x:Bind}" Click="ViewApplicants_Click"
+                                    <!-- Company actions: shown only when in Company (recruiter) mode -->
+                                    <StackPanel Orientation="Horizontal" Spacing="8"
+                                                Visibility="{x:Bind IsCompanyMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Button Content="Edit" Tag="{x:Bind}" Click="Edit_Click"
                                                 Background="Transparent" Padding="10,6"/>
-                                        <Button Content="Pay" Tag="{x:Bind}" Click="Pay_Click"
-                                                Background="#22c55e" Foreground="White" Padding="10,6" CornerRadius="6"/>
                                         <Button Content="Delete" Tag="{x:Bind}" Click="DeleteJob_Click"
                                                 Background="#FFef4444" Foreground="White" Padding="10,6" CornerRadius="6"/>
                                     </StackPanel>

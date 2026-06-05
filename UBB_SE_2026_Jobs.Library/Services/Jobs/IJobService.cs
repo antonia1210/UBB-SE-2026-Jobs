@@ -14,5 +14,12 @@ public interface IJobService
 
     Task UpdateAsync(Job job, CancellationToken cancellationToken = default);
 
-    Task RemoveAsync(int jobId, CancellationToken cancellationToken = default);
+    /// <summary>Number of applicants (Match records) for a job, used to warn before deletion.</summary>
+    Task<int> GetApplicantCountAsync(int jobId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes a job. Applicants block deletion unless <paramref name="force"/> is <c>true</c>,
+    /// in which case they are cascade-deleted along with the job.
+    /// </summary>
+    Task<JobDeleteResult> RemoveAsync(int jobId, bool force, CancellationToken cancellationToken = default);
 }

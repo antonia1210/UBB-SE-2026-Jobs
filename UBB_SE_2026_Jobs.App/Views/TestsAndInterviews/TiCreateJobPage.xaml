@@ -11,7 +11,7 @@
 
     <ScrollViewer Padding="32">
         <StackPanel MaxWidth="720" HorizontalAlignment="Center" Spacing="16">
-            <TextBlock Text="Post a New Job" FontSize="24" FontWeight="Bold" Margin="0,0,0,8"/>
+            <TextBlock x:Name="PageTitleText" Text="Post a New Job" FontSize="24" FontWeight="Bold" Margin="0,0,0,8"/>
 
             <TextBlock Text="{x:Bind ViewModel.ValidationError, Mode=OneWay}" Foreground="Red"/>
 
@@ -109,7 +109,7 @@
 
             <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right" Margin="0,8,0,0">
                 <Button Content="Cancel" Click="Cancel_Click" Padding="16,8"/>
-                <Button Content="Post Job" Click="Save_Click"
+                <Button x:Name="SaveButton" Content="Post Job" Click="Save_Click"
                         Background="#8494FF" Foreground="White" Padding="20,8" CornerRadius="8"/>
             </StackPanel>
         </StackPanel>

@@ -3,6 +3,7 @@ using UBB_SE_2026_Jobs.Library.Persistence;
 using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Mappers;
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 
 namespace UBB_SE_2026_Jobs.Api.Controllers;
@@ -85,21 +86,15 @@ public class TestsJobsController : ControllerBase
     }
 
     [HttpDelete("{jobId}")]
-    public ActionResult DeleteJob(int jobId)
+    public ActionResult DeleteJob(int jobId, [FromQuery] bool force = false)
     {
-        Job? existingJob = this.testsJobsService.GetJobById(jobId);
-        if (existingJob == null)
+        var result = this.testsJobsService.DeleteJob(jobId, force);
+        return result switch
         {
-            return NotFound(new { message = $"Job with ID {jobId} not found." });
-        }
-
-        bool success = this.testsJobsService.DeleteJob(jobId);
-        if (!success)
-        {
-            return StatusCode(500, new { message = "An error occurred while deleting the job." });
-        }
-
-        return NoContent();
+            JobDeleteResult.NotFound => NotFound(new { message = $"Job with ID {jobId} not found." }),
+            JobDeleteResult.HasApplicants => Conflict(new { message = "This job has applicants. Confirm deletion to remove them along with the job." }),
+            _ => NoContent(),
+        };
     }
 
     [HttpGet("{jobId}/skills")]
