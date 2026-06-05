@@ -7,6 +7,7 @@
     using UBB_SE_2026_Jobs.Library.Persistence;
     using UBB_SE_2026_Jobs.Library.Domain;
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+    using UBB_SE_2026_Jobs.Library.Services;
 
     public class TestsJobsRepository : ITestsJobsRepository
     {
@@ -123,19 +124,30 @@
                     return false;
                 }
 
-                // Update scalar fields only; CompanyId and PostedAt are preserved
+                // Update scalar fields; CompanyId, PostedAt, Photo and JobRole are preserved.
                 existing.JobTitle = updatedJob.JobTitle;
+                existing.IndustryField = updatedJob.IndustryField;
+                existing.JobType = updatedJob.JobType;
+                existing.ExperienceLevel = updatedJob.ExperienceLevel;
+                existing.JobLocation = updatedJob.JobLocation;
                 existing.JobDescription = updatedJob.JobDescription;
+                existing.AvailablePositions = updatedJob.AvailablePositions;
+                existing.Salary = updatedJob.Salary;
+                existing.StartDate = updatedJob.StartDate;
+                existing.EndDate = updatedJob.EndDate;
+                existing.Deadline = updatedJob.Deadline;
                 existing.AmountPayed = updatedJob.AmountPayed ?? existing.AmountPayed;
 
-                // Replace skill links: remove old ones, insert new ones
-                if (existing.JobSkills != null)
+                // Replace skill links only when the caller actually supplies them; otherwise
+                // preserve the existing links (e.g. the web Edit form has no skills editor and
+                // would otherwise wipe them on every save).
+                if (skillLinks != null && skillLinks.Count > 0)
                 {
-                    this.JobsDbContext.JobSkills.RemoveRange(existing.JobSkills);
-                }
+                    if (existing.JobSkills != null)
+                    {
+                        this.JobsDbContext.JobSkills.RemoveRange(existing.JobSkills);
+                    }
 
-                if (skillLinks != null)
-                {
                     foreach (var (skillId, percentage) in skillLinks)
                     {
                         if (percentage < MinimumSkillPercentage || percentage > MaximumSkillPercentage)
@@ -164,7 +176,14 @@
         }
 
         /// <inheritdoc />
-        public bool DeleteJob(int jobId)
+        public int GetApplicantCount(int jobId)
+        {
+            return this.JobsDbContext.Matches
+                .Count(match => EF.Property<int>(match, "JobId") == jobId);
+        }
+
+        /// <inheritdoc />
+        public JobDeleteResult DeleteJob(int jobId, bool force)
         {
             using var transaction = this.JobsDbContext.Database.BeginTransaction();
 
@@ -176,7 +195,41 @@
 
                 if (job == null)
                 {
-                    return false;
+                    return JobDeleteResult.NotFound;
+                }
+
+                // Applicants (Match records) are real application history; only remove them when the
+                // caller explicitly forces a cascade delete.
+                List<Match> applicants = this.JobsDbContext.Matches
+                    .Where(match => EF.Property<int>(match, "JobId") == jobId)
+                    .ToList();
+
+                if (applicants.Count > 0 && !force)
+                {
+                    return JobDeleteResult.HasApplicants;
+                }
+
+                if (applicants.Count > 0)
+                {
+                    this.JobsDbContext.Matches.RemoveRange(applicants);
+                }
+
+                // Recommendations are derived data; always remove them so the FK does not block.
+                List<Recommendation> recommendations = this.JobsDbContext.Recommendations
+                    .Where(recommendation => EF.Property<int>(recommendation, "JobId") == jobId)
+                    .ToList();
+                if (recommendations.Count > 0)
+                {
+                    this.JobsDbContext.Recommendations.RemoveRange(recommendations);
+                }
+
+                // Chats are kept but unlinked from the job (nullable FK).
+                List<Chat> linkedChats = this.JobsDbContext.Chats
+                    .Where(chat => EF.Property<int?>(chat, "JobId") == jobId)
+                    .ToList();
+                foreach (Chat chat in linkedChats)
+                {
+                    chat.Job = null;
                 }
 
                 // Remove skill links first to respect FK constraints
@@ -196,7 +249,7 @@
 
                 this.JobsDbContext.SaveChanges();
                 transaction.Commit();
-                return true;
+                return JobDeleteResult.Deleted;
             }
             catch
             {

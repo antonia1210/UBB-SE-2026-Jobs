@@ -10,6 +10,7 @@ using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
     using UBB_SE_2026_Jobs.Library.DTOs;
     using UBB_SE_2026_Jobs.Library.Mappers;
     using UBB_SE_2026_Jobs.Library.Domain;
+    using UBB_SE_2026_Jobs.Library.Services;
     using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 
     [Route("api/[controller]")]
@@ -89,22 +90,23 @@ using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
             return NoContent();
         }
 
-        [HttpDelete("{jobId}")]
-        public ActionResult DeleteJob(int jobId)
+        [HttpGet("{jobId}/applicant-count")]
+        public ActionResult<int> GetApplicantCount(int jobId)
         {
-            Job? existingJob = this._service.GetJobById(jobId);
-            if (existingJob == null)
-            {
-                return NotFound(new { message = $"Job with ID {jobId} not found." });
-            }
+            return Ok(this._service.GetApplicantCount(jobId));
+        }
 
-            bool success = this._service.DeleteJob(jobId);
-            if (!success)
-            {
-                return StatusCode(500, new { message = "An error occurred while deleting the job." });
-            }
+        [HttpDelete("{jobId}")]
+        public ActionResult DeleteJob(int jobId, [FromQuery] bool force = false)
+        {
+            JobDeleteResult result = this._service.DeleteJob(jobId, force);
 
-            return NoContent();
+            return result switch
+            {
+                JobDeleteResult.NotFound => NotFound(new { message = $"Job with ID {jobId} not found." }),
+                JobDeleteResult.HasApplicants => Conflict(new { message = "This job has applicants. Confirm deletion to remove them along with the job." }),
+                _ => NoContent(),
+            };
         }
 
         [HttpGet("{jobId}/skills")]
