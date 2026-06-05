@@ -1,4 +1,4 @@
-﻿// <copyright file="TestRepository.cs" company="PlaceholderCompany">
+// <copyright file="TestRepository.cs" company="PlaceholderCompany">
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
@@ -74,6 +74,5 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
                 .Where(test => test.Category == category)
                 .ToListAsync();
         }
-
     }
 }

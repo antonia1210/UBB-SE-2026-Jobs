@@ -33,7 +33,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (answers is null || !answers.Any())
                 return NotFound($"No answers found for attempt ID {attemptId}.");
 
-            return Ok(answers.Select(a => a.ToDto()).ToList());
+            return Ok(answers.Select(answer => answer.ToDto()).ToList());
         }
     }
 
