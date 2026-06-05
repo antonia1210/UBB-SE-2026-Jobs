@@ -35,7 +35,7 @@ public class ProfileCompletionCalculatorTests
     private static Game CreatePublishedGame()
     {
         Game game = new Game();
-        game.Publish();
+        game.IsPublished = true;
         return game;
     }
 
