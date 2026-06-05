@@ -32,6 +32,7 @@ public class ChatController : Controller
         var chats = await chat.GetChatsForUserAsync(userId, cancellationToken);
         ViewBag.IsCompanyMode = IsCompanyMode();
         ViewBag.ActiveTab = (tab == "companies") ? "companies" : "users";
+        ViewBag.CurrentUserId = userId;
         return View(chats);
     }
 

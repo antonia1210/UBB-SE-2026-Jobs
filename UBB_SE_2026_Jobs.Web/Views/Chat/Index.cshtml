@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Messages";
     bool isCompanyMode = (bool)(ViewBag.IsCompanyMode ?? false);
+    int currentUserId = ViewBag.CurrentUserId ?? 0;
 }
 
 <div class="container mt-4">
@@ -35,7 +36,9 @@
         @foreach (var c in visible)
         {
             var other = c.SecondUser is not null
-                ? $"{c.SecondUser.FirstName} {c.SecondUser.LastName}".Trim()
+                ? (c.User.UserId == currentUserId
+                    ? $"{c.SecondUser.FirstName} {c.SecondUser.LastName}".Trim()
+                    : $"{c.User.FirstName} {c.User.LastName}".Trim())
                 : c.Company?.Name ?? "Unknown";
 
             <a asp-action="Show" asp-route-id="@c.ChatId"
