@@ -1,5 +1,6 @@
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 using UBB_SE_2026_Jobs.Tests.Fakes;
 using UBB_SE_2026_Jobs.Tests.Helpers;
 using UBB_SE_2026_Jobs.Library.Services.Jobs;
