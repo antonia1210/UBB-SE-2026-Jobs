@@ -19,13 +19,15 @@
 
         <NavigationView.MenuItems>
             <!-- Candidate -->
+            <NavigationViewItem Content="My Profile"        Tag="UserProfilePage"           Icon="Contact"/>
             <NavigationViewItem Content="Browse Jobs"       Tag="UserRecommendationPage"    Icon="Find"/>
             <NavigationViewItem Content="My Applications"   Tag="UserStatusPage"            Icon="List"/>
-            <NavigationViewItem Content="My Profile"        Tag="UserProfilePage"           Icon="Contact"/>
             <NavigationViewItem Content="Test Attempts"      Tag="TestDashboardPage"         Icon="Permissions"/>
-            <NavigationViewItem Content="Personality Test"  Tag="PersonalityTestPage"       Icon="Favorite"/>
+            
+            <!--<NavigationViewItem Content="Personality Test"  Tag="PersonalityTestPage"       Icon="Favorite"/>
             <NavigationViewItem Content="Compatibility"     Tag="CompatibilityOverviewPage" Icon="Filter"/>
-			<NavigationViewItem Content="Documents"         Tag="DocumentsPage"             Icon="Document"/>
+			<NavigationViewItem Content="Documents"         Tag="DocumentsPage"             Icon="Document"/>-->
+            
 			<!-- Company (hidden until company mode) -->
             <NavigationViewItem x:Name="navRankedApplicants"
                                 Content="Ranked Applicants" Tag="CompanyRecommendationPage"
@@ -36,16 +38,14 @@
             <!-- Developer -->
             <NavigationViewItem Content="Developer Hub"     Tag="DeveloperPage"
                                 Icon="Setting"              Visibility="Collapsed"/>
-            <!-- Shared -->
-            <NavigationViewItem Content="Chat"              Tag="ChatPage"                  Icon="Message"/>
             <!-- RECRUITMENT & TESTS -->
             <NavigationViewItemSeparator/>
-            <NavigationViewItemHeader Content="RECRUITMENT &amp; TESTS"/>
             <NavigationViewItem Content="Jobs"          Tag="TiJobsPage"                Icon="Document"/>
             <NavigationViewItem Content="Tests"         Tag="TiMainTestPage"            Icon="Play"/>
             <NavigationViewItem Content="Events"        Tag="TiEventsPage"              Icon="Calendar"/>
             <NavigationViewItem Content="Interviews"    Tag="TiInterviewSlotsPage"      Icon="Clock" Visibility="Collapsed"/>
             <NavigationViewItem Content="My Interviews" Tag="TiRecruiterInterviewsPage" Icon="Video" Visibility="Collapsed"/>
+            <NavigationViewItem Content="Chat"              Tag="ChatPage"                  Icon="Message"/>
         </NavigationView.MenuItems>
 
         <NavigationView.FooterMenuItems>
