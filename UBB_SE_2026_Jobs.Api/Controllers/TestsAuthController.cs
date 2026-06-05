@@ -9,7 +9,7 @@ using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
     /// Handles authentication endpoints.
     /// </summary>
     [ApiController]
-    [Route("api/auth")]
+    [Route("api/tests-auth")]
     public class TestsAuthController : ControllerBase
     {
         private readonly ITestsAuthService authService;

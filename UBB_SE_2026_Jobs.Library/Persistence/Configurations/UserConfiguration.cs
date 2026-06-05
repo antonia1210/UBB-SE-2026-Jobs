@@ -31,6 +31,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("Users");
         builder.HasKey(user => user.UserId);
 
+        // User.Id is a CLR-only alias for UserId (get => UserId; set => UserId = value).
+        // It must NOT be mapped: EF would create a separate "Id" column, persist 0 into it,
+        // and then on materialization the Id setter would overwrite UserId back to 0 —
+        // corrupting every loaded user's key. Ignore it so UserId stays authoritative.
+        builder.Ignore(user => user.Id);
+
         builder.Property(user => user.FirstName).HasMaxLength(MaxFirstNameLength).IsRequired();
         builder.Property(user => user.LastName).HasMaxLength(MaxLastNameLength).IsRequired();
         builder.Property(user => user.Gender).HasMaxLength(MaxGenderLength);

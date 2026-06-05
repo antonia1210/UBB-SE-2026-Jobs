@@ -3648,9 +3648,6 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                     b.Property<bool>("HasDisabilities")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -3746,7 +3743,6 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Gender = "",
                             GitHub = "",
                             HasDisabilities = false,
-                            Id = 1,
                             LastName = "Smith",
                             LastUpdated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             LinkedIn = "",

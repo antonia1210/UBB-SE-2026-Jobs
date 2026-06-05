@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -9,15 +9,15 @@
   IgnorableNamespaces="uap rescap systemai">
 
   <Identity
-    Name="e1f0e842-e48f-428c-83da-00236cd34920"
-    Publisher="CN=szalo"
+    Name="774C9979-B607-407E-9206-67E63A7B8BF8"
+    Publisher="CN=AppPublisher"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="e1f0e842-e48f-428c-83da-00236cd34920" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="774C9979-B607-407E-9206-67E63A7B8BF8" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>UBB_SE_2026_Jobs.App</DisplayName>
-    <PublisherDisplayName>szalo</PublisherDisplayName>
+    <PublisherDisplayName>AppPublisher</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
