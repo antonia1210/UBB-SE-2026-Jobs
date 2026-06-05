@@ -484,5 +484,3 @@ $RECYCLE.BIN/
 **/.vs/
 **/obj/
 **/bin/
-/UBB_SE_2026_Jobs.Api/appsettings.json
-/UBB_SE_2026_Jobs.Library/Helpers/Env.cs
