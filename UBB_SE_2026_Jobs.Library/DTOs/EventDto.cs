@@ -1,6 +1,7 @@
 namespace UBB_SE_2026_Jobs.Library.DTOs
 {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Represents an event organized by a company.
@@ -51,5 +52,10 @@ namespace UBB_SE_2026_Jobs.Library.DTOs
         /// Gets or sets the date and time when the event was posted.
         /// </summary>
         public DateTime PostedAt { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list of collaborator company IDs for the event.
+        /// </summary>
+        public List<int> CollaboratorCompanyIds { get; set; } = new List<int>();
     }
 }

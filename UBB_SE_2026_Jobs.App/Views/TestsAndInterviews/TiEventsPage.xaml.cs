@@ -63,4 +63,6 @@ public sealed partial class TiEventsPage : Page
                 await ViewModel.DeleteEventAsync(dto.Id);
         }
     }
+
+    public string FormatDate(DateTime value) => value == default ? "—" : value.ToString("dd MMM yyyy");
 }
