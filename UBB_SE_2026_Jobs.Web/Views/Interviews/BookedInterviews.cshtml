@@ -54,7 +54,7 @@
                                     }
                                 </td>
                                 <td>Position #@session.PositionId</td>
-                                <td>@session.DateStart.ToString("dd MMM yyyy, HH:mm")</td>
+                                <td>@session.DateStart.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</td>
                                 <td>
                                     @{
                                         string badgeClass = session.Status switch

@@ -58,7 +58,7 @@
         public Applicant? GetPendingApplicantByJobAndUser(int jobId, int userId)
         {
             return this.JobsDbContext.Applicants
-                .FirstOrDefault(a => a.JobId == jobId && a.UserId == userId);
+                .FirstOrDefault(applicant => applicant.JobId == jobId && applicant.UserId == userId);
         }
 
         /// <inheritdoc/>
