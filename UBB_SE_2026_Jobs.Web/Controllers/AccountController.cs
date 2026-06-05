@@ -49,7 +49,7 @@ public class AccountController : Controller
         var tiResult = await tiAuth.LoginAsync(model.Email, model.Password);
         await SignInAsync(result.Response, tiResult);
 
-        return LocalRedirect(returnUrl ?? Url.Action("Index", "Home")!);
+        return LocalRedirect(GetPostAuthRedirect(returnUrl));
     }
 
     [AllowAnonymous]
@@ -122,7 +122,7 @@ public class AccountController : Controller
         var tiResult = await tiAuth.LoginAsync(model.Email, model.Password);
         await SignInAsync(result.Response, tiResult);
 
-        return RedirectToAction("Index", "Home");
+        return LocalRedirect(GetPostAuthRedirect(null));
     }
 
     [AllowAnonymous]
@@ -136,6 +136,7 @@ public class AccountController : Controller
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         HttpContext.Session.Remove(SessionKeys.JwtToken);
+        HttpContext.Session.Remove(SessionKeys.Mode);
         return RedirectToAction(nameof(Login));
     }
 
@@ -164,5 +165,23 @@ public class AccountController : Controller
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity));
         HttpContext.Session.SetString(SessionKeys.JwtToken, info.Token);
+        HttpContext.Session.SetString(
+            SessionKeys.Mode,
+            string.Equals(tiInfo?.Role, "Recruiter", StringComparison.OrdinalIgnoreCase)
+                ? AppModes.Company
+                : AppModes.User);
+    }
+
+    private string GetPostAuthRedirect(string? returnUrl)
+    {
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return returnUrl;
+        }
+
+        var mode = HttpContext.Session.GetString(SessionKeys.Mode);
+        return string.Equals(mode, AppModes.Company, StringComparison.OrdinalIgnoreCase)
+            ? Url.Action("Index", "Matches")!
+            : Url.Action("Index", "UserProfile")!;
     }
 }

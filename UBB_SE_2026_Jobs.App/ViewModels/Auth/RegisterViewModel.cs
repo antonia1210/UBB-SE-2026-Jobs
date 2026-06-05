@@ -205,10 +205,10 @@ public partial class RegisterViewModel : DispatchableObservableObject
             }
 
             session.SignIn(result.Response);
+            session.ApplyAccountRole(SelectedRole, IsRecruiter ? SelectedCompany!.CompanyId : null);
 
             if (IsRecruiter)
             {
-                session.Mode = AppMode.Company;
                 session.CompanyId = SelectedCompany!.CompanyId;
             }
 

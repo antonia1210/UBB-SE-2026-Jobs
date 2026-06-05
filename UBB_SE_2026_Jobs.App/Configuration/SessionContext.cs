@@ -21,6 +21,23 @@ public sealed class SessionContext
         DisplayName = $"{response.FirstName} {response.LastName}".Trim();
         JwtToken = response.Token;
         Mode = AppMode.Candidate;
+        CompanyId = null;
+        DeveloperId = null;
+    }
+
+    public void ApplyAccountRole(string? role, int? companyId)
+    {
+        if (string.Equals(role, "Recruiter", StringComparison.OrdinalIgnoreCase))
+        {
+            Mode = AppMode.Company;
+            CompanyId = companyId;
+            DeveloperId = null;
+            return;
+        }
+
+        Mode = AppMode.Candidate;
+        CompanyId = null;
+        DeveloperId = null;
     }
 
     public void SignOut()

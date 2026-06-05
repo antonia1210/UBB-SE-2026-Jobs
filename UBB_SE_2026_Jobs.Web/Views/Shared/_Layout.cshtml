@@ -17,7 +17,6 @@
         var selectedMode = Context.Session.GetString(SessionKeys.Mode);
         var isUserMode = string.Equals(selectedMode, AppModes.User, StringComparison.OrdinalIgnoreCase);
         var isCompanyMode = string.Equals(selectedMode, AppModes.Company, StringComparison.OrdinalIgnoreCase);
-        var isDeveloperMode = string.Equals(selectedMode, AppModes.Developer, StringComparison.OrdinalIgnoreCase);
     }
     <div class="d-flex">
 	    <div id="sidebar" class="pc-sidebar d-flex flex-column flex-shrink-0 p-3" style="width: 250px; min-height: 100vh; transition: width 0.2s ease; overflow: hidden;">
@@ -57,11 +56,14 @@
 		    </div>
 
 		    <ul class="nav nav-pills flex-column mb-auto gap-1">
-			    <li class="nav-item">
-				    <a class="nav-link text-dark" asp-controller="Home" asp-action="SwitchMode">
-					    <i class="bi bi-house me-2"></i><span class="sidebar-label">Home</span>
-				    </a>
-			    </li>
+			    @if (User.Identity?.IsAuthenticated != true)
+			    {
+				    <li class="nav-item">
+					    <a class="nav-link text-dark" asp-controller="Home" asp-action="SwitchMode">
+						    <i class="bi bi-house me-2"></i><span class="sidebar-label">Home</span>
+					    </a>
+				    </li>
+			    }
 			    @if (isUserMode && User.IsInRole("Candidate"))
 			    {
 				    <li class="nav-item">
@@ -131,14 +133,6 @@
 				    <li class="nav-item">
 					    <a class="nav-link text-dark" asp-controller="Chat" asp-action="Index">
 						    <i class="bi bi-chat me-2"></i><span class="sidebar-label">Chat</span>
-					    </a>
-				    </li>
-			    }
-			    @if (isDeveloperMode)
-			    {
-				    <li class="nav-item">
-					    <a class="nav-link text-dark" asp-controller="Developer" asp-action="Index">
-						    <i class="bi bi-code-slash me-2"></i><span class="sidebar-label">Developer Hub</span>
 					    </a>
 				    </li>
 			    }
