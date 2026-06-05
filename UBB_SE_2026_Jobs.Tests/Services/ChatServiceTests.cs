@@ -8,6 +8,8 @@ using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 using UBB_SE_2026_Jobs.Library.Services.FileStorage;
 using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
 using UBB_SE_2026_Jobs.Library.Services.Users;
+using UBB_SE_2026_Jobs.Library.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Assert = Xunit.Assert;
 
 namespace UBB_SE_2026_Jobs.Tests.Services
@@ -20,13 +22,19 @@ namespace UBB_SE_2026_Jobs.Tests.Services
         private readonly IUserService userService = Substitute.For<IUserService>();
         private readonly IPussyCatsCompanyService companyService = Substitute.For<IPussyCatsCompanyService>();
         private readonly ILocalFileStorageService fileStorage = Substitute.For<ILocalFileStorageService>();
+        private readonly JobsDbContext dbContext;
 
-
-        public required ChatService chatService;
+        public ChatService chatService;
 
         public ChatServiceTests()
         {
-            chatService = new(chatRepository, messageRepository, userService, companyService, fileStorage);
+            var options = new DbContextOptionsBuilder<JobsDbContext>()
+                .UseInMemoryDatabase(databaseName: System.Guid.NewGuid().ToString())
+                .Options;
+
+            dbContext = new JobsDbContext(options);
+
+            chatService = new ChatService(chatRepository, messageRepository, userService, companyService, fileStorage, dbContext);
         }
 
         #region FindOrCreateUser....
@@ -42,8 +50,8 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             chatRepository.AddAsync(Arg.Any<Chat>(), Arg.Any<CancellationToken>())
                 .Returns(newChat);
             userService.GetAllAsync(Arg.Any<CancellationToken>())
-                .Returns(Task.FromResult<IReadOnlyList<User>>(new List<User> { user })); 
-            
+                .Returns(Task.FromResult<IReadOnlyList<User>>(new List<User> { user }));
+
             var createdChat = await chatService.FindOrCreateUserCompanyChatAsync(1, company);
 
             Assert.Same(newChat, createdChat);
@@ -52,7 +60,7 @@ namespace UBB_SE_2026_Jobs.Tests.Services
         [Fact]
         public async Task FindOrCreateUserCompanyChatAsync_ExistingChat_ReturnsExistingChatWithDeletionFlagsCleared()
         {
-            var existingChat = new Chat {ChatId = 1, DeletedAtByUser = DateTime.UtcNow, DeletedAtBySecondParty = DateTime.UtcNow };
+            var existingChat = new Chat { ChatId = 1, DeletedAtByUser = DateTime.UtcNow, DeletedAtBySecondParty = DateTime.UtcNow };
             var company = new Company();
 
             chatRepository.FindUserCompanyChatAsync(1, company, null, Arg.Any<CancellationToken>())
