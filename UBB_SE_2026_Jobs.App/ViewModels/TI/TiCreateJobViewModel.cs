@@ -30,6 +30,14 @@ public partial class TiCreateJobViewModel : DispatchableObservableObject
     [ObservableProperty] private bool isSaving;
     [ObservableProperty] private bool savedSuccessfully;
     [ObservableProperty] private string validationError = string.Empty;
+    [ObservableProperty] private bool isEditMode;
+
+    // Fields preserved across an edit so the update does not clobber columns the form does not show.
+    private int editingJobId;
+    private int editingCompanyId;
+    private DateTime? editingPostedAt;
+    private string? editingPhoto;
+    private int? editingAmountPayed;
 
     public ObservableCollection<TiSkillPickItem> SkillRows { get; } = new();
 
@@ -46,6 +54,32 @@ public partial class TiCreateJobViewModel : DispatchableObservableObject
         SkillRows.Clear();
         foreach (var skill in skills)
             SkillRows.Add(new TiSkillPickItem { Skill = TiJobMapper.ToDto(skill) });
+    }
+
+    /// <summary>
+    /// Switches the form into edit mode and prefills it from an existing job. Required-skill edits
+    /// are not exposed here (mirroring the web edit form); the update preserves existing skill links.
+    /// </summary>
+    public void LoadForEdit(TiJobPostingDto job)
+    {
+        IsEditMode = true;
+        editingJobId = job.JobId;
+        editingCompanyId = job.CompanyId;
+        editingPostedAt = job.PostedAt;
+        editingPhoto = job.Photo;
+        editingAmountPayed = job.AmountPayed;
+
+        JobTitle = job.JobTitle ?? string.Empty;
+        IndustryField = job.IndustryField ?? string.Empty;
+        JobType = job.JobType ?? string.Empty;
+        ExperienceLevel = job.ExperienceLevel ?? string.Empty;
+        JobDescription = job.JobDescription ?? string.Empty;
+        JobLocation = job.JobLocation ?? string.Empty;
+        SalaryText = job.Salary?.ToString() ?? string.Empty;
+        AvailablePositions = job.AvailablePositions < 1 ? 1 : job.AvailablePositions;
+        StartDate = job.StartDate.HasValue ? new DateTimeOffset(job.StartDate.Value) : null;
+        EndDate = job.EndDate.HasValue ? new DateTimeOffset(job.EndDate.Value) : null;
+        Deadline = job.Deadline.HasValue ? new DateTimeOffset(job.Deadline.Value) : null;
     }
 
     [RelayCommand]
@@ -68,7 +102,6 @@ public partial class TiCreateJobViewModel : DispatchableObservableObject
 
         var job = new Job
         {
-            CompanyId = session.CompanyId ?? 1,
             JobTitle = JobTitle.Trim(),
             IndustryField = IndustryField.Trim(),
             JobType = JobType,
@@ -80,11 +113,23 @@ public partial class TiCreateJobViewModel : DispatchableObservableObject
             StartDate = StartDate?.DateTime,
             EndDate = EndDate?.DateTime,
             Deadline = Deadline?.DateTime,
-            PostedAt = DateTime.UtcNow,
-            AmountPayed = 0,
+            // Preserve the original company/posted/photo/payment when editing; default for new jobs.
+            CompanyId = IsEditMode ? editingCompanyId : (session.CompanyId ?? 1),
+            PostedAt = IsEditMode ? editingPostedAt : DateTime.UtcNow,
+            Photo = IsEditMode ? editingPhoto : null,
+            AmountPayed = IsEditMode ? (editingAmountPayed ?? 0) : 0,
         };
 
-        await jobService.AddAsync(job);
+        if (IsEditMode)
+        {
+            job.JobId = editingJobId;
+            await jobService.UpdateAsync(job);
+        }
+        else
+        {
+            await jobService.AddAsync(job);
+        }
+
         IsSaving = false;
         SavedSuccessfully = true;
     }

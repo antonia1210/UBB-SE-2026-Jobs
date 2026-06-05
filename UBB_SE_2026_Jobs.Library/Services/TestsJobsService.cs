@@ -74,15 +74,9 @@
             return this._repository.UpdateJob(jobId, updatedJob, skillLinks);
         }
 
-        /// <summary>
-        /// Deletes a job posting and all its associated skill links.
-        /// </summary>
-        /// <param name="jobId">The unique identifier of the job posting to delete.</param>
-        /// <returns><c>true</c> if the deletion succeeded; <c>false</c> if the job was not found.</returns>
-        public bool DeleteJob(int jobId)
-        {
-            return this._repository.DeleteJob(jobId);
-        }
+        public int GetApplicantCount(int jobId) => this._repository.GetApplicantCount(jobId);
+
+        public JobDeleteResult DeleteJob(int jobId, bool force) => this._repository.DeleteJob(jobId, force);
 
         /// <summary>
         /// Retrieves all skills linked to a specific job posting.

@@ -16,3 +16,10 @@ public class SuggestionDisplayItem
     public required string GroupName { get; init; }
     public required string GainDisplay { get; init; }
 }
+
+public class CompatibilitySkillScoreDisplayItem
+{
+    public required string SkillName { get; init; }
+    public required string ScoreDisplay { get; init; }
+    public required string Source { get; init; }
+}

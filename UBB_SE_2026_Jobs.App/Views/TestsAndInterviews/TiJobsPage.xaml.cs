@@ -6,6 +6,7 @@ using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.App.ViewModels.TI;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.App;
 
 namespace UBB_SE_2026_Jobs.App.Views.TestsAndInterviews;
@@ -37,33 +38,47 @@ public sealed partial class TiJobsPage : Page
             Frame.Navigate(typeof(TiJobDetailsPage), job);
     }
 
-    private void ViewApplicants_Click(object sender, RoutedEventArgs e)
+    private void Edit_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: TiJobPostingDto job })
-            Frame.Navigate(typeof(TiJobApplicantsPage), job);
-    }
-
-    private void Pay_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button { Tag: TiJobPostingDto job })
-            Frame.Navigate(typeof(TiPaymentPage), job);
+            Frame.Navigate(typeof(TiCreateJobPage), job);
     }
 
     private async void DeleteJob_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button { Tag: TiJobPostingDto job })
+        if (sender is not Button { Tag: TiJobPostingDto job })
+            return;
+
+        int applicantCount = await ViewModel.GetApplicantCountAsync(job.JobId);
+        bool hasApplicants = applicantCount > 0;
+
+        var dialog = new ContentDialog
         {
-            var dialog = new ContentDialog
+            Title = "Delete Job",
+            Content = hasApplicants
+                ? $"'{job.JobTitle}' has {applicantCount} applicant{(applicantCount == 1 ? "" : "s")}. " +
+                  $"Deleting it will permanently remove {(applicantCount == 1 ? "their application" : "their applications")} as well. This cannot be undone."
+                : $"Delete '{job.JobTitle}'? This cannot be undone.",
+            PrimaryButtonText = hasApplicants ? "Delete anyway" : "Delete",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot,
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            return;
+
+        var result = await ViewModel.DeleteJobAsync(job.JobId, force: hasApplicants);
+        if (result != JobDeleteResult.Deleted)
+        {
+            var errorDialog = new ContentDialog
             {
-                Title = "Delete Job",
-                Content = $"Delete '{job.JobTitle}'?",
-                PrimaryButtonText = "Delete",
-                CloseButtonText = "Cancel",
+                Title = "Delete failed",
+                Content = "The job could not be deleted. Please try again.",
+                CloseButtonText = "OK",
                 XamlRoot = XamlRoot,
             };
-            var result = await dialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
-                await ViewModel.DeleteJobAsync(job.JobId);
+            await errorDialog.ShowAsync();
         }
     }
 }

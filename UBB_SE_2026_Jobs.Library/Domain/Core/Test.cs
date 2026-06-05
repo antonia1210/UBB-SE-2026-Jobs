@@ -41,6 +41,17 @@ namespace UBB_SE_2026_Jobs.Library.Domain.Core
         public DateTime CreatedAt { get; set; }
 
         /// <summary>
+        /// Gets or sets the unique identifier of the skill this test verifies.
+        /// </summary>
+        [Column("skill_id")]
+        public int? SkillId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the skill associated with this test.
+        /// </summary>
+        public Skill? Skill { get; set; }
+
+        /// <summary>
         /// Gets or sets the collection of questions associated with this instance.
         /// </summary>
         public List<TestQuestion> Questions { get; set; } = [];

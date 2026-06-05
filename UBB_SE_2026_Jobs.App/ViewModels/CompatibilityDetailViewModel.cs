@@ -36,5 +36,6 @@ public class CompatibilityDetailViewModel : DispatchableObservableObject
     }
 
     public List<Suggestion> GetSuggestions() => CurrentRoleResult?.Suggestions ?? new List<Suggestion>();
+    public List<CompatibilitySkillScore> GetSkillScores() => CurrentRoleResult?.SkillScores ?? new List<CompatibilitySkillScore>();
     public string GetErrorMessage() => ErrorMessage;
 }

@@ -7,6 +7,7 @@
     using UBB_SE_2026_Jobs.Library.Persistence;
     using UBB_SE_2026_Jobs.Library.Domain;
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+    using UBB_SE_2026_Jobs.Library.Services;
 
     public class TestsJobsRepository : ITestsJobsRepository
     {
@@ -164,7 +165,14 @@
         }
 
         /// <inheritdoc />
-        public bool DeleteJob(int jobId)
+        public int GetApplicantCount(int jobId)
+        {
+            return this.databaseContext.Matches
+                .Count(m => EF.Property<int>(m, "JobId") == jobId);
+        }
+
+        /// <inheritdoc />
+        public JobDeleteResult DeleteJob(int jobId, bool force)
         {
             using var transaction = this.databaseContext.Database.BeginTransaction();
 
@@ -176,10 +184,31 @@
 
                 if (job == null)
                 {
-                    return false;
+                    return JobDeleteResult.NotFound;
                 }
 
-                // Remove skill links first to respect FK constraints
+                var applicantCount = this.databaseContext.Matches
+                    .Count(m => EF.Property<int>(m, "JobId") == jobId);
+                if (applicantCount > 0 && !force)
+                {
+                    return JobDeleteResult.HasApplicants;
+                }
+
+                var recommendations = this.databaseContext.Recommendations
+                    .Where(r => EF.Property<int>(r, "JobId") == jobId);
+                this.databaseContext.Recommendations.RemoveRange(recommendations);
+
+                if (applicantCount > 0)
+                {
+                    var matches = this.databaseContext.Matches
+                        .Where(m => EF.Property<int>(m, "JobId") == jobId);
+                    this.databaseContext.Matches.RemoveRange(matches);
+
+                    var applicants = this.databaseContext.Applicants
+                        .Where(a => a.JobId == jobId);
+                    this.databaseContext.Applicants.RemoveRange(applicants);
+                }
+
                 if (job.JobSkills != null)
                 {
                     this.databaseContext.JobSkills.RemoveRange(job.JobSkills);
@@ -187,7 +216,6 @@
 
                 this.databaseContext.Jobs.Remove(job);
 
-                // Decrement the company's posted job count
                 var company = this.databaseContext.Companies.Find(job.CompanyId);
                 if (company != null && company.PostedJobsCount > 0)
                 {
@@ -196,7 +224,7 @@
 
                 this.databaseContext.SaveChanges();
                 transaction.Commit();
-                return true;
+                return JobDeleteResult.Deleted;
             }
             catch
             {
