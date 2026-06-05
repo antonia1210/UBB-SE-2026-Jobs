@@ -297,7 +297,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
                 var gradeRequest = new
                 {
-                    Question = new
+                    TestQuestion = new
                     {
                         Id = q.Id,
                         QuestionText = q.QuestionText,
