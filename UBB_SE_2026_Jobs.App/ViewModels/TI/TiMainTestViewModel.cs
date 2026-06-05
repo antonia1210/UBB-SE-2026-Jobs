@@ -1,8 +1,12 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Microsoft.UI.Xaml;
+using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.App.Views.TestsAndInterviews;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels.TI;
 
@@ -47,12 +51,21 @@ public class TiMainTestViewModel : INotifyPropertyChanged
         IsLoading = true;
         Tests.Clear();
 
-        // Show every test regardless of category. (Previously this filtered by a hardcoded
-        // category list, so tests in any other category — or with slightly different category
-        // names — silently never appeared.)
         var tests = await testService.GetAllAsync();
+        var session = App.Services.GetRequiredService<SessionContext>();
+        int userId = session.UserId;
+
         foreach (var test in tests)
         {
+            bool completed = false;
+            try
+            {
+                completed = await testService.AttemptExistsAsync(userId, test.Id);
+            }
+            catch
+            {
+                completed = false;
+            }
             var card = new TiTestCardViewModel
             {
                 TestId = test.Id,
@@ -60,6 +73,7 @@ public class TiMainTestViewModel : INotifyPropertyChanged
                 Category = test.Category,
                 QuestionTypeLabel = test.QuestionTypeLabel,
                 CreatedAt = test.CreatedAt,
+                HasBeenTaken = completed
             };
             Tests.Add(card);
         }

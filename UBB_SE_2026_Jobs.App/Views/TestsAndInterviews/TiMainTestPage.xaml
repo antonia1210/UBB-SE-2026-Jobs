@@ -124,10 +124,14 @@
                                                 HorizontalAlignment="Stretch" Padding="10,6" CornerRadius="6"/>
                                         <Button Content="View Leaderboard" Tag="{x:Bind}" Click="ViewLeaderboard_Click"
                                                 HorizontalAlignment="Stretch" Padding="10,6" CornerRadius="6"/>
-                                        <Button Content="Start Test" Tag="{x:Bind}" Click="StartTest_Click"
-                                                Background="#22c55e" Foreground="White"
-                                                HorizontalAlignment="Stretch" Padding="10,6" CornerRadius="6"/>
-                                    </StackPanel>
+										<Button Content="{x:Bind StartButtonText, Mode=OneWay}"
+                                                IsEnabled="{x:Bind IsStartButtonEnabled, Mode=OneWay}"
+                                                Tag="{x:Bind}" 
+                                                Click="StartTest_Click" 
+                                                HorizontalAlignment="Stretch"
+                                                Margin="0,0,0,8"
+                                                Style="{StaticResource AccentButtonStyle}"/>
+									</StackPanel>
                                 </StackPanel>
                             </Border>
                         </DataTemplate>

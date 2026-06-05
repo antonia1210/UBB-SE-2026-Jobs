@@ -10,6 +10,7 @@ public class TiTestCardViewModel : INotifyPropertyChanged
 {
     private bool isSelected;
     private bool isHovered;
+    private bool hasBeenTaken;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -18,6 +19,20 @@ public class TiTestCardViewModel : INotifyPropertyChanged
     public string Category { get; set; } = string.Empty;
     public string QuestionTypeLabel { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
+
+    public bool HasBeenTaken
+    {
+        get => hasBeenTaken;
+        set
+        {
+            hasBeenTaken = value;
+            Notify();
+            Notify(nameof(IsStartButtonEnabled));
+            Notify(nameof(StartButtonText));
+        }
+    }
+    public bool IsStartButtonEnabled => !HasBeenTaken;
+    public string StartButtonText => HasBeenTaken ? "Already Completed" : "Start Test";
 
     public bool IsSelected
     {
