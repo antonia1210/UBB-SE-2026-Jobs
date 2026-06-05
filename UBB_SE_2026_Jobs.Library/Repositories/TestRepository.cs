@@ -13,7 +13,7 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
 
     /// <summary>
-    /// TestRepository class provides methods to perform CRUD operations on the Tests and Questions tables in the database.
+    /// TestRepository class provides methods to read static Tests and Questions data.
     /// </summary>
     public class TestRepository : ITestRepository
     {
@@ -75,53 +75,5 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Asynchronously adds a new Test entity to the data store.
-        /// </summary>
-        /// <param name="test">The Test entity to add. Cannot be null.</param>
-        /// <returns>A task that represents the asynchronous add operation.</returns>
-        public async Task AddAsync(Test test)
-        {
-            this.databaseContext.Tests.Add(test);
-            await this.databaseContext.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// Asynchronously updates the specified test entity in the database.
-        /// </summary>
-        /// <param name="test">The test entity containing updated values. The entity's identifier must correspond to an existing test in the
-        /// database.</param>
-        /// <returns>A task that represents the asynchronous update operation.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown if a test with the specified identifier does not exist in the database.</exception>
-        public async Task UpdateAsync(Test test)
-        {
-            var existingTest = await this.databaseContext.Tests.FindAsync(test.Id);
-            if (existingTest == null)
-            {
-                throw new KeyNotFoundException("Test not found.");
-            }
-
-            existingTest.Title = test.Title;
-            existingTest.Category = test.Category;
-            await this.databaseContext.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// Asynchronously deletes the test entity with the specified identifier from the data store.
-        /// </summary>
-        /// <param name="testId">The unique identifier of the test entity to delete.</param>
-        /// <returns>A task that represents the asynchronous delete operation.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown if a test entity with the specified identifier does not exist.</exception>
-        public async Task DeleteAsync(int testId)
-        {
-            var existingTest = await this.databaseContext.Tests.FindAsync(testId);
-            if (existingTest == null)
-            {
-                throw new KeyNotFoundException("Test not found.");
-            }
-
-            this.databaseContext.Tests.Remove(existingTest);
-            await this.databaseContext.SaveChangesAsync();
-        }
     }
 }

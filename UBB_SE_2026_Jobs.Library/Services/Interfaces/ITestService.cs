@@ -42,32 +42,6 @@ namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
         Task<List<Test>> FindTestsByCategoryAsync(string category);
 
         /// <summary>
-        /// Asynchronously adds a new test entity to the data store.
-        /// </summary>
-        /// <param name="test">The test entity to add. Cannot be null.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the added test entity.</returns>
-        public Task<Test> AddTestASync(Test test);
-
-        /// <summary>
-        /// Asynchronously updates an existing test with the specified identifier using the provided test data.
-        /// </summary>
-        /// <param name="id">The unique identifier of the test to update.</param>
-        /// <param name="test">The test data to apply to the existing test. The <see cref="Test.Id"/> property is ignored and will be set
-        /// to the specified <paramref name="id"/>.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the updated <see cref="Test"/>
-        /// instance.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown if a test with the specified <paramref name="id"/> does not exist.</exception>
-        public Task<Test> UpdateTestAsync(int id, Test test);
-
-        /// <summary>
-        /// Asynchronously deletes the test with the specified identifier.
-        /// </summary>
-        /// <param name="id">The unique identifier of the test to delete.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the test was
-        /// successfully deleted; otherwise, <see langword="false"/>.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown if a test with the specified <paramref name="id"/> does not exist.</exception>
-        public Task<bool> DeleteTestAsync(int id);
-        /// <summary>
         /// Starts a test attempt for the specified user and test.
         /// </summary>
         Task StartTestAsync(int userId, int testId);

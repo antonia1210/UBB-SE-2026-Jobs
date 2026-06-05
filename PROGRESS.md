@@ -58,6 +58,182 @@ This document tracks what has been completed and what remains outstanding for an
 
 ---
 
+### 4. Test system overhaul — replayability, leaderboard, tab rename, bug fixes (2026-06-05)
+
+This is a comprehensive overhaul of the test-taking and leaderboard pipeline. All changes were made on branch `chat-rework`.
+
+#### 4a. "Skill Tests" → "Test Attempts" rename
+
+The tab was renamed across all five touch-points (no logic changes, cosmetic only):
+
+| File | Change |
+|------|--------|
+| `App/MainWindow.xaml` | Nav item `Content="Skill Tests"` → `Content="Test Attempts"` |
+| `App/Views/Candidate/TestDashboardPage.xaml` | Hero `Text="Skill Tests"` → `Text="Test Attempts"`, subtitle updated |
+| `App/Views/Candidate/UserProfilePage.xaml` | Button `Content="Skill Tests"` → `Content="Test Attempts"` |
+| `Web/Views/Shared/_Layout.cshtml` | Sidebar label `Skill Tests` → `Test Attempts` |
+| `Web/Views/SkillTests/Index.cshtml` | Page title, h1, subtitle, badge caption all updated |
+
+#### 4b. Replayability — tests can now be retaken
+
+Previously the system blocked any second attempt. Every completed test now returns the user to a fresh attempt instead.
+
+**`Library/Repositories/TestAttemptRepository.cs` — `FindByUserAndTestAsync`:**  
+Changed to return only the most recent **IN_PROGRESS** attempt (was: any attempt). The submission flow calls this to locate the active attempt; completed attempts are irrelevant to it.
+
+**`Library/Services/AttemptValidationService.cs` — `CheckExistingAttemptsAsync` / `CanStartTestAsync`:**  
+Both methods now only block if an IN_PROGRESS attempt already exists (was: blocked on any prior attempt). Since `FindByUserAndTestAsync` returns IN_PROGRESS only, a completed attempt no longer prevents a new start.
+
+**`Web/Controllers/TestsController.cs` — `Take` action:**  
+No longer shows "AlreadyTaken" view. Checks for an IN_PROGRESS attempt via `GetAttemptByUserAndTestAsync`; if none, starts a fresh one.
+
+**`Web/Views/Tests/Index.cshtml`:**  
+Info banner updated from "Tests can only be taken once" to "Tests are replayable". "Already Completed" disabled button replaced with "Retake Test" active link.
+
+**`App/ViewModels/TI/TiTestPageViewModel.cs`:**  
+Removed `AlreadyAttempted` property. `LoadAsync` now resumes an IN_PROGRESS attempt or starts a new one; never blocks.
+
+**`App/Views/TestsAndInterviews/TiTestPage.xaml.cs`:**  
+Removed the `AlreadyAttempted` navigation redirect after `LoadAsync`.
+
+**`App/Views/TestsAndInterviews/TiMainTestPage.xaml`:**  
+Info banner updated to say tests are replayable and that the highest score counts on the leaderboard.
+
+#### 4c. Multi-attempt support in the Test Attempts tab
+
+The tab previously crashed when a user had more than one attempt for the same test (due to `ToDictionary` throwing on duplicate keys).
+
+**`App/ViewModels/TestDashboardViewModel.cs`:**  
+Replaced `ToDictionary(a => a.TestId)` with a per-attempt loop using test and question-count caches. Now shows one card per attempt — full history, all takes visible.
+
+**`Web/Clients/TestsApiClient.cs`:**  
+Added `GetAttemptsByUserAsync(int userId)` → `GET api/testattempts/byuser/{userId}`.
+
+**`Web/Controllers/TestsController.cs` — `Index` action:**  
+Replaced N+1 per-test attempt lookups with a single bulk `GetAttemptsByUserAsync` call. Uses a `HashSet<int>` of completed test IDs to mark which tests have been taken.
+
+#### 4d. Leaderboard deduplication
+
+**`Library/Repositories/TestAttemptRepository.cs` — `FindValidAttemptsByTestIdAsync`:**  
+Now groups by `ExternalUserId` and takes only the highest-`PercentageScore` attempt per user (earliest `CompletedAt` on tie) before ranking. Previously all attempts appeared separately, so a user with three low scores outranked a user with one high score.
+
+#### 4e. Expanded seed data
+
+| ID | Title | Category |
+|----|-------|----------|
+| 4 | Python Fundamentals | Programming |
+| 5 | Java Fundamentals | Programming |
+| 6 | DevOps Basics | Operations |
+| 7 | Data Science Basics | Data Science |
+| 8 | UI/UX Fundamentals | Design |
+
+- `Library/Persistence/Configurations/TestConfiguration.cs` — added tests 4–8
+- `Library/Persistence/Configurations/QuestionConfiguration.cs` — added questions 10–24 (3 per new test, all `SINGLE_CHOICE`, 10 pts each, zero-based `QuestionAnswer` indices)
+- EF migration `SeedAdditionalTests` generated and applied automatically on API startup
+
+#### 4f. Bug fix — score = 0 on desktop
+
+**Root cause:** `TestService.SubmitAttemptAsync` called `FindByUserAndTestAsync(userId, testId)` _after_ `SubmitTestAsync` had already marked the attempt `COMPLETED`. `FindByUserAndTestAsync` now only returns IN_PROGRESS attempts → returned null → always returned `DefaultSubmissionScore = 0f`.
+
+**Fix (`Library/Services/TestService.cs`):**  
+The final score fetch now uses `FindByIdAsync(attempt.Id)` which returns the attempt regardless of status.
+
+#### 4g. Bug fix — leaderboard always empty
+
+Three compounding root causes:
+
+**1. 3-month validity window (`Library/Services/DataProcessingService.cs`):**  
+`IsTestStillValidForLeaderboard` checked `test.CreatedAt.AddMonths(3) >= DateTime.UtcNow`. All seeded tests have `CreatedAt = 2026-01-01`; the window expired 2026-04-01. Every attempt was rejected with `IsValidated = false`. Fix: removed `IsTestStillValidForLeaderboard` entirely. No time-based gate.
+
+**2. `ConvertToPercentageScore` was an identity function (`Library/Services/DataProcessingService.cs`):**  
+The formula was `originalScore / 100m * 100m = originalScore`. For a test with 3 correct answers × 10 pts = 30 raw score, `PercentageScore` was stored as 30, not 100. Fix: `PercentageScore` is now computed as `(attempt.Score / maxPossibleScore) * 100` where `maxPossibleScore = attempt.Answers.Sum(a => a.Question.QuestionScore)` (loaded via `FindByIdAsync`'s `ThenInclude`).
+
+**3. Raw score cap of 100m (`Library/Services/DataProcessingService.cs`):**  
+`ValidateAttemptAsync` rejected attempts with `Score > 100m`. With 3 questions × 10 pts = 30 raw this passed, but any test with more questions would be silently rejected. Fix: removed the upper cap, keeping only `Score < 0` as invalid.
+
+**4. Desktop never triggered recalculation (`Api/Controllers/TestsController.cs`):**  
+The `POST api/tests/submit-attempt` endpoint returned the score but never called `LeaderboardService.RecalculateAsync`. `LeaderboardEntry` rows were only created when the web's `RecalculateLeaderboardAsync` was called. Fix: `TestsController.SubmitAttempt` now injects `ILeaderboardService` and calls `RecalculateAsync(dto.TestId)` after every desktop submission.
+
+#### 4h. Bug fix — Test Attempts tab empty on web
+
+**Root cause:** The web's `TestsController.Submit` updates the attempt by: building a DTO from the API response, setting `Status = "COMPLETED"` etc. on it, then calling `PUT api/testattempts/{id}`. `TestAttemptsController.Update` creates a new `TestAttempt` entity via `dto.ToEntity()` — this entity is **detached** (never tracked by EF Core). `TestAttemptRepository.UpdateAsync` called only `SaveChangesAsync()` without attaching the entity, so the call silently no-opped and the attempt remained `IN_PROGRESS` in the database forever. `FindCompletedByUserIdAsync` filters `Status == "COMPLETED"` → returned nothing → tab was empty.
+
+**Fix 1 (`Library/Repositories/TestAttemptRepository.cs`):**  
+`UpdateAsync` now checks `databaseContext.Entry(testAttempt).State == EntityState.Detached`. If detached, it calls `databaseContext.TestAttempts.Update(testAttempt)` before `SaveChangesAsync()`. For tracked entities (the server-side submission path), no change in behavior.
+
+**Fix 2 (`Web/Controllers/TestsController.cs`):**  
+`Submit` now sets `attempt.IsValidated = true` on the DTO before persisting. The web submission path bypasses `DataProcessingService.ProcessFinalizedAttemptAsync` (which is the only other place `IsValidated` is set to `true`), so without this, web-submitted attempts would never qualify for the leaderboard (`FindValidAttemptsByTestIdAsync` requires `IsValidated = true`).
+
+---
+
+### 5. Chat system rework (2026-06-05)
+
+Rewrote the chat subsystem across both clients and the server to fix correctness issues, add missing features, and enforce business rules. All changes on branch `chat-rework`.
+
+#### What changed
+
+**`Library/Services/ChatService/ChatService.cs` + `IChatService`:**
+- Added `SearchRecruitersByCompanyAsync(int companyId, string query)` — lets a logged-in recruiter search for colleagues at the same company to start a peer chat. Previously, recruiter-to-recruiter chat was impossible.
+- `FindOrCreateUserChatAsync` now validates role parity and company match before creating a chat (throws `InvalidOperationException` if a candidate tries to chat with a recruiter, or a recruiter tries to chat with someone from a different company). Previously no such guard existed.
+- Soft-delete: `DeleteChatAsync` now sets `DeletedAtByUser`/`DeletedAtBySecondParty` timestamps instead of hard-deleting. `GetMessagesAsync` filters messages before the deletion timestamp so the other participant's history is unaffected.
+- Block/unblock enforcement: `UnblockChatAsync` now verifies `chat.BlockedByUserId == unblockerId` — only the blocker can unblock.
+- `IRecruiterRepository.GetCompanyIdForUserAsync` and `GetUserIdsByCompanyAsync` were added to `IRecruiterRepository`/`RecruiterRepository` to support the company-membership checks in `FindOrCreateUserChatAsync` and `SearchRecruitersByCompanyAsync`.
+
+**`Api/Controllers/ChatsController.cs`:**
+- Added `DELETE api/chats/{id}` (soft delete), `PATCH api/chats/{id}/block`, `PATCH api/chats/{id}/unblock`.
+- `GET api/chats/search/recruiters?companyId=&query=` → `SearchRecruitersByCompanyAsync`.
+- `POST api/chats/attachments` → `SendStoredAttachmentAsync` (separate from text-message path).
+
+**`Library/ServiceProxies/ChatServiceProxy.cs`:**
+- Added proxy methods for all new endpoints: `BlockChatAsync`, `UnblockChatAsync`, `DeleteChatAsync`, `SendStoredAttachmentAsync`, `SearchRecruitersByCompanyAsync`.
+
+**Desktop `App/ViewModels/ChatViewModel.cs`:**
+- Rewrote from scratch (old version had a polling loop and direct HTTP calls). Now uses `IChatService` exclusively.
+- Two tabs: "Users" (candidate-to-candidate) and "Companies" (candidate-to-company/job). Tab state is synced via `IsSyncingTabState` guard to prevent recursive notification loops.
+- Block/Unblock/Delete commands wired to `SelectedChat`; button visibility driven by `showBlock`/`showUnblock`/`showGoToProfile` etc.
+- Attachment send: file picker → `ILocalFileStorageService.SaveFileAsync` → `SendStoredAttachmentAsync`.
+
+**`App/Views/ChatPage.xaml` + `ChatPage.xaml.cs`:**
+- Simplified code-behind (removed old polling and direct dependency on `ChatsController`).
+- XAML updated to bind to the new `ChatViewModel` properties and commands.
+
+**Web `Web/Controllers/ChatController.cs`:**
+- Replaced ad-hoc API calls with direct `IChatService` injection (same service proxy pattern used for all other web services).
+- `IsCompanyMode()` reads `SessionKeys.Mode` from session — determines recruiter vs. candidate behavior.
+- `SearchUsers` returns recruiters-by-company in company mode, non-recruiter users in user mode.
+- `Send`, `SendAttachment`, `Block`, `Unblock`, `Delete`, `StartChat` actions all implemented.
+
+**`Web/Views/Chat/Index.cshtml` + `Show.cshtml`:**
+- Index: two-tab layout (Users / Companies), live search with debounce, chat list with last-message preview.
+- Show: message thread with attachment rendering, block/unblock/delete buttons, file download links pointing to `ViewBag.ApiBase`.
+
+#### Key invariants to preserve
+- `FindOrCreateUserChatAsync` must keep the role-parity and same-company checks — removing them would allow candidates to message recruiters directly.
+- `SendStoredAttachmentAsync` path (web) and `StoreAttachmentAsync` path (desktop upload) are separate. The desktop picks a local file, saves it, then sends the stored path. The web receives an `IFormFile`, saves it server-side, then calls `SendStoredAttachmentAsync`. Don't conflate the two.
+- `ShouldIncludeChat` filters out chats blocked by the *other* party (not the caller) — a blocked caller still sees the chat in their list but cannot send.
+
+---
+
+### 6. Recruiter test access and manual test authoring removed (2026-06-05)
+
+Tests are now treated as static seeded content for candidates to replay. Recruiters should not reach the test catalog or any test/question authoring UI.
+
+**Fix applied:**
+- `App/MainWindow.xaml.cs` - moved `TiMainTestPage` from shared navigation to candidate-only navigation, hiding the desktop Tests item from recruiter mode.
+- `Web/Views/Shared/_Layout.cshtml` - hid the MVC Tests navigation link unless the user is a candidate.
+- `Web/Controllers/TestsController.cs` - restricted `Index` and `Details` to candidates and removed recruiter/admin `Create`, `Edit`, and `Delete` actions.
+- `Web/Views/Tests/Index.cshtml` - removed the "Create New Test", "Edit", and "Delete" controls.
+- Deleted obsolete web test authoring views: `Web/Views/Tests/Create.cshtml`, `Edit.cshtml`, and `Delete.cshtml`.
+- `Api/Controllers/TestsController.cs`, `ITestService`, `TestService`, `ITestRepository`, and `TestRepository` - removed test create/update/delete endpoints and service/repository methods.
+- Removed the old MVC question-management surface (`Web/Controllers/QuestionsController.cs` and `Web/Views/Questions/*`) and removed question create/update/delete endpoints from `Api/Controllers/QuestionsController.cs`. Read-only question endpoints remain for candidate test-taking.
+
+**Build verification:**
+- `dotnet build UBB_SE_2026_Jobs.Api\UBB_SE_2026_Jobs.Api.csproj --no-restore -p:UseSharedCompilation=false -v minimal` - succeeded with existing warnings.
+- `dotnet build UBB_SE_2026_Jobs.Web\UBB_SE_2026_Jobs.Web.csproj --no-restore -p:UseSharedCompilation=false -v minimal` - succeeded with existing warnings.
+- `dotnet build UBB_SE_2026_Jobs.App\UBB_SE_2026_Jobs.App.csproj --no-restore -p:Platform=x64 -p:UseSharedCompilation=false -v minimal` - succeeded with existing warnings.
+
+---
+
 ## Outstanding tasks
 
 ### HIGH PRIORITY
@@ -153,7 +329,6 @@ Full list of identified duplications (see original audit):
 #### H. Dead views/pages audit
 
 The following web views exist but have no active navigation entry points (documented for removal in a future pass):
-- `Web/Views/Questions/` — all 7 views (admin-only, no nav link)
 - `Web/Views/Recommendations/` — all 5 views (no nav link)
 - `Web/Views/SkillTests/Create.cshtml`, `Delete.cshtml`, `Details.cshtml`, `Edit.cshtml`, `SkillTestCard.cshtml` — no corresponding controller actions
 
@@ -172,71 +347,90 @@ Both `Jwt:Key` (main API JWT) and `TiJwt:Key` (TI auth JWT) are currently stored
 
 ---
 
-### 5. Tests — Replayability, Leaderboard Fix, Tab Rename, Expanded Seed Data (2026-06-05)
-
-**"Skill Tests" → "Test Attempts" rename:**
-- `App/MainWindow.xaml` — nav item label
-- `App/Views/Candidate/TestDashboardPage.xaml` — page hero title and subtitle
-- `App/Views/Candidate/UserProfilePage.xaml` — button label
-- `Web/Views/Shared/_Layout.cshtml` — sidebar nav label
-- `Web/Views/SkillTests/Index.cshtml` — page title, hero h1, subtitle, badge caption
-
-**Replayability (tests now takeable multiple times):**
-- `Library/Repositories/TestAttemptRepository.cs` — `FindByUserAndTestAsync` now returns the most recent **IN_PROGRESS** attempt only (not any prior completed one); submission flow always targets the active attempt
-- `Library/Services/AttemptValidationService.cs` — `CheckExistingAttemptsAsync` and `CanStartTestAsync` now only block if an IN_PROGRESS attempt exists (previously blocked on any prior attempt)
-- `Web/Controllers/TestsController.cs` — `Take` action no longer shows "AlreadyTaken" view; always resumes or starts fresh; `Submit` action drops the completed-attempt guard
-- `Web/Views/Tests/Index.cshtml` — info banner updated; "Already Completed" disabled button replaced with "Retake Test" active button
-- `App/ViewModels/TI/TiTestPageViewModel.cs` — `AlreadyAttempted` property removed; `LoadAsync` resumes IN_PROGRESS or starts fresh, never blocks
-- `App/Views/TestsAndInterviews/TiTestPage.xaml.cs` — removed `AlreadyAttempted` navigation redirect
-- `App/Views/TestsAndInterviews/TiMainTestPage.xaml` — info banner updated to say tests are replayable
-
-**Leaderboard fix — best attempt per user:**
-- `Library/Repositories/TestAttemptRepository.cs` — `FindValidAttemptsByTestIdAsync` now groups by user and takes only the highest-scoring attempt per user before ranking; previously all attempts appeared, inflating low scorers
-
-**Multi-attempt support in Test Attempts tab:**
-- `App/ViewModels/TestDashboardViewModel.cs` — replaced `ToDictionary(a => a.TestId)` (would throw with multiple attempts) with per-attempt loop plus test/question caches; now shows one card per attempt (full history)
-- `Web/Clients/TestsApiClient.cs` — added `GetAttemptsByUserAsync(userId)` method
-- `Web/Controllers/TestsController.cs` `Index` — replaced N+1 per-test attempt fetch with one bulk `GetAttemptsByUserAsync` call; uses `HashSet<int>` of completedTestIds to mark cards
-
-**Expanded seed data (8 tests, 24 questions):**
-- `Library/Persistence/Configurations/TestConfiguration.cs` — added tests 4–8: Python Fundamentals, Java Fundamentals, DevOps Basics, Data Science Basics, UI/UX Fundamentals
-- `Library/Persistence/Configurations/QuestionConfiguration.cs` — added 15 questions (3 per new test, all SINGLE_CHOICE)
-- New EF migration: `SeedAdditionalTests`
-
-### 6. Tests — Bug Fixes: Score, Leaderboard, Tab Visibility (2026-06-05)
-
-**Score = 0 on desktop (fixed):**
-- `Library/Services/TestService.cs` — `SubmitAttemptAsync` now fetches the final score via `FindByIdAsync(attempt.Id)` instead of `FindByUserAndTestAsync(userId, testId)`. The old call returned null after submission because `FindByUserAndTestAsync` only returns IN_PROGRESS attempts.
-
-**Leaderboard empty (fixed):**
-- `Library/Services/DataProcessingService.cs` — removed the 3-month leaderboard validity window (`IsTestStillValidForLeaderboard`). All seeded tests (created 2026-01-01) were failing this check. Removed the constant and the method entirely.
-- `Library/Services/DataProcessingService.cs` — `ProcessFinalizedAttemptAsync` now computes `PercentageScore` correctly as `(rawScore / maxPossibleScore) * 100` using the sum of question scores from `attempt.Answers`. The previous formula was an identity (`score / 100 * 100 = score`).
-- `Library/Services/DataProcessingService.cs` — removed the `MaximumScore = 100m` cap on raw scores (was incorrectly rejecting valid attempts for tests with more than 10 questions).
-- `Api/Controllers/TestsController.cs` — `SubmitAttempt` endpoint now calls `ILeaderboardService.RecalculateAsync(testId)` after each desktop submission so leaderboard entries are updated immediately.
-
-**Test Attempts tab empty on web (fixed):**
-- `Library/Repositories/TestAttemptRepository.cs` — `UpdateAsync` now checks `EntityState.Detached` and calls `context.TestAttempts.Update(entity)` before `SaveChangesAsync()`. Previously, entities created from DTOs (untracked) were passed to `UpdateAsync` which silently no-opped, leaving attempts stuck as IN_PROGRESS forever.
-- `Web/Controllers/TestsController.cs` — `Submit` action now sets `attempt.IsValidated = true` before persisting, so web-submitted attempts qualify for leaderboard inclusion (the web flow bypasses `ProcessFinalizedAttemptAsync`).
-
----
-
 ## Build status
 
-As of 2026-06-05 (post-bug-fixes), `dotnet build UBB_SE_2026_Jobs.slnx` produces **0 errors** (pre-existing warnings only; none introduced by this work).
+As of 2026-06-05, `dotnet build UBB_SE_2026_Jobs.slnx` produces **0 errors** (pre-existing warnings only; none introduced by any of the above work).
 
 ---
 
 ## Key files reference
 
+### Auth / company routing
 | File | Role |
 |------|------|
 | `Web/Controllers/AccountController.cs:143-172` | Login/register flow; sets `CompanyId` cookie claim for recruiters |
-| `Web/Controllers/CompanyRecommendationsController.cs` | Ranked Applicants — now reads company from JWT claim |
-| `Web/Controllers/CompanyStatusController.cs` | Applicant pipeline — now reads company from JWT claim; stubs removed |
-| `Web/Controllers/MatchesController.cs` | Applicants list — now reads company from JWT claim |
-| `Web/Controllers/ChatController.cs` | Chat — now reads company from JWT claim (no fallback) |
-| `Library/Services/TestsAuthService.cs` | TI auth — JWT key now from `TiJwt:Key` config |
-| `Api/appsettings.json` | Added `TiJwt:Key` |
+| `Web/Controllers/CompanyRecommendationsController.cs` | Ranked Applicants — reads company from JWT claim |
+| `Web/Controllers/CompanyStatusController.cs` | Applicant pipeline — reads company from JWT claim; stubs removed |
+| `Web/Controllers/MatchesController.cs` | Applicants list — reads company from JWT claim |
+| `Web/Controllers/ChatController.cs` | Chat — reads company from JWT claim (no fallback) |
+
+### Test system — core library
+| File | Role |
+|------|------|
+| `Library/Domain/Core/Test.cs` | Persistent test entity; `Id`, `Title`, `Category`, `CreatedAt`, `Questions` nav |
+| `Library/Domain/Core/TestQuestion.cs` | Question entity; `QuestionAnswer` = zero-based index string; `QuestionScore` = float pts |
+| `Library/Domain/Core/TestAttempt.cs` | Per-user-per-take; `Status`, `Score`, `PercentageScore`, `IsValidated`, `Answers` nav |
+| `Library/Domain/Core/Answer.cs` | Per-question response; `Value` mutated in-place by grading ("CORRECT:10", "PARTIAL:5") |
+| `Library/Persistence/Configurations/TestConfiguration.cs` | Seeds tests 1–8 |
+| `Library/Persistence/Configurations/QuestionConfiguration.cs` | Seeds questions 1–24 (3 per test, 10 pts each) |
+| `Library/Repositories/TestAttemptRepository.cs` | `FindByUserAndTestAsync` → IN_PROGRESS only; `FindCompletedByUserIdAsync` → all COMPLETED; `FindValidAttemptsByTestIdAsync` → best per user for leaderboard; `UpdateAsync` → attaches detached entities before save |
+| `Library/Repositories/AnswerRepository.cs` | `FindByAttemptAsync` → includes `Question` via ThenInclude |
+| `Library/Services/TestService.cs` | `SubmitAttemptAsync`: saves answers, calls `SubmitTestAsync`, `ProcessFinalizedAttemptAsync`, returns score via `FindByIdAsync(attempt.Id)` |
+| `Library/Services/GradingService.cs` | `GradeSingleChoice`: sets `answer.Value = "CORRECT:{score}"` on match; `CalculateFinalScore`: sums CORRECT:/PARTIAL: from `attempt.Answers` into `attempt.Score` |
+| `Library/Services/DataProcessingService.cs` | `ProcessFinalizedAttemptAsync`: validates attempt, sets `IsValidated = true`, computes `PercentageScore = (Score / maxPossibleScore) * 100`; no time gate |
+| `Library/Services/AttemptValidationService.cs` | `CheckExistingAttemptsAsync`: only blocks if IN_PROGRESS attempt exists |
+| `Library/Services/LeaderboardService.cs` | `RecalculateAsync`: deletes old entries, re-ranks validated attempts (best per user) |
+
+### Test system — API controllers
+| File | Role |
+|------|------|
+| `Api/Controllers/TestsController.cs` | `POST start` → start attempt; `POST submit-attempt` → grade + process + recalculate leaderboard |
+| `Api/Controllers/TestAttemptsController.cs` | CRUD for attempts; `GET byuser/{userId}` → completed attempts for tab; `PUT {id}` → update (used by web submit path) |
+
+### Test system — desktop
+| File | Role |
+|------|------|
+| `App/Services/TI/TiTestService.cs` | `StartAttemptAsync` → `POST api/testattempts`; `SubmitAttemptAsync` → `POST api/tests/submit-attempt`; `GetAttemptsByUserAsync` → `GET api/testattempts/byuser/{userId}` |
+| `App/ViewModels/TestDashboardViewModel.cs` | Loads all attempts, creates one card per attempt; uses test/question caches to avoid N+1 |
+| `App/ViewModels/SkillTestCardViewModel.cs` | `IsTiAttemptCompleted`: Status contains "complete" OR CompletedAt not null; score shown via `ViewModelSupport.TiPercentage(attempt.Score, maxPossibleScore)` |
+| `App/ViewModels/ViewModelSupport.cs` | `TiPercentage`: `rawScore / maxPossibleScore * 100` (correct %); `IsTiAttemptCompleted`: loose status check |
+| `App/ViewModels/TI/TiTestPageViewModel.cs` | Resumes IN_PROGRESS or starts fresh; never blocks on prior completed attempts |
+
+### Test system — web
+| File | Role |
+|------|------|
+| `Web/Controllers/TestsController.cs` | `Take`: resumes or starts fresh; `Submit`: grades client-side, sets `IsValidated = true`, updates attempt, recalculates leaderboard |
+| `Web/Controllers/SkillTestsController.cs` | Test Attempts tab — calls `ISkillTestService.GetTestsForUserAsync` → `FindCompletedByUserIdAsync` |
+| `Web/Clients/TestsApiClient.cs` | `GetAttemptsByUserAsync(userId)`, `StartAttemptAsync`, `SubmitAttemptAsync`, `GradeAnswerAsync`, `CalculateFinalScoreAsync`, `UpdateAttemptAsync` |
+
+### Chat system
+| File | Role |
+|------|------|
+| `Library/Services/ChatService/IChatService.cs` | Shared interface — both clients and server implement/use it |
+| `Library/Services/ChatService/ChatService.cs` | Server implementation; enforces role-parity, company-match, block/unblock, soft-delete |
+| `Library/ServiceProxies/ChatServiceProxy.cs` | HTTP proxy used by both App and Web; maps to `api/chats/*` endpoints |
+| `Api/Controllers/ChatsController.cs` | REST endpoints for chat CRUD, messaging, block/unblock, search |
+| `App/ViewModels/ChatViewModel.cs` | Desktop MVVM; two tabs (Users/Companies), block/delete commands, attachment send |
+| `App/Views/ChatPage.xaml` | Desktop chat UI |
+| `Web/Controllers/ChatController.cs` | Web MVC; mode-aware (recruiter vs. candidate), file upload, search |
+| `Web/Views/Chat/Index.cshtml` | Web chat list; two-tab layout, live search |
+| `Web/Views/Chat/Show.cshtml` | Web message thread; block/unblock/delete, file download |
+| `Library/Repositories/RecruiterRepository.cs` | `GetCompanyIdForUserAsync`, `GetUserIdsByCompanyAsync`, `GetAllRecruiterUserIdsAsync` — used by ChatService for company-membership checks |
+
+### Web infrastructure
+| File | Role |
+|------|------|
+| `Web/Program.cs` | Service registration: `RegisterServiceProxy` (interface proxies) + `RegisterApiClient` (TI typed clients); cookie auth + session |
+| `Web/Infrastructure/JwtForwardingHandler.cs` | Reads JWT from session, attaches as Bearer header on every outbound API call |
+| `Web/Infrastructure/JwtSessionFilter.cs` | Detects cookie/session drift on each request; signs out if session lost JWT |
+| `Web/Infrastructure/SessionKeys.cs` | Constants: `JwtToken`, `Mode` |
+| `Web/Infrastructure/ModeAuthorizeFilter.cs` | Enforces role-based page access based on `SessionKeys.Mode` |
+| `Web/Configuration/ApiConfiguration.cs` | `BaseUrl` — single base URL for all web → API calls (no TiBaseUrl split on web) |
+
+### Other
+| File | Role |
+|------|------|
+| `Library/Services/TestsAuthService.cs` | TI auth — JWT key from `TiJwt:Key` config |
+| `Api/appsettings.json` | `TiJwt:Key`, `Jwt:Key`, connection string `JobsDb` |
 | `Library/Domain/Applicant.cs` | TI evaluation data (grades); no FK to Match |
 | `Library/Domain/Match.cs` | Application pipeline (Status, Feedback); no FK to Applicant |
-| `Library/Repositories/RecruiterRepository.cs` | `GetCompanyIdForUserAsync(userId)` — used by ChatService internally |

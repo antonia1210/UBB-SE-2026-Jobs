@@ -21,15 +21,6 @@
         </p>
     </div>
 
-    @if (User.IsInRole("Admin") || User.IsInRole("Recruiter"))
-    {
-        <a asp-controller="Tests"
-           asp-action="Create"
-           class="btn btn-success mb-4">
-            + Create New Test
-        </a>
-    }
-
     <div class="row g-4">
         @foreach (var test in Model.Tests)
         {
@@ -81,25 +72,6 @@
                                class="btn @(test.HasBeenTaken ? "btn-outline-primary" : "btn-primary") w-100 mb-2">
                                 @(test.HasBeenTaken ? "Retake Test" : "Start Test")
                             </a>
-                        }
-
-                        @if (User.IsInRole("Admin") || User.IsInRole("Recruiter"))
-                        {
-                            <div class="d-flex gap-2">
-                                <a asp-controller="Tests"
-                                   asp-action="Edit"
-                                   asp-route-id="@test.TestId"
-                                   class="btn btn-warning btn-sm w-50">
-                                    Edit
-                                </a>
-
-                                <a asp-controller="Tests"
-                                   asp-action="Delete"
-                                   asp-route-id="@test.TestId"
-                                   class="btn btn-danger btn-sm w-50">
-                                    Delete
-                                </a>
-                            </div>
                         }
 
                     </div>

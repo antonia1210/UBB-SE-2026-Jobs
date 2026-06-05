@@ -62,48 +62,6 @@ using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
             return Ok(tests.Select(t => t.ToDto()).ToList());
         }
 
-        [HttpPost]
-        public async Task<ActionResult<TestDto>> Create([FromBody] TestDto dto)
-        {
-            try {
-                Test created = await this._service.AddTestASync(dto.ToEntity());
-
-                return Ok(created.ToDto());
-            } catch (Exception e) {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult<TestDto>> Update (int id, [FromBody] TestDto dto)
-        {
-            try {
-                Test updated = await this._service.UpdateTestAsync(id, dto.ToEntity());
-
-                return Ok(updated.ToDto());
-            } catch (KeyNotFoundException ke) {
-                return NotFound(ke.Message);
-            } catch (Exception e) {
-                return BadRequest(e.Message);
-            }
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
-        {
-            try {
-                bool deleted = await this._service.DeleteTestAsync(id);
-
-                if (deleted) {
-                    return Ok(new { message = "Test was deleted successfully" });
-                }
-
-                return BadRequest();
-            } catch (KeyNotFoundException e) {
-                return NotFound(e.Message);
-            }
-        }
-
         /// <summary>
         /// Starts a test attempt for the specified user and test.
         /// </summary>

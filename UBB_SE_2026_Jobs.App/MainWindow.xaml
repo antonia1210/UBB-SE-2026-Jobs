@@ -38,7 +38,7 @@
                                 Icon="Setting"              Visibility="Collapsed"/>
             <!-- Shared -->
             <NavigationViewItem Content="Chat"              Tag="ChatPage"                  Icon="Message"/>
-            <!-- RECRUITMENT & TESTS (shared across all modes) -->
+            <!-- RECRUITMENT & TESTS -->
             <NavigationViewItemSeparator/>
             <NavigationViewItemHeader Content="RECRUITMENT &amp; TESTS"/>
             <NavigationViewItem Content="Jobs"          Tag="TiJobsPage"                Icon="Document"/>

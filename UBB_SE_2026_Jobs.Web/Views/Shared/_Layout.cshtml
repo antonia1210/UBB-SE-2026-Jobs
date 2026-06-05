@@ -143,11 +143,14 @@
 						    </a>
 					    </li>
 				    }
-				    <li class="nav-item">
-					    <a class="nav-link text-dark" asp-controller="Tests" asp-action="Index">
-						    <i class="bi bi-journal-check me-2"></i><span class="sidebar-label">Tests</span>
-					    </a>
-				    </li>
+				    @if (User.IsInRole("Candidate"))
+				    {
+					    <li class="nav-item">
+						    <a class="nav-link text-dark" asp-controller="Tests" asp-action="Index">
+							    <i class="bi bi-journal-check me-2"></i><span class="sidebar-label">Tests</span>
+						    </a>
+					    </li>
+				    }
 				    <li class="nav-item">
 					    <a class="nav-link text-dark" asp-controller="Events" asp-action="Index">
 						    <i class="bi bi-calendar-event me-2"></i><span class="sidebar-label">Events</span>

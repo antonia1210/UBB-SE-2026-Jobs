@@ -49,42 +49,5 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             return Ok(testQuestion.ToDto());
         }
 
-        [HttpPost]
-        public async Task<ActionResult<QuestionDto>> Create([FromBody] QuestionDto dto)
-        {
-            var entity = dto.ToEntity();
-            _db.Questions.Add(entity);
-            await _db.SaveChangesAsync();
-            return CreatedAtAction(nameof(Get), new { id = entity.Id }, entity.ToDto());
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] QuestionDto dto)
-        {
-            var existing = await _db.Questions.FindAsync(id);
-            if (existing == null) return NotFound();
-
-            existing.QuestionText = dto.QuestionText;
-            existing.QuestionTypeString = dto.QuestionType;
-            existing.QuestionScore = dto.QuestionScore;
-            existing.QuestionAnswer = dto.QuestionAnswer;
-            existing.OptionsJson = dto.OptionsJson;
-            existing.TestId = dto.TestId;
-
-            await _db.SaveChangesAsync();
-            return NoContent();
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var existing = await _db.Questions.FindAsync(id);
-            if (existing == null) return NotFound();
-
-            _db.Questions.Remove(existing);
-            await _db.SaveChangesAsync();
-            return NoContent();
-        }
     }
-
 
