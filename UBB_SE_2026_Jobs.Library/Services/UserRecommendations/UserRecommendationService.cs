@@ -57,7 +57,7 @@ public sealed class UserRecommendationService : IUserRecommendationService
         }
 
         var (topRankedJob, score) = ranked[0];
-        return await BuildCardWithShownRecordAsync(user, topRankedJob, score, cancellationToken).ConfigureAwait(false);
+        return await CreateCardAsync(topRankedJob, score, null, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<JobRecommendationResult?> RecalculateTopCardIgnoringCooldownAsync(int userId, UserMatchmakingFilters filters, CancellationToken cancellationToken = default)
@@ -72,7 +72,7 @@ public sealed class UserRecommendationService : IUserRecommendationService
         }
 
         var best = ranked[0];
-        return await BuildCardWithShownRecordAsync(user, best.Job, best.Score, cancellationToken).ConfigureAwait(false);
+        return await CreateCardAsync(best.Job, best.Score, null, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<List<(Job Job, double Score)>> BuildRankedListIgnoringCooldownAsync(User user, UserMatchmakingFilters filters, CancellationToken cancellationToken)
@@ -215,7 +215,7 @@ public sealed class UserRecommendationService : IUserRecommendationService
     {
         if (filters.EmploymentTypes.Count > 0)
         {
-            if (!filters.EmploymentTypes.Contains(job.JobType))
+            if (job.JobType is null || !filters.EmploymentTypes.Contains(job.JobType))
             {
                 return false;
             }
@@ -223,8 +223,15 @@ public sealed class UserRecommendationService : IUserRecommendationService
 
         if (filters.ExperienceLevels.Count > 0)
         {
-            var bucket = MapUserYearsToExperienceBucket(user.YearsOfExperience);
-            if (!filters.ExperienceLevels.Contains(bucket))
+            if (job.ExperienceLevel is null || !filters.ExperienceLevels.Contains(job.ExperienceLevel))
+            {
+                return false;
+            }
+        }
+
+        if (filters.WorkModes.Count > 0)
+        {
+            if (job.JobLocation is null || !filters.WorkModes.Contains(job.JobLocation))
             {
                 return false;
             }

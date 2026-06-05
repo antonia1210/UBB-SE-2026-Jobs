@@ -1,6 +1,5 @@
 using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.Library.Domain;
-using UBB_SE_2026_Jobs.Library.Domain.Enums;
 
 namespace UBB_SE_2026_Jobs.App.Converters;
 
@@ -11,33 +10,22 @@ internal static class ChatDisplayResolver
 
     public static string ResolveChatName(Chat chat)
     {
+        var session = App.Services.GetService(typeof(SessionContext)) as SessionContext;
+
         if (chat.SecondUser is not null)
         {
+            if (session is not null)
+            {
+                return chat.User.UserId == session.UserId ? chat.SecondUser.Name : chat.User.Name;
+            }
             return chat.SecondUser.Name;
         }
 
-        var session = App.Services.GetService(typeof(SessionContext)) as SessionContext;
-        if (session is null)
-        {
-            return DefaultChatName;
-        }
-
-        if (session.Mode == AppMode.Company)
-        {
-            return $"User {chat.User.UserId}";
-        }
-
-        if (chat.Company != null)
+        if (chat.Company is not null)
         {
             return !string.IsNullOrWhiteSpace(chat.Company.Name)
                 ? chat.Company.Name
                 : $"Company {chat.Company.CompanyId}";
-        }
-
-        if (chat.SecondUser != null)
-        {
-            var currentUserId = session.UserId;
-            return chat.User.UserId == currentUserId ? chat.SecondUser.Name : chat.User.Name;
         }
 
         return DefaultChatName;
@@ -46,16 +34,6 @@ internal static class ChatDisplayResolver
     public static int GetCurrentSenderId()
     {
         var session = App.Services.GetService(typeof(SessionContext)) as SessionContext;
-        if (session is null)
-        {
-            return MissingSenderId;
-        }
-
-        return session.Mode switch
-        {
-            AppMode.Company => session.CompanyId ?? MissingSenderId,
-            AppMode.Developer => session.DeveloperId ?? MissingSenderId,
-            _ => session.UserId,
-        };
+        return session?.UserId ?? MissingSenderId;
     }
 }
