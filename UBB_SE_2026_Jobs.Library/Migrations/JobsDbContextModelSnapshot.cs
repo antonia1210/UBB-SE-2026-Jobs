@@ -1326,6 +1326,41 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Category = "Web Development",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Title = "JavaScript Essentials"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Category = "Programming",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Title = "Python Fundamentals"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Category = "Programming",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Title = "Java Fundamentals"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Category = "Operations",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Title = "DevOps Basics"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Category = "Data Science",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Title = "Data Science Basics"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Category = "Design",
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Title = "UI/UX Fundamentals"
                         });
                 });
 
@@ -1534,6 +1569,156 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             QuestionText = "Which method converts a JSON string to an object?",
                             QuestionTypeString = "SINGLE_CHOICE",
                             TestId = 3
+                        },
+                        new
+                        {
+                            Id = 10,
+                            OptionsJson = "[\"func\",\"def\",\"function\",\"fn\"]",
+                            QuestionAnswer = "1",
+                            QuestionScore = 10f,
+                            QuestionText = "Which keyword defines a function in Python?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 4
+                        },
+                        new
+                        {
+                            Id = 11,
+                            OptionsJson = "[\"<class 'list'>\",\"<class 'array'>\",\"<class 'tuple'>\",\"<class 'set'>\"]",
+                            QuestionAnswer = "0",
+                            QuestionScore = 10f,
+                            QuestionText = "What is the output of type([]) in Python?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 4
+                        },
+                        new
+                        {
+                            Id = 12,
+                            OptionsJson = "[\"has\",\"contains\",\"in\",\"exists\"]",
+                            QuestionAnswer = "2",
+                            QuestionScore = 10f,
+                            QuestionText = "Which operator checks membership in a collection?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 4
+                        },
+                        new
+                        {
+                            Id = 13,
+                            OptionsJson = "[\"public\",\"protected\",\"package-private\",\"private\"]",
+                            QuestionAnswer = "3",
+                            QuestionScore = 10f,
+                            QuestionText = "Which access modifier makes a member visible only within its class?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 5
+                        },
+                        new
+                        {
+                            Id = 14,
+                            OptionsJson = "[\"final\",\"static\",\"abstract\",\"sealed\"]",
+                            QuestionAnswer = "0",
+                            QuestionScore = 10f,
+                            QuestionText = "Which Java keyword prevents a method from being overridden?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 5
+                        },
+                        new
+                        {
+                            Id = 15,
+                            OptionsJson = "[\"ArrayList\",\"HashSet\",\"LinkedList\",\"Stack\"]",
+                            QuestionAnswer = "1",
+                            QuestionScore = 10f,
+                            QuestionText = "Which collection guarantees unique elements in Java?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 5
+                        },
+                        new
+                        {
+                            Id = 16,
+                            OptionsJson = "[\"Docker\",\"Ansible\",\"Kubernetes\",\"Terraform\"]",
+                            QuestionAnswer = "2",
+                            QuestionScore = 10f,
+                            QuestionText = "Which tool is used for container orchestration at scale?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 6
+                        },
+                        new
+                        {
+                            Id = 17,
+                            OptionsJson = "[\"Continuous Integration\",\"Code Inspection\",\"Container Isolation\",\"Cloud Infrastructure\"]",
+                            QuestionAnswer = "0",
+                            QuestionScore = 10f,
+                            QuestionText = "What does CI stand for in software delivery?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 6
+                        },
+                        new
+                        {
+                            Id = 18,
+                            OptionsJson = "[\"JSON\",\"YAML\",\"TOML\",\"XML\"]",
+                            QuestionAnswer = "1",
+                            QuestionScore = 10f,
+                            QuestionText = "Which file format does Docker Compose use?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 6
+                        },
+                        new
+                        {
+                            Id = 19,
+                            OptionsJson = "[\"pandas\",\"numpy\",\"scipy\",\"matplotlib\"]",
+                            QuestionAnswer = "0",
+                            QuestionScore = 10f,
+                            QuestionText = "Which Python library is used for data manipulation with DataFrames?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 7
+                        },
+                        new
+                        {
+                            Id = 20,
+                            OptionsJson = "[\"Model is too simple\",\"Model performs poorly on training data\",\"Model memorises training data and fails on unseen data\",\"Model uses too little data\"]",
+                            QuestionAnswer = "2",
+                            QuestionScore = 10f,
+                            QuestionText = "What does overfitting mean in machine learning?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 7
+                        },
+                        new
+                        {
+                            Id = 21,
+                            OptionsJson = "[\"Recall\",\"Precision\",\"F1 Score\",\"Accuracy\"]",
+                            QuestionAnswer = "1",
+                            QuestionScore = 10f,
+                            QuestionText = "Which metric measures the proportion of true positives among predicted positives?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 7
+                        },
+                        new
+                        {
+                            Id = 22,
+                            OptionsJson = "[\"User Experience\",\"User Extension\",\"Uniform Exchange\",\"Usability Exploration\"]",
+                            QuestionAnswer = "0",
+                            QuestionScore = 10f,
+                            QuestionText = "What does UX stand for?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 8
+                        },
+                        new
+                        {
+                            Id = 23,
+                            OptionsJson = "[\"Affordance\",\"Consistency\",\"Feedback\",\"Simplicity\"]",
+                            QuestionAnswer = "2",
+                            QuestionScore = 10f,
+                            QuestionText = "Which principle states that interfaces should provide feedback to user actions?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 8
+                        },
+                        new
+                        {
+                            Id = 24,
+                            OptionsJson = "[\"A fully styled mockup\",\"A low-fidelity structural blueprint of a UI\",\"A finished product prototype\",\"A user research report\"]",
+                            QuestionAnswer = "1",
+                            QuestionScore = 10f,
+                            QuestionText = "What is a wireframe in UI/UX design?",
+                            QuestionTypeString = "SINGLE_CHOICE",
+                            TestId = 8
                         });
                 });
 
@@ -3587,61 +3772,6 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                         });
                 });
 
-            modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.SkillTest", b =>
-                {
-                    b.Property<int>("SkillTestId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SkillTestId"));
-
-                    b.Property<DateOnly>("AchievedDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SkillTestId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("SkillTests", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            SkillTestId = 1,
-                            AchievedDate = new DateOnly(2026, 1, 7),
-                            Name = "C# Fundamentals",
-                            Score = 82,
-                            UserId = 1
-                        },
-                        new
-                        {
-                            SkillTestId = 2,
-                            AchievedDate = new DateOnly(2026, 1, 7),
-                            Name = "SQL Server",
-                            Score = 76,
-                            UserId = 1
-                        },
-                        new
-                        {
-                            SkillTestId = 3,
-                            AchievedDate = new DateOnly(2026, 1, 7),
-                            Name = "Software Design",
-                            Score = 88,
-                            UserId = 1
-                        });
-                });
-
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.Slot", b =>
                 {
                     b.Property<int>("Id")
@@ -4341,17 +4471,6 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                     b.HasOne("UBB_SE_2026_Jobs.Library.Domain.Game", null)
                         .WithMany("Scenarios")
                         .HasForeignKey("GameId");
-                });
-
-            modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.SkillTest", b =>
-                {
-                    b.HasOne("UBB_SE_2026_Jobs.Library.Domain.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.Slot", b =>

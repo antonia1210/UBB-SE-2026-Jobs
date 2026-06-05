@@ -53,7 +53,7 @@ public class CvParsingServiceTests
     {
         Action unsupportedFileType = () => service.ParseCvFile("ignored", ".txt");
 
-        var ex = Assert.Throws<Exception>(unsupportedFileType);
+        var ex = Assert.Throws<InvalidOperationException>(unsupportedFileType);
         Assert.Contains("Unsupported file type", ex.Message);
     }
 
@@ -154,7 +154,7 @@ public class CvParsingServiceTests
     }
 
     [Fact]
-    public void ParseCvFile_MotivationExceedsLimit_TruncatesMotivationAtMaxMotivtionLengthChars()
+    public void ParseCvFile_MotivationExceedsLimit_TruncatesMotivationAtMaxMotivationLengthChars()
     {
         int motivationLength = 1500;
         int maxMotivationLength = 1000;
@@ -182,7 +182,7 @@ public class CvParsingServiceTests
     {
         Action formatNotJsonFailedToParseCv = () => service.ParseCvFile("{ not json", ".json");
 
-        var ex = Assert.Throws<Exception>(formatNotJsonFailedToParseCv);
+        var ex = Assert.Throws<InvalidOperationException>(formatNotJsonFailedToParseCv);
         Assert.Contains("Failed to parse CV file", ex.Message);
     }
 

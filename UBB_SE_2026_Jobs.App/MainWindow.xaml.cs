@@ -23,7 +23,9 @@ public sealed partial class MainWindow : Window
         "PersonalityTestPage",
         "CompatibilityOverviewPage",
         "DocumentsPage",
+        "TiMainTestPage",
         "TiInterviewSlotsPage",
+        "TiCandidateBookedInterviewsPage",
     ];
 
     private static readonly HashSet<string> CompanyPages =
@@ -31,6 +33,7 @@ public sealed partial class MainWindow : Window
         "CompanyRecommendationPage",
         "CompanyStatusPage",
         "TiRecruiterInterviewsPage",
+        "TiJobsPage",
     ];
 
     private static readonly HashSet<string> DeveloperPages =
@@ -41,8 +44,6 @@ public sealed partial class MainWindow : Window
     private static readonly HashSet<string> SharedPages =
     [
         "ChatPage",
-        "TiJobsPage",
-        "TiMainTestPage",
         "TiEventsPage",
     ];
 
@@ -68,6 +69,7 @@ public sealed partial class MainWindow : Window
         ["TiEventsPage"]                = typeof(TiEventsPage),
         ["TiJobsPage"]                  = typeof(TiJobsPage),
         ["TiInterviewSlotsPage"]        = typeof(TiInterviewSlotsPage),
+        ["TiCandidateBookedInterviewsPage"] = typeof(TiCandidateBookedInterviewsPage),
         ["TiRecruiterInterviewsPage"]   = typeof(TiRecruiterInterviewsPage),
         ["TiLeaderboardPage"]           = typeof(TiLeaderboardPage),
     };

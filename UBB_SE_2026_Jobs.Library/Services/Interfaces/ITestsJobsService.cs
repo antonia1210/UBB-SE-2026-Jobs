@@ -55,18 +55,12 @@
         /// <summary>
         /// Returns the number of applicants (Match records) for a job posting.
         /// </summary>
-        /// <param name="jobId">The unique identifier of the job posting.</param>
-        /// <returns>The applicant count.</returns>
         int GetApplicantCount(int jobId);
 
         /// <summary>
-        /// Deletes a job posting and its associated skill links. Applicants (Match records) block
-        /// deletion unless <paramref name="force"/> is <c>true</c>, in which case they are
-        /// cascade-deleted along with the job.
+        /// Deletes a job posting and its associated skill links. Applicants block deletion unless
+        /// <paramref name="force"/> is <c>true</c>, in which case they are cascade-deleted.
         /// </summary>
-        /// <param name="jobId">The unique identifier of the job posting to delete.</param>
-        /// <param name="force">When <c>true</c>, applicants are cascade-deleted with the job.</param>
-        /// <returns>The outcome of the delete attempt.</returns>
         JobDeleteResult DeleteJob(int jobId, bool force);
     }
 }

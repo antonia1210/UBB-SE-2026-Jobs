@@ -14,57 +14,57 @@
         private const int MinimumSkillPercentage = 1;
         private const int MaximumSkillPercentage = 100;
 
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext databaseContext;
 
-        public TestsJobsRepository(JobsDbContext JobsDbContext)
+        public TestsJobsRepository(JobsDbContext databaseContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <inheritdoc />
         public IEnumerable<Job> GetAllJobs()
         {
-            return this.JobsDbContext.Jobs
-                .Include(j => j.Company)
-                .Include(j => j.JobSkills)
-                    .ThenInclude(js => js.Skill)
+            return this.databaseContext.Jobs
+                .Include(job => job.Company)
+                .Include(job => job.JobSkills)
+                    .ThenInclude(jobSkill => jobSkill.Skill)
                 .ToList();
         }
 
         /// <inheritdoc />
         public IReadOnlyList<Skill> GetAllSkills()
         {
-            return this.JobsDbContext.Skills.ToList();
+            return this.databaseContext.Skills.ToList();
         }
 
         /// <inheritdoc />
         public Job? GetJobById(int jobId)
         {
-            return this.JobsDbContext.Jobs
-                .Include(j => j.Company)
-                .Include(j => j.JobSkills)
-                    .ThenInclude(js => js.Skill)
-                .FirstOrDefault(j => j.JobId == jobId);
+            return this.databaseContext.Jobs
+                .Include(job => job.Company)
+                .Include(job => job.JobSkills)
+                    .ThenInclude(jobSkill => jobSkill.Skill)
+                .FirstOrDefault(job => job.JobId == jobId);
         }
 
         /// <inheritdoc />
-        public int AddJob(Job Job, int companyId, IReadOnlyList<(int SkillId, int RequiredPercentage)> skillLinks)
+        public int AddJob(Job jobToAdd, int companyId, IReadOnlyList<(int SkillId, int RequiredPercentage)> skillLinks)
         {
-            if (Job == null)
+            if (jobToAdd == null)
             {
-                throw new ArgumentNullException(nameof(Job));
+                throw new ArgumentNullException(nameof(jobToAdd));
             }
 
-            using var transaction = this.JobsDbContext.Database.BeginTransaction();
+            using var transaction = this.databaseContext.Database.BeginTransaction();
 
             try
             {
-                Job.CompanyId = companyId;
-                Job.AmountPayed ??= 0;
-                Job.PostedAt ??= DateTime.Now;
+                jobToAdd.CompanyId = companyId;
+                jobToAdd.AmountPayed ??= 0;
+                jobToAdd.PostedAt ??= DateTime.Now;
 
-                this.JobsDbContext.Jobs.Add(Job);
-                this.JobsDbContext.SaveChanges();
+                this.databaseContext.Jobs.Add(jobToAdd);
+                this.databaseContext.SaveChanges();
 
                 if (skillLinks != null)
                 {
@@ -75,26 +75,26 @@
                             continue;
                         }
 
-                        this.JobsDbContext.JobSkills.Add(new JobSkill
+                        this.databaseContext.JobSkills.Add(new JobSkill
                         {
-                            JobId = Job.JobId,
+                            JobId = jobToAdd.JobId,
                             SkillId = skillId,
                             RequiredPercentage = percentage,
                         });
                     }
 
-                    this.JobsDbContext.SaveChanges();
+                    this.databaseContext.SaveChanges();
                 }
 
-                var company = this.JobsDbContext.Companies.Find(companyId);
+                var company = this.databaseContext.Companies.Find(companyId);
                 if (company != null)
                 {
                     company.PostedJobsCount += 1;
-                    this.JobsDbContext.SaveChanges();
+                    this.databaseContext.SaveChanges();
                 }
 
                 transaction.Commit();
-                return Job.JobId;
+                return jobToAdd.JobId;
             }
             catch
             {
@@ -111,43 +111,32 @@
                 throw new ArgumentNullException(nameof(updatedJob));
             }
 
-            using var transaction = this.JobsDbContext.Database.BeginTransaction();
+            using var transaction = this.databaseContext.Database.BeginTransaction();
 
             try
             {
-                Job? existing = this.JobsDbContext.Jobs
-                    .Include(j => j.JobSkills)
-                    .FirstOrDefault(j => j.JobId == jobId);
+                Job? existingJob = this.databaseContext.Jobs
+                    .Include(job => job.JobSkills)
+                    .FirstOrDefault(job => job.JobId == jobId);
 
-                if (existing == null)
+                if (existingJob == null)
                 {
                     return false;
                 }
 
-                // Update scalar fields; CompanyId, PostedAt, Photo and JobRole are preserved.
-                existing.JobTitle = updatedJob.JobTitle;
-                existing.IndustryField = updatedJob.IndustryField;
-                existing.JobType = updatedJob.JobType;
-                existing.ExperienceLevel = updatedJob.ExperienceLevel;
-                existing.JobLocation = updatedJob.JobLocation;
-                existing.JobDescription = updatedJob.JobDescription;
-                existing.AvailablePositions = updatedJob.AvailablePositions;
-                existing.Salary = updatedJob.Salary;
-                existing.StartDate = updatedJob.StartDate;
-                existing.EndDate = updatedJob.EndDate;
-                existing.Deadline = updatedJob.Deadline;
-                existing.AmountPayed = updatedJob.AmountPayed ?? existing.AmountPayed;
+                // Update scalar fields only; CompanyId and PostedAt are preserved
+                existingJob.JobTitle = updatedJob.JobTitle;
+                existingJob.JobDescription = updatedJob.JobDescription;
+                existingJob.AmountPayed = updatedJob.AmountPayed ?? existingJob.AmountPayed;
 
-                // Replace skill links only when the caller actually supplies them; otherwise
-                // preserve the existing links (e.g. the web Edit form has no skills editor and
-                // would otherwise wipe them on every save).
-                if (skillLinks != null && skillLinks.Count > 0)
+                // Replace skill links: remove old ones, insert new ones
+                if (existingJob.JobSkills != null)
                 {
-                    if (existing.JobSkills != null)
-                    {
-                        this.JobsDbContext.JobSkills.RemoveRange(existing.JobSkills);
-                    }
+                    this.databaseContext.JobSkills.RemoveRange(existingJob.JobSkills);
+                }
 
+                if (skillLinks != null)
+                {
                     foreach (var (skillId, percentage) in skillLinks)
                     {
                         if (percentage < MinimumSkillPercentage || percentage > MaximumSkillPercentage)
@@ -155,7 +144,7 @@
                             continue;
                         }
 
-                        this.JobsDbContext.JobSkills.Add(new JobSkill
+                        this.databaseContext.JobSkills.Add(new JobSkill
                         {
                             JobId = jobId,
                             SkillId = skillId,
@@ -164,7 +153,7 @@
                     }
                 }
 
-                this.JobsDbContext.SaveChanges();
+                this.databaseContext.SaveChanges();
                 transaction.Commit();
                 return true;
             }
@@ -178,76 +167,54 @@
         /// <inheritdoc />
         public int GetApplicantCount(int jobId)
         {
-            return this.JobsDbContext.Matches
-                .Count(match => EF.Property<int>(match, "JobId") == jobId);
+            return this.databaseContext.Matches
+                .Count(m => EF.Property<int>(m, "JobId") == jobId);
         }
 
         /// <inheritdoc />
         public JobDeleteResult DeleteJob(int jobId, bool force)
         {
-            using var transaction = this.JobsDbContext.Database.BeginTransaction();
+            using var transaction = this.databaseContext.Database.BeginTransaction();
 
             try
             {
-                Job? job = this.JobsDbContext.Jobs
-                    .Include(j => j.JobSkills)
-                    .FirstOrDefault(j => j.JobId == jobId);
+                Job? job = this.databaseContext.Jobs
+                    .Include(job => job.JobSkills)
+                    .FirstOrDefault(job => job.JobId == jobId);
 
                 if (job == null)
                 {
                     return JobDeleteResult.NotFound;
                 }
 
-                // Applicants (Match records) are real application history; only remove them when the
-                // caller explicitly forces a cascade delete.
-                List<Match> applicants = this.JobsDbContext.Matches
-                    .Where(match => EF.Property<int>(match, "JobId") == jobId)
-                    .ToList();
-
-                if (applicants.Count > 0 && !force)
+                var applicantCount = this.databaseContext.Matches
+                    .Count(m => EF.Property<int>(m, "JobId") == jobId);
+                if (applicantCount > 0 && !force)
                 {
                     return JobDeleteResult.HasApplicants;
                 }
 
-                if (applicants.Count > 0)
+                if (applicantCount > 0)
                 {
-                    this.JobsDbContext.Matches.RemoveRange(applicants);
+                    var matches = this.databaseContext.Matches
+                        .Where(m => EF.Property<int>(m, "JobId") == jobId);
+                    this.databaseContext.Matches.RemoveRange(matches);
                 }
 
-                // Recommendations are derived data; always remove them so the FK does not block.
-                List<Recommendation> recommendations = this.JobsDbContext.Recommendations
-                    .Where(recommendation => EF.Property<int>(recommendation, "JobId") == jobId)
-                    .ToList();
-                if (recommendations.Count > 0)
-                {
-                    this.JobsDbContext.Recommendations.RemoveRange(recommendations);
-                }
-
-                // Chats are kept but unlinked from the job (nullable FK).
-                List<Chat> linkedChats = this.JobsDbContext.Chats
-                    .Where(chat => EF.Property<int?>(chat, "JobId") == jobId)
-                    .ToList();
-                foreach (Chat chat in linkedChats)
-                {
-                    chat.Job = null;
-                }
-
-                // Remove skill links first to respect FK constraints
                 if (job.JobSkills != null)
                 {
-                    this.JobsDbContext.JobSkills.RemoveRange(job.JobSkills);
+                    this.databaseContext.JobSkills.RemoveRange(job.JobSkills);
                 }
 
-                this.JobsDbContext.Jobs.Remove(job);
+                this.databaseContext.Jobs.Remove(job);
 
-                // Decrement the company's posted job count
-                var company = this.JobsDbContext.Companies.Find(job.CompanyId);
+                var company = this.databaseContext.Companies.Find(job.CompanyId);
                 if (company != null && company.PostedJobsCount > 0)
                 {
                     company.PostedJobsCount -= 1;
                 }
 
-                this.JobsDbContext.SaveChanges();
+                this.databaseContext.SaveChanges();
                 transaction.Commit();
                 return JobDeleteResult.Deleted;
             }
@@ -259,4 +226,3 @@
         }
     }
 }
-

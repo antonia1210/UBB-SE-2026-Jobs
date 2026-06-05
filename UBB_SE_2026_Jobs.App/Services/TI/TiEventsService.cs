@@ -10,6 +10,7 @@ public interface ITiEventsService
     Task<TiEventDto?> CreateAsync(TiEventDto dto);
     Task UpdateAsync(int id, TiEventDto dto);
     Task DeleteAsync(int id);
+    Task<List<TiCollaboratorDto>> GetCollaboratorsAsync(int eventId);
 }
 
 public class TiEventsService : ITiEventsService
@@ -49,5 +50,12 @@ public class TiEventsService : ITiEventsService
     {
         var response = await http.DeleteAsync($"api/events/{id}");
         response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<List<TiCollaboratorDto>> GetCollaboratorsAsync(int eventId)
+    {
+        var response = await http.GetAsync($"api/collaborators/event/{eventId}");
+        if (!response.IsSuccessStatusCode) return new();
+        return await response.Content.ReadFromJsonAsync<List<TiCollaboratorDto>>() ?? new();
     }
 }

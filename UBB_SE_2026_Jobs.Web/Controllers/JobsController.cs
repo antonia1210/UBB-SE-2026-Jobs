@@ -2,11 +2,11 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 {
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Security.Claims;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using UBB_SE_2026_Jobs.Library.Services;
     using UBB_SE_2026_Jobs.Web.Clients;
     using UBB_SE_2026_Jobs.Web.Dtos;
     using UBB_SE_2026_Jobs.Web.Infrastructure;
@@ -29,13 +29,20 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         }
 
         /// <summary>
-        /// Displays the list of all job postings.
+        /// Displays the job postings for the recruiter's company.
         /// </summary>
+        [Authorize(Roles = "Recruiter")]
         public async Task<IActionResult> Index()
         {
             this.AttachJwt();
-            List<JobPostingDto> jobs = await this.jobsApiClient.GetAllJobsAsync();
-            return this.View(jobs);
+            var companyIdClaim = this.User.FindFirstValue("CompanyId");
+            if (int.TryParse(companyIdClaim, NumberStyles.Integer, CultureInfo.InvariantCulture, out int companyId))
+            {
+                List<JobPostingDto> jobs = await this.jobsApiClient.GetJobsByCompanyIdAsync(companyId);
+                return this.View(jobs);
+            }
+
+            return this.Forbid();
         }
 
         /// <summary>
@@ -175,7 +182,6 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
                 return this.NotFound();
             }
 
-            this.ViewBag.ApplicantCount = await this.jobsApiClient.GetApplicantCountAsync(id);
             return this.View(job);
         }
 
@@ -187,31 +193,11 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         [ValidateAntiForgeryToken]
         [ActionName("Delete")]
         [Authorize(Roles = "Recruiter")]
-        public async Task<IActionResult> DeleteConfirmed(int id, bool force)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             this.AttachJwt();
-            JobDeleteResult result = await this.jobsApiClient.DeleteJobAsync(id, force);
-
-            if (result == JobDeleteResult.Deleted)
-            {
-                return this.RedirectToAction(nameof(this.Index));
-            }
-
-            if (result == JobDeleteResult.NotFound)
-            {
-                return this.NotFound();
-            }
-
-            // HasApplicants and force was not granted: re-show the page with the warning so the
-            // recruiter can choose to delete anyway.
-            JobPostingDto? job = await this.jobsApiClient.GetJobByIdAsync(id);
-            if (job == null)
-            {
-                return this.NotFound();
-            }
-
-            this.ViewBag.ApplicantCount = await this.jobsApiClient.GetApplicantCountAsync(id);
-            return this.View(job);
+            await this.jobsApiClient.DeleteJobAsync(id);
+            return this.RedirectToAction(nameof(this.Index));
         }
 
         /// <summary>

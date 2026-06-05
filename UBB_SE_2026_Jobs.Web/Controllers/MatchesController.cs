@@ -1,10 +1,10 @@
 using System.Net;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.Services.Matches;
-using UBB_SE_2026_Jobs.Web.Configuration;
 using UBB_SE_2026_Jobs.Web.Models;
 
 namespace UBB_SE_2026_Jobs.Web.Controllers;
@@ -13,17 +13,15 @@ namespace UBB_SE_2026_Jobs.Web.Controllers;
 public class MatchesController : Controller
 {
     private readonly IMatchService matches;
-    private readonly ApiConfiguration apiConfiguration;
 
-    public MatchesController(IMatchService matches, ApiConfiguration apiConfiguration)
+    public MatchesController(IMatchService matches)
     {
         this.matches = matches;
-        this.apiConfiguration = apiConfiguration;
     }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var companyMatches = await matches.GetByCompanyIdAsync(apiConfiguration.TemporaryCompanyId, cancellationToken);
+        var companyMatches = await matches.GetByCompanyIdAsync(GetCompanyId(), cancellationToken);
         return View(companyMatches);
     }
 
@@ -130,6 +128,14 @@ public class MatchesController : Controller
     {
         return exception is ArgumentException or InvalidOperationException
             || exception is HttpRequestException { StatusCode: HttpStatusCode.BadRequest or HttpStatusCode.UnprocessableEntity };
+    }
+
+    private int GetCompanyId()
+    {
+        var value = User.FindFirstValue("CompanyId");
+        if (string.IsNullOrWhiteSpace(value) || !int.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, out var companyId))
+            throw new InvalidOperationException("Recruiter session is missing a company ID.");
+        return companyId;
     }
 
     private static string FormatUserName(User? user)

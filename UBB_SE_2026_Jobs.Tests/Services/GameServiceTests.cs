@@ -1,4 +1,4 @@
-﻿using NSubstitute;
+using NSubstitute;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
 using UBB_SE_2026_Jobs.Library.Services;
@@ -27,8 +27,8 @@ public class GameServiceTests
     {
         var buddy = new Buddy(makeGameBuddyId, makeGameBuddyName, makeGameBuddyIntroduction);
         var scenario = new Scenario(makeGameScenarioDescription);
-        scenario.AddChoice(new AdviceChoice(makeGameFirstAdvice, makeGameFirstAdviceQuality));
-        scenario.AddChoice(new AdviceChoice(makeGameSecondAdvice, makeGameSecondAdviceQuality));
+        scenario.Choices.Add(new AdviceChoice(makeGameFirstAdvice, makeGameFirstAdviceQuality));
+        scenario.Choices.Add(new AdviceChoice(makeGameSecondAdvice, makeGameSecondAdviceQuality));
 
         return new Game(buddy, new List<Scenario> { scenario }, makeGameConclusion, published);
     }
@@ -261,6 +261,6 @@ public class GameServiceTests
         var result = gameService.CreateGameFromInput(gameId, "Alex", "Hi", scenarios, "Done");
 
         Assert.Single(result.Scenarios);
-        Assert.Empty(result.Scenarios[0].GetAdviceTexts());
+        Assert.Empty(result.Scenarios[0].Choices);
     }
 }

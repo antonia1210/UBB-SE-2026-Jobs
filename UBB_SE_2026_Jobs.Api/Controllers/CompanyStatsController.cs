@@ -20,7 +20,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
         {
             var (skillNames, percents) = await this._service.GetSkillsTop3Async(companyId);
 
-            if (skillNames == null || skillNames.Count == 0)
+            if (skillNames == null || !skillNames.Any())
                 return NotFound($"No skills found for company ID {companyId}.");
 
             return Ok(new { SkillNames = skillNames, Percents = percents });

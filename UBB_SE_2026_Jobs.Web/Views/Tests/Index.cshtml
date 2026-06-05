@@ -15,19 +15,11 @@
     <div class="p-4 rounded mb-4" style="background:#F0EEFF;">
         <h5 class="fw-semibold text-dark mb-2">Test Information</h5>
         <p class="text-secondary small mb-0">
-            Each test contains 25 questions and must be completed within 30 minutes.
-            Tests can only be taken once and cannot be retaken after completion.
+            Each test must be completed within 30 minutes.
+            Tests are replayable — you can retake them as many times as you like.
+            Your highest score counts on the leaderboard.
         </p>
     </div>
-
-    @if (User.IsInRole("Admin") || User.IsInRole("Recruiter"))
-    {
-        <a asp-controller="Tests"
-           asp-action="Create"
-           class="btn btn-success mb-4">
-            + Create New Test
-        </a>
-    }
 
     <div class="row g-4">
         @foreach (var test in Model.Tests)
@@ -74,40 +66,12 @@
 
                         @if (User.IsInRole("Candidate"))
                         {
-                            @if (test.HasBeenTaken)
-                            {
-                                <button class="btn btn-secondary w-100 mb-2" disabled>
-                                    Already Completed
-                                </button>
-                            }
-                            else
-                            {
-                                <a asp-controller="Tests"
-                                   asp-action="Start"
-                                   asp-route-id="@test.TestId"
-                                   class="btn btn-primary w-100 mb-2">
-                                    Start Test
-                                </a>
-                            }
-                        }
-
-                        @if (User.IsInRole("Admin") || User.IsInRole("Recruiter"))
-                        {
-                            <div class="d-flex gap-2">
-                                <a asp-controller="Tests"
-                                   asp-action="Edit"
-                                   asp-route-id="@test.TestId"
-                                   class="btn btn-warning btn-sm w-50">
-                                    Edit
-                                </a>
-
-                                <a asp-controller="Tests"
-                                   asp-action="Delete"
-                                   asp-route-id="@test.TestId"
-                                   class="btn btn-danger btn-sm w-50">
-                                    Delete
-                                </a>
-                            </div>
+                            <a asp-controller="Tests"
+                               asp-action="Start"
+                               asp-route-id="@test.TestId"
+                               class="btn @(test.HasBeenTaken ? "btn-outline-primary" : "btn-primary") w-100 mb-2">
+                                @(test.HasBeenTaken ? "Retake Test" : "Start Test")
+                            </a>
                         }
 
                     </div>

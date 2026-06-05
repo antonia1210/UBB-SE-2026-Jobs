@@ -39,18 +39,16 @@
                           Padding="16,12" CornerRadius="8,8,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="140"/>
+                            <ColumnDefinition Width="200"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="User ID" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="1" Text="Status" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="2" Text="App Grade" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="3" Text="CV Grade" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="4" Text="Interview" FontWeight="SemiBold"/>
-                        <TextBlock Grid.Column="5" Text="Applied" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="0" Text="Candidate" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="1" Text="Email" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="2" Text="Status" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="3" Text="Applied" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="4" Text="Feedback" FontWeight="SemiBold"/>
                     </Grid>
 
                     <ListView ItemsSource="{x:Bind ViewModel.Applicants, Mode=OneWay}"
@@ -60,18 +58,20 @@
                                 <Grid Padding="16,10" BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="200"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding UserId}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding ApplicationStatus}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="2" Text="{Binding AppTestGrade}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="3" Text="{Binding CvGrade}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="4" Text="{Binding InterviewGrade}" VerticalAlignment="Center"/>
-                                    <TextBlock Grid.Column="5" Text="{Binding AppliedAt}" VerticalAlignment="Center" FontSize="12"/>
+                                    <TextBlock Grid.Column="0" Text="{Binding CandidateName}" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Email}" VerticalAlignment="Center" FontSize="12"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Status}" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="3" Text="{Binding AppliedAt}" VerticalAlignment="Center" FontSize="12"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                    <TextBlock Grid.Column="4" Text="{Binding FeedbackMessage}" VerticalAlignment="Center" FontSize="12"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextWrapping="WrapWholeWords" MaxLines="2"/>
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>

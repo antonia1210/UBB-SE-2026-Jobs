@@ -12,6 +12,7 @@ using UBB_SE_2026_Jobs.Library.Services.CooldownService;
 using UBB_SE_2026_Jobs.Library.Services.RecommendationAlgorithm;
 using UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
 using System.Security.Cryptography;
+using UBB_SE_2026_Jobs.Library.Services.UserRecommendations;
 
 namespace UBB_SE_2026_Jobs.Tests.Services;
 

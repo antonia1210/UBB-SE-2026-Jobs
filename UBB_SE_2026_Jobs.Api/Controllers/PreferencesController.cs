@@ -11,39 +11,39 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 [Route("api/preferences")]
 public class PreferencesController : ControllerBase
 {
-    private readonly IPreferenceService preferences;
+    private readonly IPreferenceService preferenceService;
 
-    public PreferencesController(IPreferenceService preferences)
+    public PreferencesController(IPreferenceService preferenceService)
     {
-        this.preferences = preferences;
+        this.preferenceService = preferenceService;
     }
 
     [HttpGet("{userId:int}")]
     public async Task<ActionResult<UserPreferences>> GetByUserId(int userId, CancellationToken cancellationToken)
     {
-        var result = await preferences.GetByUserIdAsync(userId, cancellationToken);
-        return Ok(result);
+        var userPreferences = await preferenceService.GetByUserIdAsync(userId, cancellationToken);
+        return Ok(userPreferences);
     }
 
     [HttpPut("{userId:int}")]
-    public async Task<IActionResult> Save(int userId, [FromBody] SavePreferencesRequest body, CancellationToken cancellationToken)
+    public async Task<IActionResult> Save(int userId, [FromBody] SavePreferencesRequest savePreferencesRequest, CancellationToken cancellationToken)
     {
         try
         {
-            await preferences.SavePreferencesAsync(userId, body.Roles, body.WorkMode, body.Location, cancellationToken);
+            await preferenceService.SavePreferencesAsync(userId, savePreferencesRequest.Roles, savePreferencesRequest.WorkMode, savePreferencesRequest.Location, cancellationToken);
             return NoContent();
         }
-        catch (ArgumentException exception)
+        catch (ArgumentException argumentException)
         {
-            return ValidationProblem(exception.Message);
+            return ValidationProblem(argumentException.Message);
         }
     }
 
     [HttpGet("locations")]
     public async Task<ActionResult<IReadOnlyList<string>>> SearchLocations([FromQuery] string locationsQuery, CancellationToken cancellationToken)
     {
-        var matches = await preferences.SearchLocationsAsync(locationsQuery ?? string.Empty, cancellationToken);
-        return Ok(matches);
+        var matchingLocations = await preferenceService.SearchLocationsAsync(locationsQuery ?? string.Empty, cancellationToken);
+        return Ok(matchingLocations);
     }
 
     public sealed record SavePreferencesRequest(
@@ -51,4 +51,3 @@ public class PreferencesController : ControllerBase
         WorkMode WorkMode,
         string Location);
 }
-

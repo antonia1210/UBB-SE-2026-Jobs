@@ -26,7 +26,7 @@ public sealed partial class TiJobsPage : Page
         base.OnNavigatedTo(e);
         var session = App.Services.GetRequiredService<SessionContext>();
         PostJobButton.Visibility = session.Mode == AppMode.Company ? Visibility.Visible : Visibility.Collapsed;
-        await ViewModel.LoadAsync();
+        await ViewModel.LoadAsync(session.CompanyId);
     }
 
     private void CreateJob_Click(object sender, RoutedEventArgs e)

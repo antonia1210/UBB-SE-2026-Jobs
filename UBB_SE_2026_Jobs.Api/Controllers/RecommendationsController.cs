@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Services.Recommendations;
+using UBB_SE_2026_Jobs.Library.Services.UserRecommendations;
 using UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
 
 namespace UBB_SE_2026_Jobs.Api.Controllers;
@@ -11,19 +12,19 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 [Route("api/recommendations")]
 public class RecommendationsController : ControllerBase
 {
-    private readonly IRecommendationService recommendations;
-    private readonly IUserRecommendationService userRecommendationService; // Injected matchmaking service
+    private readonly IRecommendationService recommendationService;
+    private readonly IUserRecommendationService userRecommendationService;
 
-    public RecommendationsController(IRecommendationService recommendations, IUserRecommendationService userRecommendationService)
+    public RecommendationsController(IRecommendationService recommendationService, IUserRecommendationService userRecommendationService)
     {
-        this.recommendations = recommendations;
+        this.recommendationService = recommendationService;
         this.userRecommendationService = userRecommendationService;
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    [HttpGet("{recommendationId}")]
+    public async Task<IActionResult> GetById(int recommendationId, CancellationToken cancellationToken)
     {
-        var recommendation = await recommendations.GetByIdAsync(id, cancellationToken);
+        var recommendation = await recommendationService.GetByIdAsync(recommendationId, cancellationToken);
         return recommendation is null ? NotFound() : Ok(recommendation);
     }
 
@@ -32,34 +33,34 @@ public class RecommendationsController : ControllerBase
     {
         if (userId.HasValue && jobId.HasValue)
         {
-            var recommendation = await recommendations.GetLatestForUserAndJobAsync(userId.Value, jobId.Value, cancellationToken);
+            var recommendation = await recommendationService.GetLatestForUserAndJobAsync(userId.Value, jobId.Value, cancellationToken);
             return Ok(recommendation);
         }
 
-        return Ok(await recommendations.GetAllAsync(cancellationToken));
+        return Ok(await recommendationService.GetAllAsync(cancellationToken));
     }
 
     [HttpPost]
-    public async Task<IActionResult> Add([FromBody] CreateRecommendationRequest body, CancellationToken cancellationToken)
+    public async Task<IActionResult> Add([FromBody] CreateRecommendationRequest createRecommendationRequest, CancellationToken cancellationToken)
     {
         try
         {
-            DateTime? timestamp = body.Timestamp == default ? null : body.Timestamp;
-            var saved = await recommendations.AddAsync(body.UserId, body.JobId, timestamp, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = saved.RecommendationId }, saved);
+            DateTime? timestamp = createRecommendationRequest.Timestamp == default ? null : createRecommendationRequest.Timestamp;
+            var savedRecommendation = await recommendationService.AddAsync(createRecommendationRequest.UserId, createRecommendationRequest.JobId, timestamp, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { recommendationId = savedRecommendation.RecommendationId }, savedRecommendation);
         }
-        catch (KeyNotFoundException exception)
+        catch (KeyNotFoundException keyNotFoundException)
         {
-            return NotFound(exception.Message);
+            return NotFound(keyNotFoundException.Message);
         }
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateRecommendationRequest body, CancellationToken cancellationToken)
+    [HttpPut("{recommendationId}")]
+    public async Task<IActionResult> Update(int recommendationId, [FromBody] UpdateRecommendationRequest updateRecommendationRequest, CancellationToken cancellationToken)
     {
         try
         {
-            await recommendations.UpdateTimestampAsync(id, body.Timestamp, cancellationToken);
+            await recommendationService.UpdateTimestampAsync(recommendationId, updateRecommendationRequest.Timestamp, cancellationToken);
             return NoContent();
         }
         catch (KeyNotFoundException)
@@ -68,13 +69,13 @@ public class RecommendationsController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Remove(int id, CancellationToken cancellationToken)
+    [HttpDelete("{recommendationId}")]
+    public async Task<IActionResult> Remove(int recommendationId, CancellationToken cancellationToken)
     {
-        if (await recommendations.GetByIdAsync(id, cancellationToken) is null)
+        if (await recommendationService.GetByIdAsync(recommendationId, cancellationToken) is null)
             return NotFound();
 
-        await recommendations.RemoveAsync(id, cancellationToken);
+        await recommendationService.RemoveAsync(recommendationId, cancellationToken);
         return NoContent();
     }
 
@@ -108,9 +109,9 @@ public class RecommendationsController : ControllerBase
             int matchId = await userRecommendationService.ApplyLikeAsync(userId, card, cancellationToken);
             return Ok(matchId);
         }
-        catch (InvalidOperationException exception)
+        catch (InvalidOperationException invalidOperationException)
         {
-            return BadRequest(exception.Message);
+            return BadRequest(invalidOperationException.Message);
         }
     }
 
@@ -138,4 +139,3 @@ public class RecommendationsController : ControllerBase
     public record CreateRecommendationRequest(int UserId, int JobId, DateTime Timestamp);
     public record UpdateRecommendationRequest(DateTime Timestamp);
 }
-

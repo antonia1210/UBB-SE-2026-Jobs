@@ -1,9 +1,9 @@
-using System.Text;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
+using System.Text.Json.Serialization;
 using UBB_SE_2026_Jobs.Library.Persistence;
 using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
@@ -16,14 +16,14 @@ using UBB_SE_2026_Jobs.Library.Repositories.Messages;
 using UBB_SE_2026_Jobs.Library.Repositories.PersonalityTests;
 using UBB_SE_2026_Jobs.Library.Repositories.Recommendations;
 using UBB_SE_2026_Jobs.Library.Repositories.Skills;
-using UBB_SE_2026_Jobs.Library.Repositories.SkillTests;
 using UBB_SE_2026_Jobs.Library.Repositories.Users;
 using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.ChatService;
 using UBB_SE_2026_Jobs.Library.Services.CompanyRecommendationService;
-using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 using UBB_SE_2026_Jobs.Library.Services.CompanyStatusService;
 using UBB_SE_2026_Jobs.Library.Services.CompatibilityService;
+using UBB_SE_2026_Jobs.Library.Services.Completeness;
 using UBB_SE_2026_Jobs.Library.Services.CompletenessService;
 using UBB_SE_2026_Jobs.Library.Services.CooldownService;
 using UBB_SE_2026_Jobs.Library.Services.CvParsing;
@@ -38,18 +38,24 @@ using UBB_SE_2026_Jobs.Library.Services.Matches;
 using UBB_SE_2026_Jobs.Library.Services.PdfExport;
 using UBB_SE_2026_Jobs.Library.Services.PersonalityTestService;
 using UBB_SE_2026_Jobs.Library.Services.Preferences;
+using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
 using UBB_SE_2026_Jobs.Library.Services.RecommendationAlgorithm;
 using UBB_SE_2026_Jobs.Library.Services.Recommendations;
 using UBB_SE_2026_Jobs.Library.Services.SkillGapService;
 using UBB_SE_2026_Jobs.Library.Services.Skills;
 using UBB_SE_2026_Jobs.Library.Services.SkillTests;
 using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
+using UBB_SE_2026_Jobs.Library.Services.UserRecommendations;
 using UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
 using UBB_SE_2026_Jobs.Library.Services.Users;
 using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // Add services to the container.
 builder.Services.AddControllers(options =>
@@ -103,7 +109,6 @@ builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IJobSkillRepository, JobSkillRepository>();
 builder.Services.AddScoped<IUserSkillRepository, UserSkillRepository>();
 builder.Services.AddScoped<ISkillGroupRepository, SkillGroupRepository>();
-builder.Services.AddScoped<ISkillTestRepository, SkillTestRepository>();
 builder.Services.AddScoped<IPersonalityTestRepository, PersonalityTestRepository>();
 builder.Services.AddScoped<IRecommendationRepository, RecommendationRepository>();
 

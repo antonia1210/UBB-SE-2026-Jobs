@@ -40,7 +40,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (applicants is null || !applicants.Any())
                 return NotFound($"No applicants found for company ID {companyId}.");
 
-            return Ok(applicants.Select(a => a.ToDto()).ToList());
+            return Ok(applicants.Select(applicant => applicant.ToDto()).ToList());
         }
 
         [HttpGet("byjob/{jobId}")]
@@ -52,7 +52,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (applicants is null || !applicants.Any())
                 return NotFound($"No applicants found for job ID {jobId}.");
 
-            return Ok(applicants.Select(a => a.ToDto()).ToList());
+            return Ok(applicants.Select(applicant => applicant.ToDto()).ToList());
         }
 
         [HttpPost]

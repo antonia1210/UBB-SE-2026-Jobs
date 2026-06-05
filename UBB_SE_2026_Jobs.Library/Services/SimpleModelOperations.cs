@@ -1,5 +1,6 @@
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.Library.DTOs;
 
 namespace UBB_SE_2026_Jobs.Library.Services;
 
@@ -20,7 +21,31 @@ public static class SimpleModelOperations
     public const int Level4ExperiencePoints = 500;
     public const int Level5ExperiencePoints = 800;
 
-    public static int GetExperiencePoints(SkillTest skillTest)
+    public static readonly int[] LevelThresholds = new[]
+    {
+        Level1ExperiencePoints,
+        Level2ExperiencePoints,
+        Level3ExperiencePoints,
+        Level4ExperiencePoints,
+        Level5ExperiencePoints,
+    };
+
+    public static int CalculateLevelProgress(int xp, int level)
+    {
+        int bandIndex = Math.Clamp(level - 1, 0, LevelThresholds.Length - 2);
+        int start = LevelThresholds[bandIndex];
+        int end = LevelThresholds[bandIndex + 1];
+        if (end <= start) return 100;
+        return (int)Math.Clamp((xp - start) * 100.0 / (end - start), 0, 100);
+    }
+
+    public static int CalculateXpToNextLevel(int xp, int level)
+    {
+        if (level >= LevelThresholds.Length) return 0;
+        return Math.Max(0, LevelThresholds[level] - xp);
+    }
+
+    public static int GetExperiencePoints(SkillTestViewDto skillTest)
     {
         if (skillTest.Score >= GoldScoreThreshold)
         {
@@ -42,26 +67,13 @@ public static class SimpleModelOperations
 
     public static int CalculateLevelNumber(int experiencePoints)
     {
-        if (experiencePoints >= Level5ExperiencePoints)
+        for (int i = LevelThresholds.Length - 1; i >= 0; i--)
         {
-            return 5;
+            if (experiencePoints >= LevelThresholds[i])
+            {
+                return i + 1;
+            }
         }
-
-        if (experiencePoints >= Level4ExperiencePoints)
-        {
-            return 4;
-        }
-
-        if (experiencePoints >= Level3ExperiencePoints)
-        {
-            return 3;
-        }
-
-        if (experiencePoints >= Level2ExperiencePoints)
-        {
-            return 2;
-        }
-
         return 1;
     }
 

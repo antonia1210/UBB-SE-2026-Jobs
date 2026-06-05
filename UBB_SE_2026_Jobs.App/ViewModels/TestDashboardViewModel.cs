@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using UBB_SE_2026_Jobs.App.Configuration;
+using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.App.Services.TI;
 using UBB_SE_2026_Jobs.Library.Domain;
 
@@ -42,34 +43,39 @@ public class TestDashboardViewModel : DispatchableObservableObject
 
         try
         {
-            var tests = await tiTestService.GetAllAsync();
+            var attempts = await tiTestService.GetAttemptsByUserAsync(userId);
 
+            // Build one card per attempt (multiple attempts per test are shown individually).
             var cards = new List<SkillTestCardViewModel>();
-            foreach (var test in tests)
-            {
-                // No "all attempts for a user" endpoint on the TI API — fetch the single
-                // attempt per test (≈5 tests, acceptable fan-out).
-                var attempt = await tiTestService.GetAttemptByUserAndTestAsync(userId, test.Id);
+            var testCache = new Dictionary<int, TiTestDto?>();
+            var questionCountCache = new Dictionary<int, float>();
 
-                // The attempt's Score is raw earned points; the card converts it to a real
-                // percentage using the test's max possible score (sum of question scores).
-                float maxPossibleScore = 0f;
-                if (attempt is not null)
+            foreach (var attempt in attempts)
+            {
+                if (!testCache.TryGetValue(attempt.TestId, out var test))
+                {
+                    test = await tiTestService.GetByIdAsync(attempt.TestId);
+                    testCache[attempt.TestId] = test;
+                }
+                if (test is null) continue;
+
+                if (!questionCountCache.TryGetValue(attempt.TestId, out float maxScore))
                 {
                     var questions = await tiTestService.GetQuestionsByTestIdAsync(test.Id);
-                    maxPossibleScore = questions.Sum(question => question.QuestionScore);
+                    maxScore = questions.Sum(q => q.QuestionScore);
+                    questionCountCache[attempt.TestId] = maxScore;
                 }
 
-                cards.Add(new SkillTestCardViewModel(test, attempt, maxPossibleScore));
+                cards.Add(new SkillTestCardViewModel(test, attempt, maxScore));
             }
 
             TestCards = cards;
-            ErrorMessage = cards.Count == 0 ? "No skill tests are available yet." : null;
+            ErrorMessage = cards.Count == 0 ? "No completed test attempts yet." : null;
         }
         catch (Exception exception)
         {
             TestCards = new List<SkillTestCardViewModel>();
-            ErrorMessage = $"Couldn't load skill tests. Is the Tests service running? ({exception.Message})";
+            ErrorMessage = $"Couldn't load skill tests. ({exception.Message})";
         }
     }
 }

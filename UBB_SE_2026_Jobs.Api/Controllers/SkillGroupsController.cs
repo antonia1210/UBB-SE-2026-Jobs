@@ -10,20 +10,19 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 [Route("api/skill-groups")]
 public class SkillGroupsController : ControllerBase
 {
-    private readonly ISkillGroupRepository skillGroups;
+    private readonly ISkillGroupRepository skillGroupRepository;
 
-    public SkillGroupsController(ISkillGroupRepository skillGroups)
+    public SkillGroupsController(ISkillGroupRepository skillGroupRepository)
     {
-        this.skillGroups = skillGroups;
+        this.skillGroupRepository = skillGroupRepository;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] JobRole? jobRole, CancellationToken cancellationToken)
     {
         if (jobRole.HasValue)
-            return Ok(await skillGroups.GetByJobRoleAsync(jobRole.Value, cancellationToken));
+            return Ok(await skillGroupRepository.GetByJobRoleAsync(jobRole.Value, cancellationToken));
 
-        return Ok(await skillGroups.GetAllAsync(cancellationToken));
+        return Ok(await skillGroupRepository.GetAllAsync(cancellationToken));
     }
 }
-

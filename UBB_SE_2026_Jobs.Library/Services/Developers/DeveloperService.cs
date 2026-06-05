@@ -5,11 +5,25 @@ namespace UBB_SE_2026_Jobs.Library.Services.Developers;
 
 public sealed class DeveloperService : IDeveloperService
 {
+    private const int DeveloperAndrewId = 1;
+    private const int DeveloperVarisId = 2;
+    private const int DeveloperClavicularId = 3;
+
+    private const string DeveloperAndrewName = "Andrew";
+    private const string DeveloperVarisName = "Varis";
+    private const string DeveloperClavicularName = "Clavicular";
+
+    private const string SeedWeightedDistanceScoreWeightValue = "35";
+    private const string SeedRelevantKeywordValue = "internship";
+    private const string SeedMitigationFactorValue = "2.5";
+
+    private const int SeedPostMinutesOffsetMultiplier = 12;
+
     private readonly List<Developer> developers =
     [
-        new Developer { DeveloperId = 1, Name = "Andrew" },
-        new Developer { DeveloperId = 2, Name = "Varis" },
-        new Developer { DeveloperId = 3, Name = "Clavicular" },
+        new Developer { DeveloperId = DeveloperAndrewId, Name = DeveloperAndrewName },
+        new Developer { DeveloperId = DeveloperVarisId, Name = DeveloperVarisName },
+        new Developer { DeveloperId = DeveloperClavicularId, Name = DeveloperClavicularName },
     ];
 
     private readonly List<DeveloperPost> posts = new();
@@ -19,12 +33,12 @@ public sealed class DeveloperService : IDeveloperService
 
     public DeveloperService()
     {
-        SeedPost(2, DeveloperPostParameterType.WeightedDistanceScoreWeight, "35");
-        SeedPost(3, DeveloperPostParameterType.RelevantKeyword, "internship");
-        SeedPost(1, DeveloperPostParameterType.MitigationFactor, "2.5");
-        SeedInteraction(1, 1, DeveloperInteractionType.Like);
-        SeedInteraction(2, 2, DeveloperInteractionType.Like);
-        SeedInteraction(3, 1, DeveloperInteractionType.Dislike);
+        SeedPost(DeveloperVarisId, DeveloperPostParameterType.WeightedDistanceScoreWeight, SeedWeightedDistanceScoreWeightValue);
+        SeedPost(DeveloperClavicularId, DeveloperPostParameterType.RelevantKeyword, SeedRelevantKeywordValue);
+        SeedPost(DeveloperAndrewId, DeveloperPostParameterType.MitigationFactor, SeedMitigationFactorValue);
+        SeedInteraction(DeveloperAndrewId, DeveloperAndrewId, DeveloperInteractionType.Like);
+        SeedInteraction(DeveloperVarisId, DeveloperVarisId, DeveloperInteractionType.Like);
+        SeedInteraction(DeveloperClavicularId, DeveloperAndrewId, DeveloperInteractionType.Dislike);
     }
 
     public Task<IReadOnlyList<DeveloperPost>> GetPostsAsync(CancellationToken cancellationToken = default)
@@ -104,7 +118,7 @@ public sealed class DeveloperService : IDeveloperService
             Developer = new Developer { DeveloperId = developerId },
             ParameterType = parameterType,
             Value = value,
-            CreatedAt = DateTime.UtcNow.AddMinutes(-nextPostId * 12),
+            CreatedAt = DateTime.UtcNow.AddMinutes(-nextPostId * SeedPostMinutesOffsetMultiplier),
         });
     }
 

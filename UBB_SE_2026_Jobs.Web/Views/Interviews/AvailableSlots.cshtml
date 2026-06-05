@@ -100,28 +100,6 @@
     }
 </div>
 
-<!-- Confirm booking modal -->
-<div class="modal fade" id="bookModal" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header" style="background:#F0EEFF;">
-                <h6 class="modal-title fw-bold">Confirm Booking</h6>
-                <button type="button" class="btn-close" onclick="hideModal()"></button>
-            </div>
-            <div class="modal-body small" id="bookModalBody"></div>
-            <div class="modal-footer">
-                <button class="btn btn-sm btn-outline-secondary" onclick="hideModal()">Cancel</button>
-                <form method="post" asp-action="BookSlot" asp-controller="Interviews" id="bookForm">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="slotId" id="bookSlotId" />
-                    <input type="hidden" name="jobId" id="bookJobId" />
-                    <button type="submit" class="btn btn-sm btn-primary">Confirm</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
 (function () {
     let selectedJobId = null;
@@ -175,7 +153,7 @@
                     <div class="fw-semibold mb-1">${slot.timeRange}</div>
                     <div class="text-muted small mb-3">${slot.duration} min</div>
                     <button class="btn btn-sm w-100 btn-primary"
-                        onclick="confirmBook(${slot.id}, '${slot.timeRange}', ${selectedJobId})">
+                        onclick="bookSlot(${slot.id}, ${selectedJobId})">
                         Book This Slot
                     </button>
                 </div>
@@ -185,18 +163,17 @@
         document.getElementById('slotsContainer').innerHTML = html;
     }
 
-    window.confirmBook = function (slotId, timeRange, jobId) {
-        document.getElementById('bookSlotId').value    = slotId;
-        document.getElementById('bookJobId').value    = jobId;
-        document.getElementById('bookModalBody').innerHTML =
-            `<p>You are about to book the <strong>${timeRange}</strong> slot.</p><p class="mb-0 text-muted">Are you sure?</p>`;
-        document.getElementById('bookModal').classList.add('show');
-        document.getElementById('bookModal').style.display = 'block';
-    };
-
-    window.hideModal = function () {
-        document.getElementById('bookModal').classList.remove('show');
-        document.getElementById('bookModal').style.display = 'none';
+    window.bookSlot = function (slotId, jobId) {
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = '/Interviews/BookSlot';
+        form.innerHTML = `
+            <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name=__RequestVerificationToken]').value}" />
+            <input type="hidden" name="slotId" value="${slotId}" />
+            <input type="hidden" name="jobId"  value="${jobId}" />
+        `;
+        document.body.appendChild(form);
+        form.submit();
     };
 
     function formatDate(iso) {

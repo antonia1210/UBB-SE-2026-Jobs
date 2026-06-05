@@ -40,6 +40,10 @@
                                                       xmlns:converters="using:UBB_SE_2026_Jobs.App.Converters"/>
             <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"
                                                    xmlns:converters="using:UBB_SE_2026_Jobs.App.Converters"/>
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"
+                                                   xmlns:converters="using:UBB_SE_2026_Jobs.App.Converters"/>
+            <converters:NonNullToVisibilityConverter x:Key="NonNullToVisibilityConverter"
+                                                   xmlns:converters="using:UBB_SE_2026_Jobs.App.Converters"/>
             <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"
                                                 xmlns:converters="using:UBB_SE_2026_Jobs.App.Converters"/>
             <converters:ChatAvatarCornerRadiusConverter x:Key="ChatAvatarCornerRadiusConverter"
