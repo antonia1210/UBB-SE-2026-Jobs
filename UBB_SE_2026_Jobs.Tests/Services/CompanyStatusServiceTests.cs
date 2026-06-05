@@ -20,7 +20,7 @@ public class CompanyStatusServiceTests
 
     public CompanyStatusServiceTests()
     {
-        var jobService = new JobService(jobRepository);
+        var jobService = new PussyCatsJobService(jobRepository);
         service = new CompanyStatusService(
             new MatchService(matchRepository, jobService, new UserService(userRepository)),
             new UserService(userRepository),

@@ -26,7 +26,7 @@ public class CompanyRecommendationServiceTests
 
     private CompanyRecommendationService BuildService()
     {
-        var jobService = new JobService(jobRepository);
+        var jobService = new PussyCatsJobService(jobRepository);
         return new CompanyRecommendationService(
             new MatchService(matchRepository, jobService, new UserService(userRepository)),
             new UserService(userRepository),

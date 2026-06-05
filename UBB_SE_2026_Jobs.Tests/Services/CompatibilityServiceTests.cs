@@ -190,10 +190,10 @@ public class CompatibilityServiceTests
     [Fact]
     public void GetSuggestions_RoleResultProvided_ReturnsRoleResultSuggestions()
     {
-        var roleResult = new PussyCats.Library.DTOs.RoleResult
+        var roleResult = new UBB_SE_2026_Jobs.Library.DTOs.RoleResult
         {
             JobRole = JobRole.BackendDeveloper,
-            Suggestions = new List<PussyCats.Library.DTOs.Suggestion>
+            Suggestions = new List<UBB_SE_2026_Jobs.Library.DTOs.Suggestion>
             {
                 new() { SkillName = "Docker", GroupName = "DevOps", GainScore = 10 },
             },

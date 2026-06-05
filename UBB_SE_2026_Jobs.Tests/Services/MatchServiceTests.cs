@@ -17,7 +17,7 @@ public class MatchServiceTests
 
     public MatchServiceTests()
     {
-        service = new MatchService(matchRepository, new JobService(jobRepository), new UserService(userRepository));
+        service = new MatchService(matchRepository, new PussyCatsJobService(jobRepository), new UserService(userRepository));
     }
 
     [Theory]
