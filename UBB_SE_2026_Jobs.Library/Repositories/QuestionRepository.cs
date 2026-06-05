@@ -41,5 +41,13 @@
                     && question.PositionId == positionId)
                 .ToListAsync();
         }
+
+        /// <inheritdoc />
+        public async Task<TestQuestion?> FindByIdWithAnswersAsync(int questionId)
+        {
+            return await this.databaseContext.Questions
+                .Include(question => question.Answers)
+                .FirstOrDefaultAsync(question => question.Id == questionId);
+        }
     }
 }

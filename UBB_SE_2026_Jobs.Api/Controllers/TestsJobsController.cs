@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using UBB_SE_2026_Jobs.Library.Persistence;
 using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Mappers;
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 
@@ -13,12 +13,12 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 public class TestsJobsController : ControllerBase
 {
     private readonly ITestsJobsService testsJobsService;
-    private readonly JobsDbContext databaseContext;
+    private readonly IRecruiterRepository recruiterRepository;
 
-    public TestsJobsController(ITestsJobsService testsJobsService, JobsDbContext databaseContext)
+    public TestsJobsController(ITestsJobsService testsJobsService, IRecruiterRepository recruiterRepository)
     {
         this.testsJobsService = testsJobsService;
-        this.databaseContext = databaseContext;
+        this.recruiterRepository = recruiterRepository;
     }
 
     [HttpGet]
@@ -38,27 +38,22 @@ public class TestsJobsController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult<int> AddJob([FromBody] AddJobDto addJobDto)
+    public async Task<ActionResult<int>> AddJob([FromBody] AddJobDto addJobDto)
     {
         int userId = addJobDto.UserId;
         if (userId <= 0)
-        {
             return Unauthorized(new { message = "Unable to determine user identity." });
-        }
 
-        Recruiter? recruiter = this.databaseContext.Recruiters.FirstOrDefault(recruiter => recruiter.UserId == userId);
-        if (recruiter == null)
-        {
+        int? companyId = await this.recruiterRepository.GetCompanyIdForUserAsync(userId);
+        if (companyId == null)
             return Forbid("Recruiter profile not found for this user.");
-        }
 
         Job jobToAdd = addJobDto.Job.ToEntity();
         IReadOnlyList<(int SkillId, int RequiredPercentage)> skillLinks = addJobDto.SkillLinks
             .Select(jobSkill => (jobSkill.SkillId, jobSkill.RequiredPercentage))
             .ToList();
 
-        int jobId = this.testsJobsService.AddJob(jobToAdd, recruiter.CompanyId, skillLinks);
-
+        int jobId = this.testsJobsService.AddJob(jobToAdd, companyId.Value, skillLinks);
         return Ok(jobId);
     }
 
@@ -67,9 +62,7 @@ public class TestsJobsController : ControllerBase
     {
         Job? existingJob = this.testsJobsService.GetJobById(jobId);
         if (existingJob == null)
-        {
             return NotFound(new { message = $"Job with ID {jobId} not found." });
-        }
 
         Job updatedJob = jobDto.ToEntity();
         IReadOnlyList<(int SkillId, int RequiredPercentage)> skillLinks = jobDto.JobSkills
@@ -78,9 +71,7 @@ public class TestsJobsController : ControllerBase
 
         bool success = this.testsJobsService.UpdateJob(jobId, updatedJob, skillLinks);
         if (!success)
-        {
             return StatusCode(500, new { message = "An error occurred while updating the job." });
-        }
 
         return NoContent();
     }
