@@ -67,6 +67,11 @@
   <ItemGroup>
     <ProjectReference Include="..\UBB_SE_2026_Jobs.Library\UBB_SE_2026_Jobs.Library.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Views\TestsAndInterviews\TiCandidateBookedInterviewsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+  </ItemGroup>
 
   <!--
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
