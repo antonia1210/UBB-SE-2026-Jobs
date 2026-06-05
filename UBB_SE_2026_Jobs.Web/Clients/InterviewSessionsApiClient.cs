@@ -27,10 +27,10 @@ namespace UBB_SE_2026_Jobs.Web.Clients
         /// <summary>
         /// Retrieves all sessions currently in a scheduled state.
         /// </summary>
-        public async Task<List<InterviewSessionDto>> GetScheduledAsync()
+        public async Task<List<InterviewSessionDto>> GetScheduledAsync(int recruiterId)
         {
             return await this.http.GetFromJsonAsync<List<InterviewSessionDto>>(
-                $"{SessionsPath}/scheduled") ?? new List<InterviewSessionDto>();
+                $"{SessionsPath}/scheduled?recruiterId={recruiterId}") ?? new List<InterviewSessionDto>();
         }
 
         /// <summary>

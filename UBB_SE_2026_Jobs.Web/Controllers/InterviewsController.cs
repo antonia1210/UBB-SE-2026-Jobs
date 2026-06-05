@@ -129,7 +129,10 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         [Authorize(Roles = "Recruiter")]
         public async Task<IActionResult> BookedInterviews()
         {
-            var sessions = await this.sessionsClient.GetScheduledAsync();
+            int recruiterId = int.Parse(
+                this.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var sessions = await this.sessionsClient.GetScheduledAsync(recruiterId);
             return this.View(sessions);
         }
 

@@ -36,14 +36,19 @@ namespace UBB_SE_2026_Jobs.Library.Services
         }
 
         /// <summary>
-        /// Asynchronously retrieves a list of all scheduled interview sessions.
+        /// Asynchronously retrieves a list of all scheduled interview sessions for all recruiters or for a specified recruiter.
         /// </summary>
+        /// <param name="recruiterId">Optional recruiter for which to retrieve scheduled sessions</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see
         /// cref="InterviewSession"/> objects representing the scheduled sessions. The list is empty if no sessions are
         /// scheduled.</returns>
-        public async Task<List<InterviewSession>> GetScheduledSessionsAsync()
+        public async Task<List<InterviewSession>> GetScheduledSessionsAsync(int? recruiterId)
         {
-            return await this._repository.GetScheduledSessionsAsync();
+            List<InterviewSession> sessions = await this._repository.GetScheduledSessionsAsync();
+
+            if (recruiterId.HasValue) return sessions.Where(session => session.InterviewerId == recruiterId).ToList();
+
+            return sessions;
         }
 
         /// <summary>

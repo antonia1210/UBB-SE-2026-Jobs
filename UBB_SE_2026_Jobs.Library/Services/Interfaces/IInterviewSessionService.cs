@@ -11,12 +11,13 @@ namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
     public interface IInterviewSessionService
     {
         /// <summary>
-        /// Asynchronously retrieves a list of all scheduled interview sessions.
+        /// Asynchronously retrieves a list of all scheduled interview sessions for all recruiters or for a specified recruiter.
         /// </summary>
+        /// <param name="recruiterId">Optional recruiter for which to retrieve scheduled sessions</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see
         /// cref="InterviewSession"/> objects representing the scheduled sessions. The list is empty if no sessions are
         /// scheduled.</returns>
-        public Task<List<InterviewSession>> GetScheduledSessionsAsync();
+        public Task<List<InterviewSession>> GetScheduledSessionsAsync(int? recruiterId);
 
         /// <summary>
         /// Asynchronously retrieves a list of scheduled interview sessions for a given candidate.

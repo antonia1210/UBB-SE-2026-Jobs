@@ -18,9 +18,9 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
         }
 
         [HttpGet("scheduled")]
-        public async Task<ActionResult<List<InterviewSessionDto>>> GetScheduled()
+        public async Task<ActionResult<List<InterviewSessionDto>>> GetScheduled([FromQuery] int? recruiterId)
         {
-            List<InterviewSession> sessions = await this._service.GetScheduledSessionsAsync();
+            List<InterviewSession> sessions = await this._service.GetScheduledSessionsAsync(recruiterId);
 
             return Ok(sessions.Select(session => session.ToDto(Request)).ToList());
         }
