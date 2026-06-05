@@ -1,25 +1,18 @@
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.DTOs;
 
 namespace UBB_SE_2026_Jobs.Library.Services.SkillTests;
 
 public interface ISkillTestService
 {
-    Task<IReadOnlyList<SkillTest>> GetTestsForUserAsync(int userId, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Returns all completed, validated test attempts for the given user,
+    /// projected as SkillTestViewDto for display purposes.
+    /// </summary>
+    Task<IReadOnlyList<SkillTestViewDto>> GetTestsForUserAsync(int userId, CancellationToken cancellationToken = default);
 
-    Task<bool> CanRetakeTestAsync(int skillTestId, CancellationToken cancellationToken = default);
-
-    Task<Badge> SubmitRetakeAsync(int skillTestId, int newScore, CancellationToken cancellationToken = default);
-
-    Task<SkillTest?> GetSkillTestByIdAsync(int skillTestId, CancellationToken cancellationToken = default);
-
-    Task<SkillTest> AddSkillTestAsync(SkillTest skillTest, CancellationToken cancellationToken = default);
-
-    Task UpdateScoreAsync(int skillTestId, int newScore, CancellationToken cancellationToken = default);
-
-    Task UpdateAchievedDateAsync(int skillTestId, DateOnly newDate, CancellationToken cancellationToken = default);
-    Task RemoveAsync(int skillTestId, CancellationToken cancellationToken = default);
-    static string AchievedDateFormatted(SkillTest skillTest)
-    {
-        return skillTest.AchievedDate.ToString("dd.MM.yyyy");
-    }
+    /// <summary>
+    /// Returns a single completed test attempt projected as SkillTestViewDto, or null.
+    /// </summary>
+    Task<SkillTestViewDto?> GetSkillTestByIdAsync(int skillTestId, CancellationToken cancellationToken = default);
 }

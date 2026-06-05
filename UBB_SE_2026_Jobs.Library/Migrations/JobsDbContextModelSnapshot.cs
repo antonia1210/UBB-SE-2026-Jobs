@@ -3587,61 +3587,6 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                         });
                 });
 
-            modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.SkillTest", b =>
-                {
-                    b.Property<int>("SkillTestId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SkillTestId"));
-
-                    b.Property<DateOnly>("AchievedDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SkillTestId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("SkillTests", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            SkillTestId = 1,
-                            AchievedDate = new DateOnly(2026, 1, 7),
-                            Name = "C# Fundamentals",
-                            Score = 82,
-                            UserId = 1
-                        },
-                        new
-                        {
-                            SkillTestId = 2,
-                            AchievedDate = new DateOnly(2026, 1, 7),
-                            Name = "SQL Server",
-                            Score = 76,
-                            UserId = 1
-                        },
-                        new
-                        {
-                            SkillTestId = 3,
-                            AchievedDate = new DateOnly(2026, 1, 7),
-                            Name = "Software Design",
-                            Score = 88,
-                            UserId = 1
-                        });
-                });
-
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.Slot", b =>
                 {
                     b.Property<int>("Id")
@@ -4341,17 +4286,6 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                     b.HasOne("UBB_SE_2026_Jobs.Library.Domain.Game", null)
                         .WithMany("Scenarios")
                         .HasForeignKey("GameId");
-                });
-
-            modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.SkillTest", b =>
-                {
-                    b.HasOne("UBB_SE_2026_Jobs.Library.Domain.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.Slot", b =>

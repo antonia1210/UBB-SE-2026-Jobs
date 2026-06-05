@@ -1,4 +1,4 @@
-﻿namespace UBB_SE_2026_Jobs.Library.Repositories
+namespace UBB_SE_2026_Jobs.Library.Repositories
 {
     using Microsoft.EntityFrameworkCore;
     using System;
@@ -27,30 +27,34 @@
             {
                 eventToBeAdded.PostedAt = DateTime.Now;
 
+                var companyIds = eventToBeAdded.Collaborators?.Select(c => c.CompanyId).ToList() ?? new List<int>();
+                var newCompanyIds = new List<int>();
+                
+                foreach (var cid in companyIds)
+                {
+                    bool alreadyCollaborates = this.JobsDbContext.Collaborators.Any(c => c.CompanyId == cid);
+                    if (!alreadyCollaborates)
+                    {
+                        newCompanyIds.Add(cid);
+                    }
+                }
+
+                // EF Core will automatically insert the Event and its Collaborators
                 this.JobsDbContext.Events.Add(eventToBeAdded);
                 this.JobsDbContext.SaveChanges();
 
-                if (eventToBeAdded.Collaborators != null)
+                foreach (var cid in newCompanyIds)
                 {
-                    foreach (var collaborator in eventToBeAdded.Collaborators)
+                    var company = this.JobsDbContext.Companies.Find(cid);
+                    if (company != null)
                     {
-                        bool alreadyCollaborates = this.JobsDbContext.Collaborators
-                            .Any(c => c.CompanyId == collaborator.CompanyId);
-
-                        collaborator.EventId = eventToBeAdded.Id;
-                        this.JobsDbContext.Collaborators.Add(collaborator);
-                        this.JobsDbContext.SaveChanges();
-
-                        if (!alreadyCollaborates)
-                        {
-                            var company = this.JobsDbContext.Companies.Find(collaborator.CompanyId);
-                            if (company != null)
-                            {
-                                company.CollaboratorsCount += 1;
-                                this.JobsDbContext.SaveChanges();
-                            }
-                        }
+                        company.CollaboratorsCount += 1;
                     }
+                }
+                
+                if (newCompanyIds.Any())
+                {
+                    this.JobsDbContext.SaveChanges();
                 }
 
                 transaction.Commit();
@@ -104,7 +108,7 @@
         }
 
         /// <inheritdoc/>
-        public void UpdateEventToRepo(int id, string photo, string title, string description, DateTime start, DateTime end, string location)
+        public void UpdateEventToRepo(int id, string photo, string title, string description, DateTime start, DateTime end, string location, List<int> collaboratorCompanyIds)
         {
             var existing = this.JobsDbContext.Events.Find(id);
             if (existing == null)
@@ -119,6 +123,42 @@
             existing.EndDate = end;
             existing.Location = location;
             existing.PostedAt = DateTime.Now;
+
+            // Sync collaborators
+            var existingCollaborators = this.JobsDbContext.Collaborators.Where(c => c.EventId == id).ToList();
+            var existingCompanyIds = existingCollaborators.Select(c => c.CompanyId).ToList();
+
+            var toRemove = existingCollaborators.Where(c => !collaboratorCompanyIds.Contains(c.CompanyId)).ToList();
+            var toAddIds = collaboratorCompanyIds.Where(cId => !existingCompanyIds.Contains(cId)).ToList();
+
+            if (toRemove.Any())
+            {
+                this.JobsDbContext.Collaborators.RemoveRange(toRemove);
+            }
+
+            foreach (var companyId in toAddIds)
+            {
+                bool alreadyCollaborates = this.JobsDbContext.Collaborators
+                    .Any(c => c.CompanyId == companyId);
+
+                var newCollaborator = new Collaborator
+                {
+                    EventId = id,
+                    CompanyId = companyId
+                };
+
+                this.JobsDbContext.Collaborators.Add(newCollaborator);
+                this.JobsDbContext.SaveChanges(); // save to ensure it gets an ID if needed before count update
+
+                if (!alreadyCollaborates)
+                {
+                    var company = this.JobsDbContext.Companies.Find(companyId);
+                    if (company != null)
+                    {
+                        company.CollaboratorsCount += 1;
+                    }
+                }
+            }
 
             this.JobsDbContext.SaveChanges();
         }

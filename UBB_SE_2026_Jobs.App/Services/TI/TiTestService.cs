@@ -14,6 +14,7 @@ public interface ITiTestService
     Task<float> SubmitAttemptAsync(int userId, int testId, IEnumerable<TiAnswerDto> answers);
     Task<bool> AttemptExistsAsync(int userId, int testId);
     Task<List<TiAnswerDto>> GetAnswersByAttemptAsync(int attemptId);
+    Task<List<TiTestAttemptDto>> GetAttemptsByUserAsync(int userId);
 }
 
 public class TiTestService : ITiTestService
@@ -96,5 +97,11 @@ public class TiTestService : ITiTestService
         var response = await http.GetAsync($"api/answers/byattempt/{attemptId}");
         if (!response.IsSuccessStatusCode) return new();
         return await response.Content.ReadFromJsonAsync<List<TiAnswerDto>>() ?? new();
+    }
+    public async Task<List<TiTestAttemptDto>> GetAttemptsByUserAsync(int userId)
+    {
+        var response = await http.GetAsync($"api/testattempts/byuser/{userId}");
+        if (!response.IsSuccessStatusCode) return new();
+        return await response.Content.ReadFromJsonAsync<List<TiTestAttemptDto>>() ?? new();
     }
 }

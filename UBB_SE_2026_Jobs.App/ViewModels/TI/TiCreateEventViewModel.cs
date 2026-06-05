@@ -1,14 +1,17 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels.TI;
 
 public partial class TiCreateEventViewModel : DispatchableObservableObject
 {
     private readonly ITiEventsService eventsService;
+    private readonly ICompanyService companyService;
     private readonly SessionContext session;
 
     [ObservableProperty] private string title = string.Empty;
@@ -23,10 +26,31 @@ public partial class TiCreateEventViewModel : DispatchableObservableObject
     [ObservableProperty] private bool isSaving;
     [ObservableProperty] private bool createdSuccessfully;
 
-    public TiCreateEventViewModel(ITiEventsService eventsService, SessionContext session)
+    public ObservableCollection<TiCompanyPickItem> AvailableCompanies { get; } = new();
+
+    public TiCreateEventViewModel(ITiEventsService eventsService, ICompanyService companyService, SessionContext session)
     {
         this.eventsService = eventsService;
+        this.companyService = companyService;
         this.session = session;
+        _ = LoadCompaniesAsync();
+    }
+
+    private async Task LoadCompaniesAsync()
+    {
+        var companies = await companyService.GetAllAsync();
+        foreach (var c in companies)
+        {
+            // Do not include the host company as a collaborator
+            if (c.CompanyId != session.CompanyId)
+            {
+                AvailableCompanies.Add(new TiCompanyPickItem 
+                { 
+                    Company = new UBB_SE_2026_Jobs.Library.DTOs.CompanyDto { CompanyId = c.CompanyId, Name = c.Name }, 
+                    IsSelected = false 
+                });
+            }
+        }
     }
 
     [RelayCommand]
@@ -44,6 +68,7 @@ public partial class TiCreateEventViewModel : DispatchableObservableObject
             EndDate = EndDate!.Value.DateTime,
             HostCompanyId = session.CompanyId ?? 1,
             PostedAt = DateTime.UtcNow,
+            CollaboratorCompanyIds = AvailableCompanies.Where(c => c.IsSelected).Select(c => c.Company.CompanyId).ToList()
         };
 
         await eventsService.CreateAsync(dto);

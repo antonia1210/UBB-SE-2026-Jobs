@@ -43,6 +43,17 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 
             return Ok(collaborators.Select(c => c.ToDto()).ToList());
         }
+
+        [HttpGet("event/{eventId}")]
+        public ActionResult<List<CompanyDto>> GetEventCollaborators(int eventId)
+        {
+            List<Company> collaborators = this._service.GetEventCollaborators(eventId);
+
+            if (collaborators is null || !collaborators.Any())
+                return NotFound($"No collaborators found for event ID {eventId}.");
+
+            return Ok(collaborators.Select(c => c.ToDto()).ToList());
+        }
     }
 
 

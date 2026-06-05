@@ -2,12 +2,9 @@ using UBB_SE_2026_Jobs.Library.Domain;
 
 namespace UBB_SE_2026_Jobs.Library.Services.UserProfileService;
 
-/// <summary>Candidate profile read/write, including CV text generation and level recalculation.</summary>
 public interface IUserProfileService
 {
     Task<User?> GetProfileAsync(int userId, CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<SkillTest>> GetSkillTestsForUserAsync(int userId, CancellationToken cancellationToken = default);
 
     Task<bool> IsProfileAvailableAsync(int userId, CancellationToken cancellationToken = default);
 
@@ -22,4 +19,5 @@ public interface IUserProfileService
     Task<User> UploadCvAsync(int userId, Stream stream, string fileName, CancellationToken cancellationToken = default);
 
     Task<int> RecalculateLevelAsync(User user, CancellationToken cancellationToken = default);
+
 }

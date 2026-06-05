@@ -1,5 +1,6 @@
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
 using UBB_SE_2026_Jobs.Library.Repositories.Messages;
 using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
@@ -34,19 +35,22 @@ public class ChatService : IChatService
     private readonly IUserService userService;
     private readonly IPussyCatsCompanyService PussyCatsCompanyService;
     private readonly ILocalFileStorageService fileStorage;
+    private readonly IRecruiterRepository recruiterRepository;
 
     public ChatService(
         IChatRepository chatRepository,
         IMessageRepository messageRepository,
         IUserService userService,
         IPussyCatsCompanyService PussyCatsCompanyService,
-        ILocalFileStorageService fileStorage)
+        ILocalFileStorageService fileStorage,
+        IRecruiterRepository recruiterRepository)
     {
         this.chatRepository = chatRepository;
         this.messageRepository = messageRepository;
         this.userService = userService;
         this.PussyCatsCompanyService = PussyCatsCompanyService;
         this.fileStorage = fileStorage;
+        this.recruiterRepository = recruiterRepository;
     }
 
     public async Task<Chat?> FindOrCreateUserCompanyChatAsync(int userId, Company company, Job? job = null,
@@ -66,6 +70,18 @@ public class ChatService : IChatService
 
     public async Task<Chat?> FindOrCreateUserChatAsync(int userId, int secondUserId, CancellationToken cancellationToken = default)
     {
+        var callerCompanyId = await recruiterRepository.GetCompanyIdForUserAsync(userId, cancellationToken).ConfigureAwait(false);
+        var targetCompanyId = await recruiterRepository.GetCompanyIdForUserAsync(secondUserId, cancellationToken).ConfigureAwait(false);
+
+        var callerIsRecruiter = callerCompanyId.HasValue;
+        var targetIsRecruiter = targetCompanyId.HasValue;
+
+        if (callerIsRecruiter != targetIsRecruiter)
+            throw new InvalidOperationException("Candidates can only chat with other candidates, and recruiters can only chat with recruiters.");
+
+        if (callerIsRecruiter && callerCompanyId != targetCompanyId)
+            throw new InvalidOperationException("Recruiters can only chat with recruiters from the same company.");
+
         var existing = await chatRepository.FindUserUserChatAsync(userId, secondUserId, cancellationToken).ConfigureAwait(false);
         if (existing is not null)
         {
@@ -77,6 +93,9 @@ public class ChatService : IChatService
 
         return await chatRepository.AddAsync(new Chat { User = await GetUserAsync(userId, cancellationToken), SecondUser = await GetUserAsync(secondUserId, cancellationToken) }, cancellationToken).ConfigureAwait(false);
     }
+
+    public async Task<Chat?> GetChatByIdAsync(int chatId, CancellationToken cancellationToken = default)
+        => await chatRepository.GetByIdAsync(chatId, cancellationToken).ConfigureAwait(false);
 
     public async Task<IReadOnlyList<Chat>> GetChatsForUserAsync(int userId, CancellationToken cancellationToken = default)
     {
@@ -126,9 +145,25 @@ public class ChatService : IChatService
             return Array.Empty<User>();
         }
 
+        var recruiterIds = await recruiterRepository.GetAllRecruiterUserIdsAsync(cancellationToken).ConfigureAwait(false);
         var users = await userService.GetAllAsync(cancellationToken).ConfigureAwait(false);
         return users
-            .Where(user => GetUserName(user).Contains(userNameSearchTerm, StringComparison.OrdinalIgnoreCase))
+            .Where(user => !recruiterIds.Contains(user.UserId)
+                && GetUserName(user).Contains(userNameSearchTerm, StringComparison.OrdinalIgnoreCase))
+            .Take(MaxSearchResults)
+            .ToList();
+    }
+
+    public async Task<IReadOnlyList<User>> SearchRecruitersByCompanyAsync(int companyId, string query, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return Array.Empty<User>();
+
+        var recruiterUserIds = await recruiterRepository.GetUserIdsByCompanyAsync(companyId, cancellationToken).ConfigureAwait(false);
+
+        var users = await userService.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        return users
+            .Where(u => recruiterUserIds.Contains(u.UserId) && GetUserName(u).Contains(query, StringComparison.OrdinalIgnoreCase))
             .Take(MaxSearchResults)
             .ToList();
     }
@@ -212,7 +247,7 @@ public class ChatService : IChatService
             ?? throw new KeyNotFoundException($"Chat {chatId} not found.");
         EnsureParticipant(chat, blockerId, companyId);
         chat.IsBlocked = true;
-        chat.BlockedByUser = new User { UserId = blockerId };
+        chat.BlockedByUserId = blockerId;
         await chatRepository.UpdateAsync(chat, cancellationToken).ConfigureAwait(false);
     }
 
@@ -221,13 +256,13 @@ public class ChatService : IChatService
         var chat = await chatRepository.GetByIdAsync(chatId, cancellationToken).ConfigureAwait(false)
             ?? throw new KeyNotFoundException($"Chat {chatId} not found.");
         EnsureParticipant(chat, unblockerId, companyId);
-        if (chat.BlockedByUser?.UserId != unblockerId)
+        if (chat.BlockedByUserId != unblockerId)
         {
             throw new UnauthorizedAccessException("Only the blocker can unblock this chat.");
         }
 
         chat.IsBlocked = false;
-        chat.BlockedByUser = null;
+        chat.BlockedByUserId = null;
         await chatRepository.UpdateAsync(chat, cancellationToken).ConfigureAwait(false);
     }
 
@@ -251,7 +286,7 @@ public class ChatService : IChatService
 
     private static bool ShouldIncludeChat(Chat chat, int callerId)
     {
-        if (chat.IsBlocked && chat.BlockedByUser?.UserId != callerId)
+        if (chat.IsBlocked && chat.BlockedByUserId != callerId)
         {
             return false;
         }
