@@ -265,8 +265,8 @@ namespace UBB_SE_2026_Jobs.Tests.Services
         {
             var availableCompanies = new List<Company>
             {
-                new() { CompanyName = "Acme Corp" },
-                new() { CompanyName = "Other Company" }
+                new() { Name = "Acme Corp" },
+                new() { Name = "Other Company" }
             };
 
             companyService.GetAllAsync(Arg.Any<CancellationToken>())
@@ -274,14 +274,14 @@ namespace UBB_SE_2026_Jobs.Tests.Services
 
             var result = await chatService.SearchCompaniesAsync("acme");
 
-            Assert.Equal("Acme Corp", Assert.Single(result).CompanyName);
+            Assert.Equal("Acme Corp", Assert.Single(result).Name);
         }
 
         [Fact]
         public async Task SearchCompaniesAsync_MoreThanMaxResults_ReturnsOnlyMaxResults()
         {
             var companies = Enumerable.Range(1, 15)
-                .Select(companyNumber => new Company { CompanyName = $"Company {companyNumber}" })
+                .Select(companyNumber => new Company { Name = $"Company {companyNumber}" })
                 .ToList();
 
             companyService.GetAllAsync(Arg.Any<CancellationToken>())
@@ -499,8 +499,9 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             await chatService.BlockChatAsync(1, blockerId: 1);
 
             Assert.True(chat.IsBlocked);
-            Assert.Equal(1, chat.BlockedByUser!.UserId);
-            chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
+            Assert.Equal(1,chat.BlockedByUserId);
+            //Assert.Equal(1, chat.BlockedByUser!.UserId);
+            await chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
         }
 
         [Fact]
@@ -524,13 +525,14 @@ namespace UBB_SE_2026_Jobs.Tests.Services
         [Fact]
         public async Task UnblockChatAsync_ValidRequest_UnblocksChatAndUpdatesRepository()
         {
-            var chat = new Chat { User = new User { UserId = 1 }, BlockedByUser = new User { UserId = 1 }, IsBlocked = true };
+            var chat = new Chat { User = new User { UserId = 1 }, BlockedByUser = new User { UserId = 1 }, IsBlocked = true, BlockedByUserId = 1};
             chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
 
             await chatService.UnblockChatAsync(1, unblockerId: 1);
 
             Assert.False(chat.IsBlocked);
-            Assert.Null(chat.BlockedByUser);
+            Assert.Null(chat.BlockedByUserId);
+            //Assert.Null(chat.BlockedByUser);
             chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
         }
 
