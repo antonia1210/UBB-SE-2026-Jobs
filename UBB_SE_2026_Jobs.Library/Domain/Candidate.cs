@@ -41,35 +41,6 @@ namespace UBB_SE_2026_Jobs.Library.Domain
         [NotMapped]
         public List<Slot> AvailableSlots { get; set; } = new List<Slot>();
 
-        // public List<Slot> BrowseAvailableDates()
-        // {
-        //     return this.AvailableSlots;
-        // }
-        // seems useless, not deleting in case something comes up TODO: delete before presenting :)
 
-        /// <summary>
-        /// Retrieves a list of available slots for a specific date.
-        /// </summary>
-        /// <param name="date"> The date for which we want to find available slots.</param>
-        /// <returns> A list of <see cref="Slot"/> objects representing the available slots at the specified date.</returns>
-        public List<Slot> ViewAvailableSlots(DateTime date)
-        {
-            return this.AvailableSlots.FindAll(s => s.StartTime.Date == date.Date);
-        }
-
-        /// <summary>
-        /// Locks a certain slot for the candidate.
-        /// </summary>
-        /// <param name="slot"> The slot we want to lock.</param>
-        /// <exception cref="Exception"> Thrown if slot isnt available.</exception>
-        public void BookSlot(Slot slot)
-        {
-            if (!slot.IsAvailable)
-            {
-                throw new Exception("Slot is not available");
-            }
-
-            slot.Lock(this.Id);
-        }
     }
 }

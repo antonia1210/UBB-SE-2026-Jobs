@@ -194,30 +194,6 @@ namespace UBB_SE_2026_Jobs.Library.Domain
             }
         }
 
-        /// <summary>
-        /// Locks the slot for the specified candidate and updates its status in the repository.
-        /// </summary>
-        /// <param name="candidateId">The identifier of the candidate to lock the slot for.</param>
-        /// <exception cref="InvalidOperationException">Thrown when the slot is not available.</exception>
-        public void Lock(int candidateId)
-        {
-            if (!this.IsAvailable)
-            {
-                throw new InvalidOperationException("Slot is not available");
-            }
-
-            this.Status = SlotStatus.Occupied;
-            this.CandidateId = candidateId;
-        }
-
-        /// <summary>
-        /// Releases the slot by setting its status to free and clearing the candidate identifier.
-        /// </summary>
-        public void Release()
-        {
-            this.Status = SlotStatus.Free;
-            this.CandidateId = null;
-        }
 
         /// <summary>
         /// Raises the PropertyChanged event for the specified property.

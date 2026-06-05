@@ -8,9 +8,9 @@ public class PussyCatsCompanyRepository : IPussyCatsCompanyRepository
 {
     private readonly JobsDbContext databaseContext;
 
-    public PussyCatsCompanyRepository(JobsDbContext database)
+    public PussyCatsCompanyRepository(JobsDbContext databaseContext)
     {
-        this.databaseContext = database;
+        this.databaseContext = databaseContext;
     }
 
     /// <summary>
@@ -42,10 +42,10 @@ public class PussyCatsCompanyRepository : IPussyCatsCompanyRepository
 
     public async Task UpdateAsync(Company company, CancellationToken cancellationToken = default)
     {
-        var tracked = databaseContext.Companies.Local.FirstOrDefault(existing => existing.CompanyId == company.CompanyId);
-        if (tracked is not null)
+        var trackedCompany = databaseContext.Companies.Local.FirstOrDefault(existingCompany => existingCompany.CompanyId == company.CompanyId);
+        if (trackedCompany is not null)
         {
-            databaseContext.Entry(tracked).CurrentValues.SetValues(company);
+            databaseContext.Entry(trackedCompany).CurrentValues.SetValues(company);
         }
         else
         {
@@ -65,4 +65,3 @@ public class PussyCatsCompanyRepository : IPussyCatsCompanyRepository
         await databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }
-

@@ -18,6 +18,8 @@ public interface IMatchService
 
     Task<IReadOnlyList<Match>> GetByCompanyIdAsync(int companyId, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Match>> GetByJobIdAsync(int jobId, CancellationToken cancellationToken = default);
+
     Task UpdateAsync(Match match, CancellationToken cancellationToken = default);
 
     Task<int> CreatePendingApplicationAsync(int userId, int jobId, CancellationToken cancellationToken = default);

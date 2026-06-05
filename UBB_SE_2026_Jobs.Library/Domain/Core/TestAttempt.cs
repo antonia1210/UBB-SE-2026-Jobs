@@ -123,64 +123,6 @@ namespace UBB_SE_2026_Jobs.Library.Domain.Core
         [ForeignKey("ExternalUserId")]
         public User? User { get; set; }
 
-        /// <summary>
-        /// Begins recording the test and updates the status and start time accordingly.
-        /// </summary>
-        /// <remarks>
-        /// Sets the test status to "RECORDING" and records the current UTC time as the start
-        /// time. Call this method to initiate the test recording process.</remarks>
-        public void Start()
-        {
-            this.Status = TestStatus.IN_PROGRESS.ToString();
-            this.StartedAt = DateTime.UtcNow;
-        }
 
-        /// <summary>
-        /// Begins recording the test and updates the status and start time accordingly.
-        /// </summary>
-        /// <remarks>
-        /// Sets the test status to "COMPLETED" and records the current UTC time as the completion
-        /// </remarks>
-        public void Submit()
-        {
-            this.Status = TestStatus.COMPLETED.ToString();
-            this.CompletedAt = DateTime.UtcNow;
-        }
-
-        /// <summary>
-        /// Begins recording the test and updates the status and start time accordingly.
-        /// </summary>
-        /// <remarks>
-        /// Sets the test status to "REJECTED", records the current UTC time as the rejection time, and optionally
-        /// </remarks>
-        public void Expire()
-        {
-            this.Status = TestStatus.EXPIRED.ToString();
-            this.CompletedAt = DateTime.UtcNow;
-        }
-        /// <summary>
-        /// Calculates the percentage score achieved based on the current answers and the total possible points for the
-        /// test.
-        /// </summary>
-        /// <returns>
-        /// A floating-point value representing the percentage score. Returns 0 if there are no answers or the test has
-        /// no questions.
-        /// </returns>
-        public float CalculateScore()
-        {
-            if (this.Answers.Count == 0 || this.Test?.Questions.Count is null or 0)
-            {
-                return 0f;
-            }
-
-            float maxPossible = 0f;
-            foreach (var question in this.Test.Questions)
-            {
-                maxPossible += question.QuestionScore;
-            }
-
-            float scoreValue = (float)(this.Score ?? 0m);
-            return maxPossible == 0f ? 0f : scoreValue / maxPossible * 100f;
-        }
     }
 }

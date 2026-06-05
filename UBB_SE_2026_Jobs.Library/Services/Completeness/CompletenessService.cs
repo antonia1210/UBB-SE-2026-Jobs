@@ -1,10 +1,38 @@
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.Services.CompletenessService;
 
-namespace UBB_SE_2026_Jobs.Library.Services.CompletenessService;
+namespace UBB_SE_2026_Jobs.Library.Services.Completeness;
 
 public class CompletenessService : ICompletenessService
 {
     private const int TotalFields = 21;
+
+    private const int FieldIndexFirstName = 0;
+    private const int FieldIndexLastName = 1;
+    private const int FieldIndexAge = 2;
+    private const int FieldIndexGender = 3;
+    private const int FieldIndexCountry = 4;
+    private const int FieldIndexPhone = 5;
+    private const int FieldIndexEmail = 6;
+    private const int FieldIndexUniversity = 7;
+    private const int FieldIndexGraduationYear = 8;
+    private const int FieldIndexGitHub = 9;
+    private const int FieldIndexLinkedIn = 10;
+    private const int FieldIndexAddress = 11;
+    private const int FieldIndexProfilePicture = 12;
+    private const int FieldIndexSkills = 13;
+    private const int FieldIndexMotivation = 14;
+    private const int FieldIndexWorkExperience = 15;
+    private const int FieldIndexProjects = 16;
+    private const int FieldIndexActivities = 17;
+    private const int FieldIndexPreferredRoles = 18;
+    private const int FieldIndexWorkMode = 19;
+    private const int FieldIndexLocationPreference = 20;
+
+    private const int MinimumAge = 0;
+    private const int MinimumGraduationYear = 0;
+    private const int MinimumCollectionCount = 0;
+    private const int PercentageMultiplier = 100;
 
     private static readonly string[] Labels =
     {
@@ -15,38 +43,38 @@ public class CompletenessService : ICompletenessService
         "Work Mode", "Location Preference"
     };
 
-    private bool IsFieldFilled(int index, User user)
+    private bool IsFieldFilled(int fieldIndex, User user)
     {
-        switch (index)
+        switch (fieldIndex)
         {
-            case 0: return !string.IsNullOrWhiteSpace(user.FirstName);
-            case 1: return !string.IsNullOrWhiteSpace(user.LastName);
-            case 2: return user.Age > 0;
-            case 3: return !string.IsNullOrWhiteSpace(user.Gender);
-            case 4: return !string.IsNullOrWhiteSpace(user.Country);
-            case 5: return !string.IsNullOrWhiteSpace(user.Phone);
-            case 6: return !string.IsNullOrWhiteSpace(user.Email);
-            case 7: return !string.IsNullOrWhiteSpace(user.University);
-            case 8: return user.ExpectedGraduationYear > 0;
-            case 9: return !string.IsNullOrWhiteSpace(user.GitHub);
-            case 10: return !string.IsNullOrWhiteSpace(user.LinkedIn);
-            case 11: return !string.IsNullOrWhiteSpace(user.Address);
-            case 12: return !string.IsNullOrWhiteSpace(user.ProfilePicturePath);
-            case 13: return user.Skills != null && user.Skills.Count > 0;
-            case 14: return !string.IsNullOrWhiteSpace(user.Motivation);
-            case 15: return user.WorkExperiences != null && user.WorkExperiences.Count > 0;
-            case 16: return user.Projects != null && user.Projects.Count > 0;
-            case 17: return user.ExtraCurricularActivities != null && user.ExtraCurricularActivities.Count > 0;
-            case 18: return user.PersonalityResult?.SelectedRole != null;
-            case 19: return !string.IsNullOrWhiteSpace(user.WorkModePreference);
-            case 20: return !string.IsNullOrWhiteSpace(user.LocationPreference);
+            case FieldIndexFirstName: return !string.IsNullOrWhiteSpace(user.FirstName);
+            case FieldIndexLastName: return !string.IsNullOrWhiteSpace(user.LastName);
+            case FieldIndexAge: return user.Age > MinimumAge;
+            case FieldIndexGender: return !string.IsNullOrWhiteSpace(user.Gender);
+            case FieldIndexCountry: return !string.IsNullOrWhiteSpace(user.Country);
+            case FieldIndexPhone: return !string.IsNullOrWhiteSpace(user.Phone);
+            case FieldIndexEmail: return !string.IsNullOrWhiteSpace(user.Email);
+            case FieldIndexUniversity: return !string.IsNullOrWhiteSpace(user.University);
+            case FieldIndexGraduationYear: return user.ExpectedGraduationYear > MinimumGraduationYear;
+            case FieldIndexGitHub: return !string.IsNullOrWhiteSpace(user.GitHub);
+            case FieldIndexLinkedIn: return !string.IsNullOrWhiteSpace(user.LinkedIn);
+            case FieldIndexAddress: return !string.IsNullOrWhiteSpace(user.Address);
+            case FieldIndexProfilePicture: return !string.IsNullOrWhiteSpace(user.ProfilePicturePath);
+            case FieldIndexSkills: return user.Skills != null && user.Skills.Count > MinimumCollectionCount;
+            case FieldIndexMotivation: return !string.IsNullOrWhiteSpace(user.Motivation);
+            case FieldIndexWorkExperience: return user.WorkExperiences != null && user.WorkExperiences.Count > MinimumCollectionCount;
+            case FieldIndexProjects: return user.Projects != null && user.Projects.Count > MinimumCollectionCount;
+            case FieldIndexActivities: return user.ExtraCurricularActivities != null && user.ExtraCurricularActivities.Count > MinimumCollectionCount;
+            case FieldIndexPreferredRoles: return user.PersonalityResult?.SelectedRole != null;
+            case FieldIndexWorkMode: return !string.IsNullOrWhiteSpace(user.WorkModePreference);
+            case FieldIndexLocationPreference: return !string.IsNullOrWhiteSpace(user.LocationPreference);
             default: return false;
         }
     }
 
-    private int CalculateCompletnessPercentage(int filledFields)
+    private int CalculateCompletenessPercentage(int filledFields)
     {
-        return (int)Math.Round((double)filledFields / TotalFields * 100);
+        return (int)Math.Round((double)filledFields / TotalFields * PercentageMultiplier);
     }
 
     private int CountFilledFields(User user)
@@ -71,7 +99,7 @@ public class CompletenessService : ICompletenessService
             return 0;
         }
         int filledFields = CountFilledFields(user);
-        return CalculateCompletnessPercentage(filledFields);
+        return CalculateCompletenessPercentage(filledFields);
     }
 
     public string GetNextEmptyFieldPrompt(User? user)
@@ -87,7 +115,7 @@ public class CompletenessService : ICompletenessService
         {
             if (!IsFieldFilled(fieldIndex, user))
             {
-                int nextPercentage = CalculateCompletnessPercentage(filledFields + 1);
+                int nextPercentage = CalculateCompletenessPercentage(filledFields + 1);
                 return $"Add your {Labels[fieldIndex]} to reach {nextPercentage}% completeness!";
             }
         }

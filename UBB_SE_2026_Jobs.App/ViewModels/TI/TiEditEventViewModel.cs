@@ -1,13 +1,18 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels.TI;
 
 public partial class TiEditEventViewModel : DispatchableObservableObject
 {
     private readonly ITiEventsService eventsService;
+    private readonly ICompanyService companyService;
+    private readonly SessionContext session;
     private int eventId;
 
     [ObservableProperty] private string title = string.Empty;
@@ -21,9 +26,13 @@ public partial class TiEditEventViewModel : DispatchableObservableObject
     [ObservableProperty] private bool updatedSuccessfully;
     [ObservableProperty] private bool deletedSuccessfully;
 
-    public TiEditEventViewModel(ITiEventsService eventsService)
+    public ObservableCollection<TiCompanyPickItem> AvailableCompanies { get; } = new();
+
+    public TiEditEventViewModel(ITiEventsService eventsService, ICompanyService companyService, SessionContext session)
     {
         this.eventsService = eventsService;
+        this.companyService = companyService;
+        this.session = session;
     }
 
     public void LoadEvent(TiEventDto eventDto)
@@ -34,6 +43,23 @@ public partial class TiEditEventViewModel : DispatchableObservableObject
         Location = eventDto.Location;
         StartDate = new DateTimeOffset(eventDto.StartDate);
         EndDate = new DateTimeOffset(eventDto.EndDate);
+        _ = LoadCompaniesAsync(eventDto.CollaboratorCompanyIds);
+    }
+
+    private async Task LoadCompaniesAsync(List<int> existingCollaboratorIds)
+    {
+        var companies = await companyService.GetAllAsync();
+        foreach (var c in companies)
+        {
+            if (c.CompanyId != session.CompanyId)
+            {
+                AvailableCompanies.Add(new TiCompanyPickItem 
+                { 
+                    Company = new UBB_SE_2026_Jobs.Library.DTOs.CompanyDto { CompanyId = c.CompanyId, Name = c.Name }, 
+                    IsSelected = existingCollaboratorIds?.Contains(c.CompanyId) ?? false 
+                });
+            }
+        }
     }
 
     [RelayCommand]
@@ -51,6 +77,7 @@ public partial class TiEditEventViewModel : DispatchableObservableObject
             Location = Location.Trim(),
             StartDate = StartDate?.DateTime ?? DateTime.UtcNow,
             EndDate = EndDate?.DateTime ?? DateTime.UtcNow,
+            CollaboratorCompanyIds = AvailableCompanies.Where(c => c.IsSelected).Select(c => c.Company.CompanyId).ToList()
         };
 
         await eventsService.UpdateAsync(eventId, dto);

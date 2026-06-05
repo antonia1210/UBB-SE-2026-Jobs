@@ -44,7 +44,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (events is null || !events.Any())
                 return NotFound($"No current events found for user ID {loggedInUser}.");
 
-            return Ok(events.Select(e => e.ToDto()).ToList());
+            return Ok(events.Select(currentEvent => currentEvent.ToDto()).ToList());
         }
 
         [HttpGet("past/{loggedInUser}")]
@@ -55,13 +55,13 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (events is null || !events.Any())
                 return NotFound($"No past events found for user ID {loggedInUser}.");
 
-            return Ok(events.Select(e => e.ToDto()).ToList());
+            return Ok(events.Select(pastEvent => pastEvent.ToDto()).ToList());
         }
 
         [HttpPut("{id}")]
         public ActionResult Update(int id, [FromBody] EventDto dto)
         {
-            this._service.UpdateEventToRepo(id, dto.Photo, dto.Title, dto.Description, dto.StartDate, dto.EndDate, dto.Location);
+            this._service.UpdateEventToRepo(id, dto.Photo, dto.Title, dto.Description, dto.StartDate, dto.EndDate, dto.Location, dto.CollaboratorCompanyIds);
 
             return Ok();
         }
