@@ -1,0 +1,85 @@
+using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Tests.Fakes;
+using UBB_SE_2026_Jobs.Library.Services.CooldownService;
+
+namespace UBB_SE_2026_Jobs.Tests.Services;
+
+public class CooldownServiceTests
+{
+    private readonly FakeRecommendationRepository recommendationRepository = new();
+    private readonly CooldownService service;
+    private readonly TimeSpan cooldown = TimeSpan.FromHours(24);
+
+    public CooldownServiceTests()
+    {
+        service = new CooldownService(recommendationRepository, cooldown);
+    }
+
+    [Fact]
+    public async Task IsOnCooldownAsync_NoRecommendationExists_ReturnsFalse()
+    {
+        const int userId = 1, jobId = 10;
+        Assert.False(await service.IsOnCooldownAsync(userId, jobId, DateTime.UtcNow));
+    }
+
+    [Fact]
+    public async Task IsOnCooldownAsync_RecommendationWithinCooldownPeriod_ReturnsTrue()
+    {
+        var currentDate = DateTime.UtcNow;
+        const int minutesAgo = 30;
+        const int userId = 1, jobId = 10;
+        recommendationRepository.Seed(new Recommendation
+        {
+            RecommendationId = 1,
+            User = new User { UserId = userId },
+            Job = new Job { JobId = jobId },
+            Timestamp = currentDate.AddMinutes(-minutesAgo),
+        });
+
+        Assert.True(await service.IsOnCooldownAsync(userId, jobId, currentDate));
+    }
+
+    [Fact]
+    public async Task IsOnCooldownAsync_RecommendationOlderThanCooldown_ReturnsFalse()
+    {
+        var currentDate = DateTime.UtcNow;
+        const int daysAgo = 2;
+        const int userId = 1, jobId = 10;
+        recommendationRepository.Seed(new Recommendation
+        {
+            RecommendationId = 1,
+            User = new User { UserId = userId },
+            Job = new Job { JobId = jobId },
+            Timestamp = currentDate.AddDays(-daysAgo),
+        });
+
+        Assert.False(await service.IsOnCooldownAsync(userId, jobId, currentDate));
+    }
+
+    [Fact]
+    public async Task IsOnCooldownAsync_MultipleRecommendationsExist_UsesLatestTimestamp()
+    {
+        var currentDate = DateTime.UtcNow;
+        const int userId = 1, jobId = 10;
+        const int daysAgo = 7, minutesAgo = 10;
+        recommendationRepository.Seed(
+            new Recommendation { RecommendationId = 1, User = new User { UserId = userId }, Job = new Job { JobId = jobId }, Timestamp = currentDate.AddDays(-daysAgo) },
+            new Recommendation { RecommendationId = 2, User = new User { UserId = userId }, Job = new Job { JobId = jobId }, Timestamp = currentDate.AddMinutes(-minutesAgo) });
+
+        Assert.True(await service.IsOnCooldownAsync(userId, jobId, currentDate));
+    }
+
+    [Fact]
+    public async Task Cooldown_ZeroOrNegativeTimeSpanProvided_FallsBackToDefault24Hours()
+    {
+        var zeroService = new CooldownService(recommendationRepository, TimeSpan.Zero);
+        var negativeService = new CooldownService(recommendationRepository, TimeSpan.FromHours(-1));
+
+        const int userId = 1, jobId = 10, hoursAgo = 12;
+        var now = DateTime.UtcNow;
+        recommendationRepository.Seed(new Recommendation { RecommendationId = 1, User = new User { UserId = userId }, Job = new Job { JobId = jobId }, Timestamp = now.AddHours(-hoursAgo) });
+
+        Assert.True(await negativeService.IsOnCooldownAsync(userId, jobId, now));
+        Assert.True(await zeroService.IsOnCooldownAsync(userId, jobId, now));
+    }
+}
