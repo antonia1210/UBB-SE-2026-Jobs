@@ -32,9 +32,9 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
                 this.JobsDbContext.SaveChanges();
 
                 int existingCount = this.JobsDbContext.Collaborators
-                    .Include(c => c.Event)
-                    .Count(c => c.Event.HostCompanyId == loggedInUserID
-                        && c.CompanyId == collaboratorToBeAdded.CompanyId);
+                    .Include(company => company.Event)
+                    .Count(company => company.Event.HostCompanyId == loggedInUserID
+                        && company.CompanyId == collaboratorToBeAdded.CompanyId);
 
                 bool isNewCollaborator = existingCount == 1;
 
@@ -61,14 +61,14 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
         public List<Company> GetAllCollaborators(int loggedInCompanyId)
         {
             var companyIds = this.JobsDbContext.Collaborators
-                .Include(c => c.Event)
-                .Where(c => c.Event.HostCompanyId == loggedInCompanyId)
-                .Select(c => c.CompanyId)
+                .Include(company => company.Event)
+                .Where(company => company.Event.HostCompanyId == loggedInCompanyId)
+                .Select(company => company.CompanyId)
                 .Distinct()
                 .ToList();
 
             return this.JobsDbContext.Companies
-                .Where(c => companyIds.Contains(c.CompanyId))
+                .Where(company => companyIds.Contains(company.CompanyId))
                 .ToList();
         }
 
@@ -76,12 +76,12 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
         public List<Company> GetEventCollaborators(int eventId)
         {
             var companyIds = this.JobsDbContext.Collaborators
-                .Where(c => c.EventId == eventId)
-                .Select(c => c.CompanyId)
+                .Where(company => company.EventId == eventId)
+                .Select(company => company.CompanyId)
                 .ToList();
 
             return this.JobsDbContext.Companies
-                .Where(c => companyIds.Contains(c.CompanyId))
+                .Where(company => companyIds.Contains(company.CompanyId))
                 .ToList();
         }
     }
