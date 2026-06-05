@@ -106,11 +106,11 @@ public class MatchesController : ControllerBase
         }
         catch (ArgumentException exception)
         {
-            return Problem(detail: exception.Message, statusCode: 400);
+            return Problem(detail: exception.Message, statusCode: StatusCodes.Status400BadRequest);
         }
         catch (InvalidOperationException exception)
         {
-            return Problem(detail: exception.Message, statusCode: 422);
+            return Problem(detail: exception.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
         }
     }
 
@@ -128,7 +128,7 @@ public class MatchesController : ControllerBase
         }
         catch (InvalidOperationException exception)
         {
-            return Problem(detail: exception.Message, statusCode: 422);
+            return Problem(detail: exception.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
         }
     }
 

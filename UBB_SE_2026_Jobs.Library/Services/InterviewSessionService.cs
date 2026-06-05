@@ -57,7 +57,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
         {
             List<InterviewSession> sessions = await this._repository.GetScheduledSessionsAsync();
 
-            return sessions.Where(s => s.ExternalUserId == candidateId).ToList();
+            return sessions.Where(session => session.ExternalUserId == candidateId).ToList();
         }
 
         /// <summary>
