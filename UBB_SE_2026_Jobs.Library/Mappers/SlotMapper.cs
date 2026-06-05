@@ -25,7 +25,7 @@ namespace UBB_SE_2026_Jobs.Library.Mappers
 				StartTime = dto.StartTime,
 				EndTime = dto.EndTime,
 				Duration = dto.Duration,
-				Status = dto.Status,
+				StatusValue = dto.Status,
 				InterviewType = dto.InterviewType,
 			};
 		}
@@ -46,7 +46,7 @@ namespace UBB_SE_2026_Jobs.Library.Mappers
 				StartTime = entity.StartTime,
 				EndTime = entity.EndTime,
 				Duration = entity.Duration,
-				Status = entity.Status,
+				Status = entity.StatusValue,
 				InterviewType = entity.InterviewType,
 			};
 		}
