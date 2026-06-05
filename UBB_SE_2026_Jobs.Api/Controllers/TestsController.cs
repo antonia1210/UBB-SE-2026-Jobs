@@ -19,10 +19,12 @@ using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
     public class TestsController : ControllerBase
     {
         private readonly ITestService _service;
+        private readonly ILeaderboardService _leaderboardService;
 
-        public TestsController(ITestService service)
+        public TestsController(ITestService service, ILeaderboardService leaderboardService)
         {
             this._service = service;
+            this._leaderboardService = leaderboardService;
         }
 
         [HttpGet]
@@ -127,6 +129,7 @@ using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
         {
             float score = await this._service.SubmitAttemptAsync(
                 dto.UserId, dto.TestId, dto.Answers);
+            await this._leaderboardService.RecalculateAsync(dto.TestId);
             return this.Ok(score);
         }
     }

@@ -68,6 +68,18 @@ public class MatchRepository : IMatchRepository
             .ConfigureAwait(false);
     }
 
+    public async Task<IReadOnlyList<Match>> GetByJobIdAsync(int jobId, CancellationToken cancellationToken = default)
+    {
+        return await databaseContext.Matches
+            .AsNoTracking()
+            .Include(m => m.User)
+            .Include(m => m.Job).ThenInclude(j => j.Company)
+            .Where(m => m.Job.JobId == jobId)
+            .OrderByDescending(m => m.Timestamp)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<Match> AddAsync(Match match, CancellationToken cancellationToken = default)
     {
         if (match.Timestamp == default)

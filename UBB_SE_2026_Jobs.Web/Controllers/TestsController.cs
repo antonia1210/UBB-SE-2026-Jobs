@@ -41,36 +41,30 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             List<string> categories = await this._api.GetCategories();
             TestsViewModel viewModel = new TestsViewModel();
 
+            // Fetch all user attempts in one call so we can mark previously-taken tests.
+            HashSet<int> completedTestIds = new HashSet<int>();
+            if (userId != -1 && User.IsInRole("Candidate"))
+            {
+                var userAttempts = await this._api.GetAttemptsByUserAsync(userId);
+                foreach (var a in userAttempts)
+                {
+                    if (string.Equals(a.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+                        completedTestIds.Add(a.TestId);
+                }
+            }
+
             foreach (string category in categories)
             {
                 List<TestDto> tests = await this._api.GetByCategory(category);
-
                 foreach (TestDto test in tests)
                 {
-                    bool hasFinished = false;
-
-                    if (userId != -1 && User.IsInRole("Candidate"))
-                    {
-                        var existingAttempt = await this._api.GetAttemptByUserAndTestAsync(userId, test.Id);
-
-                        if (existingAttempt != null)
-                        {
-                            var savedAnswers = await this._api.GetAnswersByAttemptIdAsync(existingAttempt.Id);
-
-                            if (savedAnswers != null && savedAnswers.Any())
-                            {
-                                hasFinished = true;
-                            }
-                        }
-                    }
-
                     viewModel.Tests.Add(new TestCardViewModel
                     {
                         TestId = test.Id,
                         Title = test.Title,
                         Category = test.Category,
                         QuestionTypeLabel = test.QuestionTypeLabel,
-                        HasBeenTaken = hasFinished
+                        HasBeenTaken = completedTestIds.Contains(test.Id)
                     });
                 }
             }
@@ -214,18 +208,10 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             string? userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : 1;
 
-            var existingAttempt = await this._api.GetAttemptByUserAndTestAsync(userId, id);
-
-            if (existingAttempt != null)
-            {
-                var savedAnswers = await this._api.GetAnswersByAttemptIdAsync(existingAttempt.Id);
-                if (savedAnswers.Any())
-                {
-                    ViewBag.AttemptId = existingAttempt.Id;
-                    return View("AlreadyTaken");
-                }
-            }
-            else
+            // Tests are replayable. Resume the active IN_PROGRESS attempt if one exists,
+            // otherwise start a fresh one. Never block based on prior completed attempts.
+            var activeAttempt = await this._api.GetAttemptByUserAndTestAsync(userId, id);
+            if (activeAttempt == null)
             {
                 await this._api.StartAttemptAsync(userId, id);
             }
@@ -267,15 +253,6 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
                 model.Questions = questions;
                 ModelState.AddModelError(string.Empty, "You must provide an answer for every question before submitting.");
                 return View("Take", model);
-            }
-
-            var history = await this._api.GetValidAttemptsByTestIdAsync(model.TestId);
-            bool hasFinished = history.Any(a => a.ExternalUserId == userId &&
-                (a.Status.Equals("COMPLETED", StringComparison.OrdinalIgnoreCase) || a.CompletedAt.HasValue));
-
-            if (hasFinished)
-            {
-                return View("AlreadyTaken");
             }
 
             var attempt = await this._api.GetAttemptByUserAndTestAsync(userId, model.TestId);
@@ -334,6 +311,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             attempt.Status = "COMPLETED";
             attempt.CompletedAt = DateTime.UtcNow;
             attempt.Score = (decimal)rawScore;
+            attempt.IsValidated = true;
 
             if (maxPossibleScore > 0)
             {

@@ -56,7 +56,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
         /// list will be empty if no tests are found.</returns>
         public async Task<List<Test>> GetAll()
         {
-            return await this.testRepository.GetTestsASync();
+            return await this.testRepository.GetTestsAsync();
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
             await this.dataProcessingService.ProcessFinalizedAttemptAsync(attempt.Id);
 
             TestAttempt? finalAttempt =
-                await this.attemptRepository.FindByUserAndTestAsync(userId, testId);
+                await this.attemptRepository.FindByIdAsync(attempt.Id);
 
             return finalAttempt != null ? (float)(finalAttempt.Score ?? DefaultAttemptScore) : DefaultSubmissionScore;
         }

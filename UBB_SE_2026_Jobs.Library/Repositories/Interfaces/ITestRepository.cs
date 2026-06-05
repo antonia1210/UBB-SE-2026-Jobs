@@ -18,7 +18,7 @@ namespace UBB_SE_2026_Jobs.Library.Repositories.Interfaces
         /// <returns>A task that represents the asynchronous operation. The task result contains a list of all tests. The list is
         /// empty if no tests are found.</returns>
 
-        public Task<List<Test>> GetTestsASync();
+        public Task<List<Test>> GetTestsAsync();
 
         /// <summary>
         /// Asynchronously retrieves a list of all question category names associated with tests.

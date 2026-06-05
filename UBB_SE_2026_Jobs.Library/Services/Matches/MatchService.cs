@@ -122,6 +122,11 @@ public class MatchService : IMatchService
         return matches;
     }
 
+    public async Task<IReadOnlyList<Match>> GetByJobIdAsync(int jobId, CancellationToken cancellationToken = default)
+    {
+        return await matchRepository.GetByJobIdAsync(jobId, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task SubmitDecisionAsync(int matchId, MatchStatus decision, string feedback, CancellationToken cancellationToken = default)
     {
         var match = await matchRepository.GetByIdAsync(matchId, cancellationToken).ConfigureAwait(false)

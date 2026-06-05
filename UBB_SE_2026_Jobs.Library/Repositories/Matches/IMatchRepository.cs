@@ -12,6 +12,8 @@ public interface IMatchRepository
 
     Task<Match?> GetByUserIdAndJobIdAsync(int userId, int jobId, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Match>> GetByJobIdAsync(int jobId, CancellationToken cancellationToken = default);
+
     Task<Match> AddAsync(Match match, CancellationToken cancellationToken = default);
 
     Task UpdateAsync(Match match, CancellationToken cancellationToken = default);

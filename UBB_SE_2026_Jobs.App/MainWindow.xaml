@@ -22,7 +22,7 @@
             <NavigationViewItem Content="Browse Jobs"       Tag="UserRecommendationPage"    Icon="Find"/>
             <NavigationViewItem Content="My Applications"   Tag="UserStatusPage"            Icon="List"/>
             <NavigationViewItem Content="My Profile"        Tag="UserProfilePage"           Icon="Contact"/>
-            <NavigationViewItem Content="Skill Tests"       Tag="TestDashboardPage"         Icon="Permissions"/>
+            <NavigationViewItem Content="Test Attempts"      Tag="TestDashboardPage"         Icon="Permissions"/>
             <NavigationViewItem Content="Personality Test"  Tag="PersonalityTestPage"       Icon="Favorite"/>
             <NavigationViewItem Content="Compatibility"     Tag="CompatibilityOverviewPage" Icon="Filter"/>
 			<NavigationViewItem Content="Documents"         Tag="DocumentsPage"             Icon="Document"/>
