@@ -19,6 +19,14 @@ namespace UBB_SE_2026_Jobs.Library.Services
         private readonly ITestAttemptRepository attemptRepository;
         private readonly ITestRepository testRepository;
 
+        private const string CompletedStatus = "COMPLETED";
+        private const int LeaderboardValidityMonths = 3;
+        private const decimal MinimumScore = 0m;
+        private const decimal MaximumScore = 100m;
+        private const decimal PercentageDivisor = 100m;
+        private const decimal PercentageMultiplier = 100m;
+
+
         public DataProcessingService(
             JobsDbContext dbContext,
             ITestAttemptRepository attemptRepository,
@@ -95,12 +103,12 @@ namespace UBB_SE_2026_Jobs.Library.Services
                 return "Attempt status is missing.";
             }
 
-            if (!string.Equals(attempt.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(attempt.Status, CompletedStatus, StringComparison.OrdinalIgnoreCase))
             {
                 return "Attempt is not eligible for leaderboard because status is not COMPLETED.";
             }
 
-            if (attempt.Score < 0 || attempt.Score > 100)
+            if (attempt.Score < MinimumScore || attempt.Score > MaximumScore)
             {
                 return "Attempt score is invalid.";
             }
@@ -119,7 +127,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
         /// </summary>
         private bool IsTestStillValidForLeaderboard(Test test)
         {
-            return test.CreatedAt.AddMonths(3) >= DateTime.UtcNow;
+            return test.CreatedAt.AddMonths(LeaderboardValidityMonths) >= DateTime.UtcNow;
         }
 
         /// <summary>
@@ -127,7 +135,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
         /// </summary>
         private decimal ConvertToPercentageScore(decimal originalScore)
         {
-            return originalScore / 100m * 100m;
+            return originalScore / PercentageDivisor * PercentageMultiplier;
         }
     }
 }
