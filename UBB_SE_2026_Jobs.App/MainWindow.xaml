@@ -25,9 +25,8 @@
             <NavigationViewItem Content="Skill Tests"       Tag="TestDashboardPage"         Icon="Permissions"/>
             <NavigationViewItem Content="Personality Test"  Tag="PersonalityTestPage"       Icon="Favorite"/>
             <NavigationViewItem Content="Compatibility"     Tag="CompatibilityOverviewPage" Icon="Filter"/>
-            <NavigationViewItem Content="Documents"         Tag="DocumentsPage"             Icon="Document"/>
-            <NavigationViewItem Content="Preferences"       Tag="PreferencesPage"           Icon="Setting" Visibility="Collapsed"/>
-            <!-- Company (hidden until company mode) -->
+			<NavigationViewItem Content="Documents"         Tag="DocumentsPage"             Icon="Document"/>
+			<!-- Company (hidden until company mode) -->
             <NavigationViewItem x:Name="navRankedApplicants"
                                 Content="Ranked Applicants" Tag="CompanyRecommendationPage"
                                 Icon="People"               Visibility="Collapsed"/>

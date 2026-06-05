@@ -156,6 +156,9 @@ public sealed partial class UserProfilePage : Page
     private void OnSkillTestsClick(object sender, RoutedEventArgs eventArguments)
         => Frame.Navigate(typeof(TestDashboardPage), viewModel.UserProfile);
 
+    private void OnPreferencesClick(object sender, RoutedEventArgs eventArguments)
+        => Frame.Navigate(typeof(PreferencesPage));
+
     private void OnPersonalityTestClick(object sender, RoutedEventArgs eventArguments)
         => Frame.Navigate(typeof(PersonalityTestPage));
 }
