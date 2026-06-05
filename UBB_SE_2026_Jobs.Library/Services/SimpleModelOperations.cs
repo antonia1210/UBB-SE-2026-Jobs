@@ -27,7 +27,7 @@ public static class SimpleModelOperations
     private const int Level4Number = 4;
     private const int Level5Number = 5;
 
-    public static int GetExperiencePoints(SkillTest skillTest)
+    public static int GetExperiencePoints(SkillTestViewDto skillTest)
     {
         if (skillTest.Score >= GoldScoreThreshold)
         {
