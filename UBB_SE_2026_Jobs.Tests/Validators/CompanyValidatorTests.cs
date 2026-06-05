@@ -1,6 +1,7 @@
 ﻿using System;
-using Xunit;
+using System.ComponentModel.DataAnnotations;
 using UBB_SE_2026_Jobs.Library.Validators;
+using Xunit;
 
 namespace UBB_SE_2026_Jobs.Tests.Validators
 {
@@ -25,8 +26,12 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
         private const string ValidBase64Png = "data:image/png;base64,AAA";
         private const string InvalidBase64Mime = "data:image/webp;base64,abc123";
         private const string WhitespaceString = "   ";
-        
-        private readonly ICompanyValidator companyValidator = new CompanyValidator();
+
+        private readonly ICompanyValidator companyValidator;
+        public CompanyValidatorTests()
+        {
+            companyValidator = new CompanyValidator();
+        }
 
         [Fact]
         public void ValidateName_ValidName_ReturnsTrue()
