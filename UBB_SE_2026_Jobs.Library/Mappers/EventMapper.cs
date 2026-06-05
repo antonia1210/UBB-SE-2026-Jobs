@@ -2,6 +2,7 @@ namespace UBB_SE_2026_Jobs.Library.Mappers
 {
     using UBB_SE_2026_Jobs.Library.DTOs;
     using UBB_SE_2026_Jobs.Library.Domain;
+    using System.Linq;
 
     /// <summary>
     /// Provides extension methods for mapping between Event and EventDto objects.
@@ -26,6 +27,7 @@ namespace UBB_SE_2026_Jobs.Library.Mappers
                 Location = entity.Location,
                 HostCompanyId = entity.HostCompanyId,
                 PostedAt = entity.PostedAt,
+                CollaboratorCompanyIds = entity.Collaborators?.Select(c => c.CompanyId).ToList() ?? new System.Collections.Generic.List<int>(),
             };
         }
 
@@ -46,6 +48,7 @@ namespace UBB_SE_2026_Jobs.Library.Mappers
                 Location = dto.Location,
                 HostCompanyId = dto.HostCompanyId,
                 PostedAt = dto.PostedAt,
+                Collaborators = dto.CollaboratorCompanyIds?.Select(id => new Collaborator { CompanyId = id }).ToList() ?? new System.Collections.Generic.List<Collaborator>(),
             };
         }
     }

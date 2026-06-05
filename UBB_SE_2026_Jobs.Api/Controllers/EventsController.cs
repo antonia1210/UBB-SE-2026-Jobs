@@ -61,7 +61,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
         [HttpPut("{id}")]
         public ActionResult Update(int id, [FromBody] EventDto dto)
         {
-            this._service.UpdateEventToRepo(id, dto.Photo, dto.Title, dto.Description, dto.StartDate, dto.EndDate, dto.Location);
+            this._service.UpdateEventToRepo(id, dto.Photo, dto.Title, dto.Description, dto.StartDate, dto.EndDate, dto.Location, dto.CollaboratorCompanyIds);
 
             return Ok();
         }

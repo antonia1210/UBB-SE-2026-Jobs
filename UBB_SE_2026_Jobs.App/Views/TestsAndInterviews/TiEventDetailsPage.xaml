@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="using:UBB_SE_2026_Jobs.App.Converters"
+    xmlns:dtos="using:UBB_SE_2026_Jobs.App.Dtos.TI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -11,6 +12,7 @@
 
     <Page.Resources>
         <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
     </Page.Resources>
 
     <Grid Padding="24">
@@ -71,6 +73,22 @@
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                         <TextBlock Text="{x:Bind ViewModel.CurrentEvent.Description, Mode=OneWay}"
                                    TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <!-- Collaborators -->
+                    <StackPanel Spacing="8" Visibility="{x:Bind ViewModel.Collaborators.Count, Mode=OneWay, Converter={StaticResource IntToVisibilityConverter}}">
+                        <TextBlock Text="Collaborators" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        <ItemsRepeater ItemsSource="{x:Bind ViewModel.Collaborators, Mode=OneWay}">
+                            <ItemsRepeater.Layout>
+                                <StackLayout Spacing="4"/>
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate x:DataType="dtos:TiCollaboratorDto">
+                                    <TextBlock Text="{x:Bind CompanyName}" FontSize="13"/>
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
                     </StackPanel>
 
                     <!-- Company actions -->
