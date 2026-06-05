@@ -16,6 +16,9 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
     <!-- Added EF Core InMemory provider so UseInMemoryDatabase(...) extension is available in tests -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.8" />
+
+    <!-- Added: WebApplicationFactory for integration testing -->
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\UBB_SE_2026_Jobs.Library\UBB_SE_2026_Jobs.Library.csproj" />
+    <ProjectReference Include="..\UBB_SE_2026_Jobs.Api\UBB_SE_2026_Jobs.Api.csproj" />
   </ItemGroup>
 
 </Project>

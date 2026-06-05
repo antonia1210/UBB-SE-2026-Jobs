@@ -1,9 +1,9 @@
-using System.Text;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
+using System.Text.Json.Serialization;
 using UBB_SE_2026_Jobs.Library.Persistence;
 using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
@@ -21,7 +21,6 @@ using UBB_SE_2026_Jobs.Library.Repositories.Users;
 using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.ChatService;
 using UBB_SE_2026_Jobs.Library.Services.CompanyRecommendationService;
-using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
 using UBB_SE_2026_Jobs.Library.Services.CompanyStatusService;
 using UBB_SE_2026_Jobs.Library.Services.CompatibilityService;
 using UBB_SE_2026_Jobs.Library.Services.CompletenessService;
@@ -30,7 +29,6 @@ using UBB_SE_2026_Jobs.Library.Services.CvParsing;
 using UBB_SE_2026_Jobs.Library.Services.Developers;
 using UBB_SE_2026_Jobs.Library.Services.Documents;
 using UBB_SE_2026_Jobs.Library.Services.FileStorage;
-using UBB_SE_2026_Jobs.Library.Services.ImageStorage;
 using UBB_SE_2026_Jobs.Library.Services.Interfaces;
 using UBB_SE_2026_Jobs.Library.Services.Jobs;
 using UBB_SE_2026_Jobs.Library.Services.JobSkills;
@@ -38,6 +36,7 @@ using UBB_SE_2026_Jobs.Library.Services.Matches;
 using UBB_SE_2026_Jobs.Library.Services.PdfExport;
 using UBB_SE_2026_Jobs.Library.Services.PersonalityTestService;
 using UBB_SE_2026_Jobs.Library.Services.Preferences;
+using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
 using UBB_SE_2026_Jobs.Library.Services.RecommendationAlgorithm;
 using UBB_SE_2026_Jobs.Library.Services.Recommendations;
 using UBB_SE_2026_Jobs.Library.Services.SkillGapService;
@@ -53,9 +52,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers(options =>
-    {
-        options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
-    })
+{
+    options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+})
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -85,8 +84,19 @@ builder.Services
 builder.Services.AddAuthorization();
 
 // Database Configuration
-builder.Services.AddDbContext<JobsDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("JobsDb")));
+// Guard SQL Server registration during integration tests to avoid multiple EF providers in same ServiceProvider.
+// Tests should set the environment to "IntegrationTests" in the test factory.
+if (builder.Environment.IsEnvironment("IntegrationTests"))
+{
+    // Add a placeholder InMemory provider for cases where code expects DbContext to be registered.
+    builder.Services.AddDbContext<JobsDbContext>(options =>
+        options.UseInMemoryDatabase("IntegrationTests_Placeholder"));
+}
+else
+{
+    builder.Services.AddDbContext<JobsDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("JobsDb")));
+}
 
 // --- REPOSITORIES ---
 
@@ -209,7 +219,11 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var database = scope.ServiceProvider.GetRequiredService<JobsDbContext>();
-    database.Database.Migrate();
+    // Skip migrations for InMemory provider used by integration tests
+    if (database.Database.ProviderName != "Microsoft.EntityFrameworkCore.InMemory")
+    {
+        database.Database.Migrate();
+    }
 }
 
 // Configure the HTTP request pipeline.
