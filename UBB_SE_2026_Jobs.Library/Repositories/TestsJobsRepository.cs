@@ -7,6 +7,7 @@
     using UBB_SE_2026_Jobs.Library.Persistence;
     using UBB_SE_2026_Jobs.Library.Domain;
     using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+    using UBB_SE_2026_Jobs.Library.Services;
 
     public class TestsJobsRepository : ITestsJobsRepository
     {
@@ -122,20 +123,27 @@
                 {
                     return false;
                 }
+                
+                existing.JobTitle = updatedJob.JobTitle;
+                existing.IndustryField = updatedJob.IndustryField;
+                existing.JobType = updatedJob.JobType;
+                existing.ExperienceLevel = updatedJob.ExperienceLevel;
+                existing.JobLocation = updatedJob.JobLocation;
+                existing.JobDescription = updatedJob.JobDescription;
+                existing.AvailablePositions = updatedJob.AvailablePositions;
+                existing.Salary = updatedJob.Salary;
+                existing.StartDate = updatedJob.StartDate;
+                existing.EndDate = updatedJob.EndDate;
+                existing.Deadline = updatedJob.Deadline;
+                existing.AmountPayed = updatedJob.AmountPayed ?? existing.AmountPayed;
 
-                // Update scalar fields only; CompanyId and PostedAt are preserved
-                existingJob.JobTitle = updatedJob.JobTitle;
-                existingJob.JobDescription = updatedJob.JobDescription;
-                existingJob.AmountPayed = updatedJob.AmountPayed ?? existingJob.AmountPayed;
-
-                // Replace skill links: remove old ones, insert new ones
-                if (existingJob.JobSkills != null)
+                if (skillLinks != null && skillLinks.Count > 0)
                 {
-                    this.databaseContext.JobSkills.RemoveRange(existingJob.JobSkills);
-                }
+                    if (existing.JobSkills != null)
+                    {
+                        this.JobsDbContext.JobSkills.RemoveRange(existing.JobSkills);
+                    }
 
-                if (skillLinks != null)
-                {
                     foreach (var (skillId, percentage) in skillLinks)
                     {
                         if (percentage < MinimumSkillPercentage || percentage > MaximumSkillPercentage)
@@ -164,7 +172,14 @@
         }
 
         /// <inheritdoc />
-        public bool DeleteJob(int jobId)
+        public int GetApplicantCount(int jobId)
+        {
+            return this.JobsDbContext.Matches
+                .Count(match => EF.Property<int>(match, "JobId") == jobId);
+        }
+
+        /// <inheritdoc />
+        public JobDeleteResult DeleteJob(int jobId, bool force)
         {
             using var transaction = this.databaseContext.Database.BeginTransaction();
 
@@ -176,10 +191,39 @@
 
                 if (job == null)
                 {
-                    return false;
+                    return JobDeleteResult.NotFound;
+                }
+                
+                List<Match> applicants = this.JobsDbContext.Matches
+                    .Where(match => EF.Property<int>(match, "JobId") == jobId)
+                    .ToList();
+
+                if (applicants.Count > 0 && !force)
+                {
+                    return JobDeleteResult.HasApplicants;
                 }
 
-                // Remove skill links first to respect FK constraints
+                if (applicants.Count > 0)
+                {
+                    this.JobsDbContext.Matches.RemoveRange(applicants);
+                }
+
+                List<Recommendation> recommendations = this.JobsDbContext.Recommendations
+                    .Where(recommendation => EF.Property<int>(recommendation, "JobId") == jobId)
+                    .ToList();
+                if (recommendations.Count > 0)
+                {
+                    this.JobsDbContext.Recommendations.RemoveRange(recommendations);
+                }
+
+                List<Chat> linkedChats = this.JobsDbContext.Chats
+                    .Where(chat => EF.Property<int?>(chat, "JobId") == jobId)
+                    .ToList();
+                foreach (Chat chat in linkedChats)
+                {
+                    chat.Job = null;
+                }
+
                 if (job.JobSkills != null)
                 {
                     this.databaseContext.JobSkills.RemoveRange(job.JobSkills);
@@ -187,7 +231,6 @@
 
                 this.databaseContext.Jobs.Remove(job);
 
-                // Decrement the company's posted job count
                 var company = this.databaseContext.Companies.Find(job.CompanyId);
                 if (company != null && company.PostedJobsCount > 0)
                 {
@@ -196,7 +239,7 @@
 
                 this.databaseContext.SaveChanges();
                 transaction.Commit();
-                return true;
+                return JobDeleteResult.Deleted;
             }
             catch
             {

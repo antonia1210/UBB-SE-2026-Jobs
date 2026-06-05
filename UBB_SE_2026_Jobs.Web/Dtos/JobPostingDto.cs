@@ -78,11 +78,6 @@ namespace UBB_SE_2026_Jobs.Web.Dtos
         public int? Salary { get; set; }
 
         /// <summary>
-        /// Gets or sets the amount payed for the job posting.
-        /// </summary>
-        public int? AmountPayed { get; set; }
-
-        /// <summary>
         /// Gets or sets the deadline for the job posting.
         /// </summary>
         public DateTime? Deadline { get; set; }

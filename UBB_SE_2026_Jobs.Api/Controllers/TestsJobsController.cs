@@ -29,8 +29,23 @@ public class TestsJobsController : ControllerBase
         return Ok(jobs.Select(job => job.ToDto()).ToList());
     }
 
-    [HttpGet("skills")]
-    public ActionResult<List<SkillDto>> GetAllSkills()
+using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Claims;
+    using UBB_SE_2026_Jobs.Library.Persistence;
+    using UBB_SE_2026_Jobs.Library.DTOs;
+    using UBB_SE_2026_Jobs.Library.Mappers;
+    using UBB_SE_2026_Jobs.Library.Domain;
+    using UBB_SE_2026_Jobs.Library.Services;
+    using UBB_SE_2026_Jobs.Library.Services.Interfaces;
+
+    [Route("api/[controller]")]
+    [ApiController]
+    public class TestsJobsController : ControllerBase
     {
         IReadOnlyList<Skill> skills = this.testsJobsService.GetAllSkills();
         return Ok(skills.Select(skill => skill.ToDto()).ToList());
@@ -81,16 +96,23 @@ public class TestsJobsController : ControllerBase
             return StatusCode(500, new { message = "An error occurred while updating the job." });
         }
 
-        return NoContent();
-    }
-
-    [HttpDelete("{jobId}")]
-    public ActionResult DeleteJob(int jobId)
-    {
-        Job? existingJob = this.testsJobsService.GetJobById(jobId);
-        if (existingJob == null)
+        [HttpGet("{jobId}/applicant-count")]
+        public ActionResult<int> GetApplicantCount(int jobId)
         {
-            return NotFound(new { message = $"Job with ID {jobId} not found." });
+            return Ok(this._service.GetApplicantCount(jobId));
+        }
+
+        [HttpDelete("{jobId}")]
+        public ActionResult DeleteJob(int jobId, [FromQuery] bool force = false)
+        {
+            JobDeleteResult result = this._service.DeleteJob(jobId, force);
+
+            return result switch
+            {
+                JobDeleteResult.NotFound => NotFound(new { message = $"Job with ID {jobId} not found." }),
+                JobDeleteResult.HasApplicants => Conflict(new { message = "This job has applicants. Confirm deletion to remove them along with the job." }),
+                _ => NoContent(),
+            };
         }
 
         bool success = this.testsJobsService.DeleteJob(jobId);
