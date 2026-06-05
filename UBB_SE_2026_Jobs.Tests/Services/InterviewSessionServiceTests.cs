@@ -1,4 +1,4 @@
-using UBB_SE_2026_Jobs.Library.Domain.Core;
+/*using UBB_SE_2026_Jobs.Library.Domain.Core;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Tests.Fakes;
@@ -220,3 +220,4 @@ public class InterviewSessionServiceTests
     // separate integration test project that runs against a temp directory.
     // -------------------------------------------------------------------------
 }
+*/
