@@ -45,26 +45,6 @@ namespace UBB_SE_2026_Jobs.Web.Clients
             return await this.http.GetFromJsonAsync<TestDto>($"{ApiPath}/{id}");
         }
 
-        public async Task<TestDto?> Create(TestDto dto)
-        {
-            var response = await this.http.PostAsJsonAsync(ApiPath, dto);
-            response.EnsureSuccessStatusCode();
-
-            return await response.Content.ReadFromJsonAsync<TestDto>();
-        }
-
-        public async Task Update(int id, TestDto dto)
-        {
-            var response = await this.http.PutAsJsonAsync($"{ApiPath}/{id}", dto);
-            response.EnsureSuccessStatusCode();
-        }
-
-        public async Task Delete(int id)
-        {
-            var response = await this.http.DeleteAsync($"{ApiPath}/{id}");
-            response.EnsureSuccessStatusCode();
-        }
-
         /// <summary>
         /// Packages the candidate's answers and submits them to the API for server-side grading.
         /// </summary>
@@ -208,11 +188,26 @@ namespace UBB_SE_2026_Jobs.Web.Clients
         }
 
         /// <summary>
-        /// Retrieves all valid attempts for a specific test to check completion history.
+        /// Retrieves all valid (completed + validated) attempts for a specific test.
         /// </summary>
         public async Task<List<TestAttemptDto>> GetValidAttemptsByTestIdAsync(int testId)
         {
             var response = await this.http.GetAsync($"{AttemptsApiPath}/valid/bytest/{testId}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new List<TestAttemptDto>();
+            }
+
+            return await response.Content.ReadFromJsonAsync<List<TestAttemptDto>>() ?? new List<TestAttemptDto>();
+        }
+
+        /// <summary>
+        /// Retrieves all completed attempts for a specific user across all tests.
+        /// </summary>
+        public async Task<List<TestAttemptDto>> GetAttemptsByUserAsync(int userId)
+        {
+            var response = await this.http.GetAsync($"{AttemptsApiPath}/byuser/{userId}");
 
             if (!response.IsSuccessStatusCode)
             {

@@ -55,6 +55,13 @@
         }
 
         /// <inheritdoc/>
+        public Applicant? GetPendingApplicantByJobAndUser(int jobId, int userId)
+        {
+            return this.JobsDbContext.Applicants
+                .FirstOrDefault(applicant => applicant.JobId == jobId && applicant.UserId == userId);
+        }
+
+        /// <inheritdoc/>
         public void AddApplicant(Applicant applicant)
         {
             this.JobsDbContext.Applicants.Add(applicant);

@@ -8,6 +8,7 @@
         Applicant GetApplicantById(int applicantId);
         public IEnumerable<Applicant> GetApplicantsByCompany(int companyId);
         IEnumerable<Applicant> GetApplicantsByJob(Job job);
+        Applicant? GetPendingApplicantByJobAndUser(int jobId, int userId);
         void AddApplicant(Applicant applicant);
         void UpdateApplicant(Applicant applicant);
         void RemoveApplicant(int applicantId);

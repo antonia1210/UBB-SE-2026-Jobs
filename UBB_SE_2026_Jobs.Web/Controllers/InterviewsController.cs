@@ -118,16 +118,6 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             return View(booked);
         }
 
-        /// <summary>
-        /// Starts the interview recording for a booked interview session.
-        /// </summary>
-        [Authorize(Roles = "Candidate")]
-        public IActionResult StartInterview(int id)
-        {
-            this.TempData["Error"] = "Interview recording is not available yet.";
-            return this.RedirectToAction(nameof(this.CandidateBookedInterviews));
-        }
-
         // ---------------------------------------------------------------
         // Recruiter: view booked interviews
         // ---------------------------------------------------------------
@@ -139,7 +129,10 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         [Authorize(Roles = "Recruiter")]
         public async Task<IActionResult> BookedInterviews()
         {
-            var sessions = await this.sessionsClient.GetScheduledAsync();
+            int recruiterId = int.Parse(
+                this.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var sessions = await this.sessionsClient.GetScheduledAsync(recruiterId);
             return this.View(sessions);
         }
 
@@ -235,6 +228,28 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             }
 
             return this.RedirectToAction(nameof(this.ManageSlots));
+        }
+
+        // ---------------------------------------------------------------
+        // Recruiter: accept or decline candidate interview
+        // ---------------------------------------------------------------
+
+        /// <summary>
+        /// Submits the recruiter's accept/reject decision for a candidate.
+        /// </summary>
+        [Authorize(Roles = "Recruiter")]
+        [HttpPost]
+        public async Task<IActionResult> SubmitDecision(int sessionId, string decision)
+        {
+            try {
+                await this.sessionsClient.SetInterviewDecision(sessionId, decision);
+            } catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound) {
+                this.TempData["Error"] = "Application not found.";
+            } catch (HttpRequestException) {
+                this.TempData["Error"] = "Failed to submit decision.";
+            }
+
+            return this.RedirectToAction(nameof(this.BookedInterviews));
         }
     }
 }

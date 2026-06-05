@@ -54,7 +54,7 @@
         <div class="modal-content">
             <div class="modal-header" style="background:#F0EEFF;">
                 <h6 class="modal-title fw-bold" id="modalTitle">Add Slot</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button class="btn-close" onclick="closeModal()"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
@@ -87,7 +87,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="closeModal()">Cancel</button>
                 <button class="btn btn-sm btn-outline-danger" id="modalDelete" style="display:none;">Delete</button>
                 <button class="btn btn-sm text-white" style="background:#7C5CFC;" id="modalSave">Save</button>
             </div>
@@ -107,10 +107,6 @@
     document.getElementById('todayBtn').onclick  = () => { weekStart = getMonday(new Date()); render(); };
     document.getElementById('modalSave').onclick   = saveSlot;
     document.getElementById('modalDelete').onclick = deleteSlot;
-    document.querySelector('#slotModal .btn-close').onclick = () => {
-        document.getElementById('slotModal').classList.remove('show');
-        document.getElementById('slotModal').style.display = 'none';
-    };
 
     render();
 
@@ -162,6 +158,12 @@
         document.getElementById('calendarBody').innerHTML = html;
     }
 
+    window.closeModal = function () {
+        document.getElementById('slotModal').classList.remove('show');
+        document.getElementById('slotModal').style.display = 'none';
+        editSlot = null;
+    }
+
     async function loadSlots() {
         try {
             const res = await fetch('/Interviews/GetRecruiterSlots');
@@ -194,8 +196,7 @@
                 })});
             }
 
-            document.getElementById('slotModal').classList.remove('show');
-            document.getElementById('slotModal').style.display = 'none';
+            closeModal();
             await render();
         } catch {}
     }
@@ -204,8 +205,7 @@
         if (!editSlot || !confirm('Delete this slot?')) return;
         await fetch('/Interviews/DeleteRecruiterSlot', { method: 'POST', body: new URLSearchParams({ id: editSlot.id }) });
 
-        document.getElementById('slotModal').classList.remove('show');
-        document.getElementById('slotModal').style.display = 'none';
+        closeModal();
         await render();
     }
 
@@ -220,7 +220,10 @@
         document.getElementById('modalSave').textContent  = 'Add Slot';
 
         document.getElementById('slotModal').classList.add('show');
-           document.getElementById('slotModal').style.display = 'block';
+        document.getElementById('slotModal').style.display = 'block';
+
+        const firstOption = document.getElementById('CompanyId').options[1];
+        if (firstOption) document.getElementById('CompanyId').value = firstOption.value;
     };
 
     window.slotClick = function (e, slotId) {
@@ -238,6 +241,8 @@
 
         document.getElementById('slotModal').classList.add('show');
         document.getElementById('slotModal').style.display = 'block';
+
+        document.getElementById('CompanyId').value = slot.companyId ?? '';
     };
 
     function getMonday(d) {

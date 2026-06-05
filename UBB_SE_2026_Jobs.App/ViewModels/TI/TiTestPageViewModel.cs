@@ -41,7 +41,6 @@ public class TiTestPageViewModel : INotifyPropertyChanged
     }
 
     public int TotalCount => Questions.Count;
-    public bool AlreadyAttempted { get; private set; }
     public int UserId { get; set; }
     public int TestId { get; set; }
 
@@ -55,28 +54,12 @@ public class TiTestPageViewModel : INotifyPropertyChanged
 
         TestTitle = test.Title;
 
-        var existingAttempt = await testService.GetAttemptByUserAndTestAsync(userId, testId);
-
-        if (existingAttempt != null)
+        // Tests are replayable. Resume the active IN_PROGRESS attempt if one exists,
+        // otherwise start a fresh one. Never block based on prior completed attempts.
+        var activeAttempt = await testService.GetAttemptByUserAndTestAsync(userId, testId);
+        if (activeAttempt == null)
         {
-            var savedAnswers = await testService.GetAnswersByAttemptAsync(existingAttempt.Id);
-            if (savedAnswers.Count > 0)
-            {
-                AlreadyAttempted = true;
-                return;
-            }
-        }
-        else
-        {
-            try
-            {
-                await testService.StartAttemptAsync(userId, testId);
-            }
-            catch (InvalidOperationException)
-            {
-                AlreadyAttempted = true;
-                return;
-            }
+            try { await testService.StartAttemptAsync(userId, testId); }
             catch { }
         }
 
