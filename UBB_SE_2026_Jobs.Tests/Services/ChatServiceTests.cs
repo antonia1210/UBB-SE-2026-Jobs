@@ -141,6 +141,15 @@ namespace UBB_SE_2026_Jobs.Tests.Services
 
             Assert.Same(newChat, createdChat);
         }
+
+        [Fact]
+        public async Task FindOrCreateUserChatAsync_RecruiterAndCandidate_ThrowsInvalidOperationException()
+        {
+            recruiterRepository.GetCompanyIdForUserAsync(1, Arg.Any<CancellationToken>()).Returns(10);
+            recruiterRepository.GetCompanyIdForUserAsync(2, Arg.Any<CancellationToken>()).Returns((int?)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => chatService.FindOrCreateUserChatAsync(1, 2));
+        }
         #endregion
 
         #region GetChatsFor....
@@ -285,6 +294,47 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             Assert.Equal("Me", result[0].SenderInitials);
             Assert.False(result[1].ShowReadReceipt);
             Assert.Equal("Them", result[1].SenderInitials);
+        }
+
+        [Fact]
+        public async Task GetMessagesAsync_NoDeletionTimestamp_AllMessagesAreVisible()
+        {
+            var callerId = 1;
+            var chat = new Chat { User = new User { UserId = callerId }, DeletedAtByUser = null };
+            var messages = new List<Message>
+            {
+                new() { Timestamp = DateTime.UtcNow.AddHours(-2), Sender = new MessageSender { SenderId = 2 }, Chat = new Chat { ChatId = 1 } },
+                new() { Timestamp = DateTime.UtcNow.AddHours(-1), Sender = new MessageSender { SenderId = 2 }, Chat = new Chat { ChatId = 1 } },
+            };
+
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+            messageRepository.GetForChatAsync(1, Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<Message>>(messages));
+
+            var result = await chatService.GetMessagesAsync(chatId: 1, callerId);
+
+            Assert.Equal(2, result.Count);
+        }
+
+        [Fact]
+        public async Task GetMessagesAsync_MessageExactlyAtDeletionTimestamp_IsNotVisible()
+        {
+            var deletedAt = new DateTime(2024, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+            var callerId = 1;
+            var chat = new Chat { User = new User { UserId = callerId }, DeletedAtByUser = deletedAt };
+
+            var beforeDeletion = new Message { Timestamp = deletedAt.AddSeconds(-1), Sender = new MessageSender { SenderId = 2 }, Chat = new Chat { ChatId = 1 } };
+            var exactlyAtDeletion = new Message { Timestamp = deletedAt, Sender = new MessageSender { SenderId = 2 }, Chat = new Chat { ChatId = 1 } };
+            var afterDeletion = new Message { Timestamp = deletedAt.AddSeconds(1), Sender = new MessageSender { SenderId = 2 }, Chat = new Chat { ChatId = 1 } };
+
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+            messageRepository.GetForChatAsync(1, Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<Message>>(new List<Message> { beforeDeletion, exactlyAtDeletion, afterDeletion }));
+
+            var result = await chatService.GetMessagesAsync(chatId: 1, callerId);
+
+            Assert.Single(result);
+            Assert.Equal(afterDeletion.Timestamp, result[0].Timestamp);
         }
 
         #endregion GetMessagesAsync
@@ -435,6 +485,18 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             var result = await chatService.SearchRecruitersByCompanyAsync(1, "peter");
 
             Assert.Equal(10, result.Count);
+        }
+
+        [Fact]
+        public async Task SearchCompaniesAsync_SearchIsNotCaseSensitive()
+        {
+            var companies = new List<Company> { new() { Name = "Acme Corp" } };
+            companyService.GetAllAsync(Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<Company>>(companies));
+
+            var result = await chatService.SearchCompaniesAsync("ACME");
+
+            Assert.Single(result);
         }
         #endregion
 
@@ -587,6 +649,55 @@ namespace UBB_SE_2026_Jobs.Tests.Services
                 File.Delete(textPath);
             }
         }
+
+        [Fact]
+        public async Task SendMessageAsync_FileWithDisallowedExtension_ThrowsNotSupportedException()
+        {
+            var chat = new Chat { User = new User { UserId = 1 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            var tempFile = CreateTempFileWithExtension(".exe");
+            try
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(
+                    () => chatService.SendMessageAsync(1, tempFile, 1, MessageType.File));
+            }
+            finally
+            {
+                File.Delete(tempFile);
+            }
+        }
+
+        [Fact]
+        public async Task SendMessageAsync_ImageExceedsSizeLimit_ThrowsInvalidOperationException()
+        {
+            var chat = new Chat { User = new User { UserId = 1 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            var tempFile = CreateTempFileWithExtension(".jpg", sizeBytes: 11 * 1024 * 1024); // 11 MB > 10 MB limit
+            try
+            {
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => chatService.SendMessageAsync(1, tempFile, 1, MessageType.Image));
+            }
+            finally
+            {
+                File.Delete(tempFile);
+            }
+        }
+
+        [Fact]
+        public async Task SendMessageAsync_TextAtExactMaxLength_DoesNotThrow()
+        {
+            var chat = new Chat { User = new User { UserId = 1 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            var exactLimit = new string('x', 2000);
+
+            await chatService.SendMessageAsync(1, exactLimit, 1, MessageType.Text);
+
+            await messageRepository.Received(1).AddAsync(Arg.Any<Message>(), Arg.Any<CancellationToken>());
+        }
         #endregion
 
         #region SendStoredAttachmentAsync
@@ -629,6 +740,21 @@ namespace UBB_SE_2026_Jobs.Tests.Services
 
             await messageRepository.Received(1).AddAsync(
                 Arg.Is<Message>(message => message.Content == "stored/path.jpg" && message.OriginalFileName == "photo.jpg"),
+                Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task SendStoredAttachmentAsync_CompanyRepresentative_AddsMessage()
+        {
+            var chat = new Chat { User = new User { UserId = 1 }, Company = new Company { CompanyId = 100 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            await chatService.SendStoredAttachmentAsync(1, "stored/doc.pdf", "doc.pdf", 999, MessageType.File, companyId: 100);
+
+            await messageRepository.Received(1).AddAsync(
+                Arg.Is<Message>(message => message.Content == "stored/doc.pdf"
+                    && message.OriginalFileName == "doc.pdf"
+                    && message.Type == MessageType.File),
                 Arg.Any<CancellationToken>());
         }
         #endregion
@@ -696,6 +822,24 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             Assert.True(chat.IsBlocked);
             Assert.Equal(2, chat.BlockedByUserId);
             Assert.Same(secondUser, chat.BlockedByUser);
+            await chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task BlockChatAsync_CallerIsCompanyRepresentative_BlocksChat()
+        {
+            var chat = new Chat { User = new User { UserId = 1 }, Company = new Company { CompanyId = 100 } };
+            chatRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(chat);
+
+            // The company rep is not a loaded chat participant, so BlockChatAsync resolves
+            // them via GetUserAsync — userService must contain that user.
+            userService.GetAllAsync(Arg.Any<CancellationToken>())
+                .Returns(Task.FromResult<IReadOnlyList<User>>(new List<User> { new() { UserId = 999 } }));
+
+            await chatService.BlockChatAsync(1, blockerId: 999, companyId: 100);
+
+            Assert.True(chat.IsBlocked);
+            Assert.Equal(999, chat.BlockedByUserId);
             await chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
         }
 
@@ -774,6 +918,26 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             Assert.NotNull(chat.DeletedAtBySecondParty);
             Assert.Null(chat.DeletedAtByUser);
             await chatRepository.Received(1).UpdateAsync(chat, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task DeleteChatAsync_BothPartiesDelete_BothFlagsAreSet()
+        {
+            var chat = new Chat { User = new User { UserId = 1 }, SecondUser = new User { UserId = 2 } };
+            chatRepository.GetByIdAsync(Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(chat);
+
+            await chatService.DeleteChatAsync(1, callerId: 1);
+            await chatService.DeleteChatAsync(1, callerId: 2);
+
+            Assert.NotNull(chat.DeletedAtByUser);
+            Assert.NotNull(chat.DeletedAtBySecondParty);
+        }
+
+        private static string CreateTempFileWithExtension(string extension, int sizeBytes = 100)
+        {
+            var path = Path.ChangeExtension(Path.GetTempFileName(), extension);
+            File.WriteAllBytes(path, new byte[sizeBytes]);
+            return path;
         }
     }
 }
