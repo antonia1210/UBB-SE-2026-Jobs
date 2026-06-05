@@ -61,7 +61,8 @@ public sealed partial class PublicProfilePage : Page
         if (!string.IsNullOrEmpty(profile.ProfilePicturePath))
         {
             var baseUrl = ApiConfigurationLoader.Load().BaseUrl.TrimEnd('/');
-            ProfilePhoto.Source = new BitmapImage(new Uri($"{baseUrl}/api/files/{profile.ProfilePicturePath}"));
+            var fileName = Uri.EscapeDataString(System.IO.Path.GetFileName(profile.ProfilePicturePath));
+            ProfilePhoto.Source = new BitmapImage(new Uri($"{baseUrl}/api/files/{fileName}"));
         }
 
         SkillTestsContainer.Children.Clear();

@@ -5,6 +5,8 @@ namespace UBB_SE_2026_Jobs.Library.Services.ChatService;
 
 public interface IChatService
 {
+    Task<Chat?> GetChatByIdAsync(int chatId, CancellationToken cancellationToken = default);
+
     Task<Chat?> FindOrCreateUserCompanyChatAsync(int userId, Company company, Job? job = null,
         CancellationToken cancellationToken = default);
 
@@ -19,6 +21,8 @@ public interface IChatService
     Task<IReadOnlyList<Company>> SearchCompaniesAsync(string query, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<User>> SearchUsersAsync(string query, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<User>> SearchRecruitersByCompanyAsync(int companyId, string query, CancellationToken cancellationToken = default);
 
     Task SendMessageAsync(int chatId, string content, int senderId, MessageType type, int? companyId = null, CancellationToken cancellationToken = default);
 
