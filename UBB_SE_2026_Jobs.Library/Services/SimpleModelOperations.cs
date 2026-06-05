@@ -16,7 +16,7 @@ public static class SimpleModelOperations
     public const int ParticipantExperiencePoints = 10;
 
     public const int Level1ExperiencePoints = 0;
-    public const int Level2ExperiencePoints = 10;
+    public const int Level2ExperiencePoints = 100;
     public const int Level3ExperiencePoints = 250;
     public const int Level4ExperiencePoints = 500;
     public const int Level5ExperiencePoints = 800;

@@ -55,10 +55,10 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
 
 
         [Fact]
-        public void ValidateEventDescription_EmptyDescription_ReturnsTrue()
+        public void ValidateEventDescription_EmptyDescription_ThrowsException()
         {
-            var result = eventValidator.ValidateEventDescription("");
-            Assert.True(result);
+            var exception = Assert.Throws<Exception>(() => eventValidator.ValidateEventDescription(""));
+            Assert.Contains("Description is mandatory", exception.Message);
         }
 
         [Fact]
