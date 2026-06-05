@@ -15,7 +15,7 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
         private const int DescriptionLengthExceeded = 2001;
         private const int LocationLengthExceeded = 301;
         private const string WhitespaceString = "   ";
-        private const char FillerChar = 'a';
+        private const char FillerCharacter = 'a';
 
         private readonly IEventValidator eventValidator;
 
@@ -41,7 +41,7 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
         [Fact]
         public void ValidateEventTitle_TitleExceedsMaxLength_ThrowsException()
         {
-            var longTitle = new string(FillerChar, TitleLengthExceeded);
+            var longTitle = new string(FillerCharacter, TitleLengthExceeded);
             var exception = Assert.Throws<Exception>(() => eventValidator.ValidateEventTitle(longTitle));
         }
 
@@ -64,7 +64,7 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
         [Fact]
         public void ValidateEventDescription_DescriptionExceedsMaxLength_ThrowsException()
         {
-            var longDescription = new string(FillerChar, DescriptionLengthExceeded );
+            var longDescription = new string(FillerCharacter, DescriptionLengthExceeded );
             var exception = Assert.Throws<Exception>(() => eventValidator.ValidateEventDescription(longDescription));
         }
 
@@ -86,7 +86,7 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
         [Fact]
         public void ValidateEventLocation_LocationExceedsMaxLength_ThrowsException()
         {
-            var longLocation = new string(FillerChar, LocationLengthExceeded);
+            var longLocation = new string(FillerCharacter, LocationLengthExceeded);
             var exception = Assert.Throws<Exception>(() => eventValidator.ValidateEventLocation(longLocation));
           
         }

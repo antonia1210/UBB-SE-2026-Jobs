@@ -7,7 +7,7 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
 {
     public class CompanyValidatorTests
     {
-        private const char FillerChar = 'a';
+        private const char FillerCharacter = 'a';
         private const int NameLengthExceeded = 201;
         private const int AboutUsLengthExceeded = 2001;
         private const int LocationLengthExceeded = 301;
@@ -50,7 +50,7 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
         [Fact]
         public void ValidateName_ExceedsMaxLength_ThrowsException()
         {
-            string nameTooLong = new string(FillerChar, NameLengthExceeded);
+            string nameTooLong = new string(FillerCharacter, NameLengthExceeded);
             
             Assert.Throws<Exception>(() => companyValidator.ValidateName(nameTooLong));
         }
@@ -72,7 +72,7 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
         [Fact]
         public void ValidateAboutUs_ExceedsMaxLength_ThrowsException()
         {
-            string descriptionTooLong = new string(FillerChar, AboutUsLengthExceeded);
+            string descriptionTooLong = new string(FillerCharacter, AboutUsLengthExceeded);
             Assert.Throws<Exception>(() => companyValidator.ValidateAboutUs(descriptionTooLong));
         }
 
@@ -95,7 +95,7 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
         [Fact]
         public void ValidateLocation_ExceedsMaxLength_ThrowsException()
         {
-            string locationTooLong = new string(FillerChar,LocationLengthExceeded);
+            string locationTooLong = new string(FillerCharacter,LocationLengthExceeded);
             Assert.Throws<Exception>(() => companyValidator.ValidateLocation(locationTooLong));
         }
 
@@ -123,7 +123,7 @@ namespace UBB_SE_2026_Jobs.Tests.Validators
         [Fact]
         public void ValidateEmail_ExceedsMaxLength_ThrowsException()
         {
-            string email = new string(FillerChar, EmailLengthExceeded) + EmailDomain;
+            string email = new string(FillerCharacter, EmailLengthExceeded) + EmailDomain;
             Assert.Throws<Exception>(() => companyValidator.ValidateEmail(email));
         }
 
