@@ -8,40 +8,40 @@
 
     public class PaymentRepository : IPaymentRepository
     {
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext databaseContext;
 
-        public PaymentRepository(JobsDbContext JobsDbContext)
+        public PaymentRepository(JobsDbContext databaseContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <inheritdoc />
         public void UpdateJobPayment(int jobId, int paymentAmount)
         {
-            var job = this.JobsDbContext.Jobs.Find(jobId);
+            var job = this.databaseContext.Jobs.Find(jobId);
             if (job == null)
             {
                 throw new System.Exception("Job ID not found. Payment not applied to database.");
             }
 
             job.AmountPayed = paymentAmount;
-            this.JobsDbContext.SaveChanges();
+            this.databaseContext.SaveChanges();
         }
 
         /// <inheritdoc />
         public List<JobPaymentInfo> GetPaidJobs(string jobType, string experienceLevel)
         {
-            return this.JobsDbContext.Jobs
-                .Where(j => j.JobType == jobType && j.ExperienceLevel == experienceLevel)
+            return this.databaseContext.Jobs
+                .Where(job => job.JobType == jobType && job.ExperienceLevel == experienceLevel)
                 .Join(
-                    this.JobsDbContext.Companies,
-                    j => j.CompanyId,
-                    c => c.CompanyId,
-                    (j, c) => new JobPaymentInfo
+                    this.databaseContext.Companies,
+                    job => job.CompanyId,
+                    company => company.CompanyId,
+                    (job, company) => new JobPaymentInfo
                     {
-                        CompanyName = c.Name,
-                        JobTitle = j.JobTitle,
-                        AmountPayed = j.AmountPayed ?? 0,
+                        CompanyName = company.Name,
+                        JobTitle = job.JobTitle,
+                        AmountPayed = job.AmountPayed ?? 0,
                     })
                 .ToList();
         }
@@ -49,25 +49,24 @@
         /// <inheritdoc />
         public List<string> GetCompaniesToNotify(int currentJobId, int newPaymentAmount)
         {
-            var currentJob = this.JobsDbContext.Jobs.Find(currentJobId);
+            var currentJob = this.databaseContext.Jobs.Find(currentJobId);
             if (currentJob == null)
             {
                 return [];
             }
 
-            return this.JobsDbContext.Jobs
-                .Where(j => j.JobId != currentJobId
-                    && j.JobType == currentJob.JobType
-                    && j.ExperienceLevel == currentJob.ExperienceLevel
-                    && (j.AmountPayed == null || j.AmountPayed < newPaymentAmount))
+            return this.databaseContext.Jobs
+                .Where(job => job.JobId != currentJobId
+                    && job.JobType == currentJob.JobType
+                    && job.ExperienceLevel == currentJob.ExperienceLevel
+                    && (job.AmountPayed == null || job.AmountPayed < newPaymentAmount))
                 .Join(
-                    this.JobsDbContext.Companies.Where(c => c.Email != null && c.Email != string.Empty),
-                    j => j.CompanyId,
-                    c => c.CompanyId,
-                    (j, c) => c.Email)
+                    this.databaseContext.Companies.Where(company => company.Email != null && company.Email != string.Empty),
+                    job => job.CompanyId,
+                    company => company.CompanyId,
+                    (job, company) => company.Email)
                 .Distinct()
                 .ToList();
         }
     }
 }
-

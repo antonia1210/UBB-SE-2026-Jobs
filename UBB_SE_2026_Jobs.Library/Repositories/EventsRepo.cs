@@ -3,7 +3,6 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
     using Microsoft.EntityFrameworkCore;
     using System;
     using System.Collections.ObjectModel;
-    using System.ComponentModel.Design;
     using System.Linq;
     using UBB_SE_2026_Jobs.Library.Persistence;
     using UBB_SE_2026_Jobs.Library.Domain;
@@ -11,50 +10,50 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
 
     public class EventsRepo : IEventsRepo
     {
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext databaseContext;
 
-        public EventsRepo(JobsDbContext JobsDbContext)
+        public EventsRepo(JobsDbContext databaseContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <inheritdoc/>
         public void AddEventToRepo(Event eventToBeAdded)
         {
-            using var transaction = this.JobsDbContext.Database.BeginTransaction();
+            using var transaction = this.databaseContext.Database.BeginTransaction();
 
             try
             {
                 eventToBeAdded.PostedAt = DateTime.Now;
 
-                var companyIds = eventToBeAdded.Collaborators?.Select(c => c.CompanyId).ToList() ?? new List<int>();
+                var companyIds = eventToBeAdded.Collaborators?.Select(collaborator => collaborator.CompanyId).ToList() ?? new List<int>();
                 var newCompanyIds = new List<int>();
-                
-                foreach (var cid in companyIds)
+
+                foreach (var companyId in companyIds)
                 {
-                    bool alreadyCollaborates = this.JobsDbContext.Collaborators.Any(c => c.CompanyId == cid);
+                    bool alreadyCollaborates = this.databaseContext.Collaborators.Any(collaborator => collaborator.CompanyId == companyId);
                     if (!alreadyCollaborates)
                     {
-                        newCompanyIds.Add(cid);
+                        newCompanyIds.Add(companyId);
                     }
                 }
 
                 // EF Core will automatically insert the Event and its Collaborators
-                this.JobsDbContext.Events.Add(eventToBeAdded);
-                this.JobsDbContext.SaveChanges();
+                this.databaseContext.Events.Add(eventToBeAdded);
+                this.databaseContext.SaveChanges();
 
-                foreach (var cid in newCompanyIds)
+                foreach (var companyId in newCompanyIds)
                 {
-                    var company = this.JobsDbContext.Companies.Find(cid);
+                    var company = this.databaseContext.Companies.Find(companyId);
                     if (company != null)
                     {
                         company.CollaboratorsCount += 1;
                     }
                 }
-                
+
                 if (newCompanyIds.Any())
                 {
-                    this.JobsDbContext.SaveChanges();
+                    this.databaseContext.SaveChanges();
                 }
 
                 transaction.Commit();
@@ -69,48 +68,48 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
         /// <inheritdoc/>
         public void RemoveEventFromRepo(Event eventToBeRemoved)
         {
-            var existing = this.JobsDbContext.Events.Find(eventToBeRemoved.Id);
+            var existing = this.databaseContext.Events.Find(eventToBeRemoved.Id);
             if (existing != null)
             {
-                this.JobsDbContext.Events.Remove(existing);
-                this.JobsDbContext.SaveChanges();
+                this.databaseContext.Events.Remove(existing);
+                this.databaseContext.SaveChanges();
             }
         }
 
         /// <inheritdoc/>
-        public ObservableCollection<Event> GetCurrentEventsFromRepo(int? loggedInUser=null)
+        public ObservableCollection<Event> GetCurrentEventsFromRepo(int? loggedInUser = null)
         {
-            var query = this.JobsDbContext.Events
-                .Where(e => e.EndDate >= DateTime.Now.Date);
+            var query = this.databaseContext.Events
+                .Where(eventEntity => eventEntity.EndDate >= DateTime.Now.Date);
 
-                if (loggedInUser.HasValue)
-                {
-                    query = query.Where(e => e.HostCompanyId == loggedInUser);
-                }
+            if (loggedInUser.HasValue)
+            {
+                query = query.Where(eventEntity => eventEntity.HostCompanyId == loggedInUser);
+            }
 
-                var events = query.ToList();
-                return new ObservableCollection<Event>(events);
+            var events = query.ToList();
+            return new ObservableCollection<Event>(events);
         }
 
         /// <inheritdoc/>
-        public ObservableCollection<Event> GetPastEventsFromRepo(int? loggedInUser=null)
+        public ObservableCollection<Event> GetPastEventsFromRepo(int? loggedInUser = null)
         {
-            var query = this.JobsDbContext.Events
-                .Where(e => e.EndDate < DateTime.Now.Date);
+            var query = this.databaseContext.Events
+                .Where(eventEntity => eventEntity.EndDate < DateTime.Now.Date);
 
-                if (loggedInUser.HasValue)
-                {
-                    query = query.Where(e => e.HostCompanyId == loggedInUser);
-                }
+            if (loggedInUser.HasValue)
+            {
+                query = query.Where(eventEntity => eventEntity.HostCompanyId == loggedInUser);
+            }
 
-                var events = query.ToList();
-                return new ObservableCollection<Event>(events);
+            var events = query.ToList();
+            return new ObservableCollection<Event>(events);
         }
 
         /// <inheritdoc/>
-        public void UpdateEventToRepo(int id, string photo, string title, string description, DateTime start, DateTime end, string location, List<int> collaboratorCompanyIds)
+        public void UpdateEventToRepo(int eventId, string photo, string title, string description, DateTime start, DateTime end, string location, List<int> collaboratorCompanyIds)
         {
-            var existing = this.JobsDbContext.Events.Find(id);
+            var existing = this.databaseContext.Events.Find(eventId);
             if (existing == null)
             {
                 return;
@@ -125,34 +124,34 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
             existing.PostedAt = DateTime.Now;
 
             // Sync collaborators
-            var existingCollaborators = this.JobsDbContext.Collaborators.Where(c => c.EventId == id).ToList();
-            var existingCompanyIds = existingCollaborators.Select(c => c.CompanyId).ToList();
+            var existingCollaborators = this.databaseContext.Collaborators.Where(collaborator => collaborator.EventId == eventId).ToList();
+            var existingCompanyIds = existingCollaborators.Select(collaborator => collaborator.CompanyId).ToList();
 
-            var toRemove = existingCollaborators.Where(c => !collaboratorCompanyIds.Contains(c.CompanyId)).ToList();
-            var toAddIds = collaboratorCompanyIds.Where(cId => !existingCompanyIds.Contains(cId)).ToList();
+            var toRemove = existingCollaborators.Where(collaborator => !collaboratorCompanyIds.Contains(collaborator.CompanyId)).ToList();
+            var toAddIds = collaboratorCompanyIds.Where(collaboratorCompanyId => !existingCompanyIds.Contains(collaboratorCompanyId)).ToList();
 
             if (toRemove.Any())
             {
-                this.JobsDbContext.Collaborators.RemoveRange(toRemove);
+                this.databaseContext.Collaborators.RemoveRange(toRemove);
             }
 
-            foreach (var companyId in toAddIds)
+            foreach (var collaboratorCompanyId in toAddIds)
             {
-                bool alreadyCollaborates = this.JobsDbContext.Collaborators
-                    .Any(c => c.CompanyId == companyId);
+                bool alreadyCollaborates = this.databaseContext.Collaborators
+                    .Any(collaborator => collaborator.CompanyId == collaboratorCompanyId);
 
                 var newCollaborator = new Collaborator
                 {
-                    EventId = id,
-                    CompanyId = companyId
+                    EventId = eventId,
+                    CompanyId = collaboratorCompanyId
                 };
 
-                this.JobsDbContext.Collaborators.Add(newCollaborator);
-                this.JobsDbContext.SaveChanges(); // save to ensure it gets an ID if needed before count update
+                this.databaseContext.Collaborators.Add(newCollaborator);
+                this.databaseContext.SaveChanges();
 
                 if (!alreadyCollaborates)
                 {
-                    var company = this.JobsDbContext.Companies.Find(companyId);
+                    var company = this.databaseContext.Companies.Find(collaboratorCompanyId);
                     if (company != null)
                     {
                         company.CollaboratorsCount += 1;
@@ -160,8 +159,7 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
                 }
             }
 
-            this.JobsDbContext.SaveChanges();
+            this.databaseContext.SaveChanges();
         }
     }
 }
-

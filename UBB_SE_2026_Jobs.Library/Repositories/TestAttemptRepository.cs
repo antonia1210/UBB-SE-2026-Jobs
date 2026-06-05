@@ -12,70 +12,69 @@
     /// <inheritdoc cref="ITestAttemptRepository"/>
     public class TestAttemptRepository : ITestAttemptRepository
     {
+        private readonly JobsDbContext databaseContext;
 
-        private readonly JobsDbContext jobsDbContext;
-
-        public TestAttemptRepository(JobsDbContext jobsDbContext)
+        public TestAttemptRepository(JobsDbContext databaseContext)
         {
-            this.jobsDbContext = jobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <inheritdoc/>
-        public async Task<TestAttempt?> FindByIdAsync(int id)
+        public async Task<TestAttempt?> FindByIdAsync(int testAttemptId)
         {
-            return await jobsDbContext.TestAttempts
-                .Include(a => a.Answers)
+            return await databaseContext.TestAttempts
+                .Include(testAttempt => testAttempt.Answers)
                     .ThenInclude(answer => answer.Question)
-                .Include(a => a.Test)
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .Include(testAttempt => testAttempt.Test)
+                .FirstOrDefaultAsync(testAttempt => testAttempt.Id == testAttemptId);
         }
 
         /// <inheritdoc/>
         public async Task<TestAttempt?> FindByUserAndTestAsync(int userId, int testId)
         {
-            return await jobsDbContext.TestAttempts
-                .Include(a => a.Answers)
-                .FirstOrDefaultAsync(a => a.ExternalUserId == userId && a.TestId == testId);
+            return await databaseContext.TestAttempts
+                .Include(testAttempt => testAttempt.Answers)
+                .FirstOrDefaultAsync(testAttempt => testAttempt.ExternalUserId == userId && testAttempt.TestId == testId);
         }
 
         /// <inheritdoc/>
-        public async Task SaveAsync(TestAttempt attempt)
+        public async Task SaveAsync(TestAttempt testAttempt)
         {
-            jobsDbContext.TestAttempts.Add(attempt);
-            await jobsDbContext.SaveChangesAsync();
+            databaseContext.TestAttempts.Add(testAttempt);
+            await databaseContext.SaveChangesAsync();
         }
 
         /// <inheritdoc/>
-        public async Task<TestAttempt?> UpdateAsync(TestAttempt attempt)
+        public async Task<TestAttempt?> UpdateAsync(TestAttempt testAttempt)
         {
             try
             {
-                await jobsDbContext.SaveChangesAsync();
+                await databaseContext.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await jobsDbContext.TestAttempts.AnyAsync(e => e.Id == attempt.Id))
+                if (!await databaseContext.TestAttempts.AnyAsync(existingAttempt => existingAttempt.Id == testAttempt.Id))
                 {
                     return null;
                 }
                 throw;
             }
 
-            return attempt;
+            return testAttempt;
         }
 
         /// <inheritdoc/>
         public async Task<List<TestAttempt>> FindValidAttemptsByTestIdAsync(int testId)
         {
-            return await jobsDbContext.TestAttempts
-                .Include(a => a.User)
-                .Where(a => a.TestId == testId
-                         && a.Status == "COMPLETED"
-                         && a.IsValidated
-                         && a.PercentageScore != null
-                         && a.CompletedAt != null)
-                .OrderByDescending(a => a.PercentageScore)
-                .ThenBy(a => a.CompletedAt)
+            return await databaseContext.TestAttempts
+                .Include(testAttempt => testAttempt.User)
+                .Where(testAttempt => testAttempt.TestId == testId
+                         && testAttempt.Status == "COMPLETED"
+                         && testAttempt.IsValidated
+                         && testAttempt.PercentageScore != null
+                         && testAttempt.CompletedAt != null)
+                .OrderByDescending(testAttempt => testAttempt.PercentageScore)
+                .ThenBy(testAttempt => testAttempt.CompletedAt)
                 .ToListAsync();
         }
 
@@ -89,17 +88,16 @@
             int userId,
             CancellationToken cancellationToken = default)
         {
-            return await jobsDbContext.TestAttempts
+            return await databaseContext.TestAttempts
                 .AsNoTracking()
-                .Include(a => a.Test)
-                    .ThenInclude(t => t!.Questions)
-                .Where(a => a.ExternalUserId == userId
-                         && a.Status == "COMPLETED"
-                         && a.CompletedAt != null)
-                .OrderByDescending(a => a.CompletedAt)
+                .Include(testAttempt => testAttempt.Test)
+                    .ThenInclude(test => test!.Questions)
+                .Where(testAttempt => testAttempt.ExternalUserId == userId
+                         && testAttempt.Status == "COMPLETED"
+                         && testAttempt.CompletedAt != null)
+                .OrderByDescending(testAttempt => testAttempt.CompletedAt)
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
     }
 }
-
