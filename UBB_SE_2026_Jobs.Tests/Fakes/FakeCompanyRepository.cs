@@ -3,7 +3,7 @@ using UBB_SE_2026_Jobs.Library.Repositories.Companies;
 
 namespace UBB_SE_2026_Jobs.Tests.Fakes;
 
-public class FakeCompanyRepository : ICompanyRepository
+public class FakeCompanyRepository : IPussyCatsCompanyRepository
 {
     private readonly Dictionary<int, Company> companiesById = new();
 

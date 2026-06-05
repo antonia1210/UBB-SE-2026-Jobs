@@ -3,7 +3,7 @@ using UBB_SE_2026_Jobs.Library.Repositories.Jobs;
 
 namespace UBB_SE_2026_Jobs.Tests.Fakes;
 
-public class FakeJobRepository : IJobRepository
+public class FakeJobRepository : IPussyCatsJobRepository
 {
     private readonly Dictionary<int, Job> jobsById = new();
 
