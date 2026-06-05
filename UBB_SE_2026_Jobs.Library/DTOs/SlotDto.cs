@@ -43,7 +43,7 @@ namespace UBB_SE_2026_Jobs.Library.DTOs
         /// <summary>
         /// Gets or sets the current status of the slot.
         /// </summary>
-        public SlotStatus Status { get; set; }
+        public int Status { get; set; }
 
         /// <summary>
         /// Gets or sets the type of interview.
