@@ -2,6 +2,7 @@ using NSubstitute;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Core;
 using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
+using UBB_SE_2026_Jobs.Library.Repositories.Skills;
 using UBB_SE_2026_Jobs.Library.Repositories.Users;
 using UBB_SE_2026_Jobs.Library.Services;
 
@@ -12,11 +13,13 @@ public class DataProcessingServiceTests
     private readonly IUserRepository userRepository = Substitute.For<IUserRepository>();
     private readonly ITestAttemptRepository testAttemptRepository = Substitute.For<ITestAttemptRepository>();
     private readonly ITestRepository testRepository = Substitute.For<ITestRepository>();
+    private readonly ISkillRepository skillRepository = Substitute.For<ISkillRepository>();
+    private readonly IUserSkillRepository userSkillRepository = Substitute.For<IUserSkillRepository>();
     private readonly DataProcessingService dataProcessingService;
 
     public DataProcessingServiceTests()
     {
-        dataProcessingService = new DataProcessingService(userRepository, testAttemptRepository, testRepository);
+        dataProcessingService = new DataProcessingService(userRepository, testAttemptRepository, testRepository, skillRepository, userSkillRepository);
     }
 
     // Helpers
