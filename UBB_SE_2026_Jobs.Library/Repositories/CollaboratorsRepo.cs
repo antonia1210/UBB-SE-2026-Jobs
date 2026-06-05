@@ -1,4 +1,4 @@
-﻿namespace UBB_SE_2026_Jobs.Library.Repositories
+namespace UBB_SE_2026_Jobs.Library.Repositories
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -65,6 +65,19 @@
                 .Where(c => c.Event.HostCompanyId == loggedInCompanyId)
                 .Select(c => c.CompanyId)
                 .Distinct()
+                .ToList();
+
+            return this.JobsDbContext.Companies
+                .Where(c => companyIds.Contains(c.CompanyId))
+                .ToList();
+        }
+
+        /// <inheritdoc/>
+        public List<Company> GetEventCollaborators(int eventId)
+        {
+            var companyIds = this.JobsDbContext.Collaborators
+                .Where(c => c.EventId == eventId)
+                .Select(c => c.CompanyId)
                 .ToList();
 
             return this.JobsDbContext.Companies

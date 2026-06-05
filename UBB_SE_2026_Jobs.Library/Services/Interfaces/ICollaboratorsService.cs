@@ -22,5 +22,12 @@ namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
         /// <param name="loggedInCompanyId">The unique identifier of the logged in company.</param>
         /// <returns>A list of companies that are collaborators of the specified company.</returns>
         List<Company> GetAllCollaborators(int loggedInCompanyId);
+
+        /// <summary>
+        /// Retrieves all collaborators associated with the specified event.
+        /// </summary>
+        /// <param name="eventId">The unique identifier of the event.</param>
+        /// <returns>A list of companies that are collaborators of the specified event.</returns>
+        List<Company> GetEventCollaborators(int eventId);
     }
 }

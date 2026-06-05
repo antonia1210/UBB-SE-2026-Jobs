@@ -11,6 +11,7 @@ namespace UBB_SE_2026_Jobs.Web.Dtos
         public string Location { get; set; } = string.Empty;
         public int HostCompanyId { get; set; }
         public DateTime PostedAt { get; set; }
+        public List<int> CollaboratorCompanyIds { get; set; } = new List<int>();
     }
 }
 
