@@ -23,9 +23,9 @@
                         <TextBlock Text="ASSESSMENT CENTER"
                                    Foreground="White" FontSize="11"
                                    CharacterSpacing="80" Opacity="0.8"/>
-                        <TextBlock Text="Skill Tests"
+                        <TextBlock Text="Test Attempts"
                                    Foreground="White" FontSize="22" FontWeight="Bold"/>
-                        <TextBlock Text="Track results and keep your profile sharp."
+                        <TextBlock Text="Your test history — see scores for every attempt."
                                    Foreground="White" FontSize="13" Opacity="0.85"/>
                     </StackPanel>
 

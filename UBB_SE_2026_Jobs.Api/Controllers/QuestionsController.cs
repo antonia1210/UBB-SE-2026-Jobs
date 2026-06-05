@@ -49,41 +49,4 @@ public class QuestionsController : ControllerBase
         if (testQuestion == null) return NotFound();
         return Ok(testQuestion.ToDto());
     }
-
-    [HttpPost]
-    public async Task<ActionResult<QuestionDto>> Create([FromBody] QuestionDto questionDto)
-    {
-        var questionEntity = questionDto.ToEntity();
-        databaseContext.Questions.Add(questionEntity);
-        await databaseContext.SaveChangesAsync();
-        return CreatedAtAction(nameof(Get), new { questionId = questionEntity.Id }, questionEntity.ToDto());
-    }
-
-    [HttpPut("{questionId}")]
-    public async Task<IActionResult> Update(int questionId, [FromBody] QuestionDto questionDto)
-    {
-        var existingQuestion = await databaseContext.Questions.FindAsync(questionId);
-        if (existingQuestion == null) return NotFound();
-
-        existingQuestion.QuestionText = questionDto.QuestionText;
-        existingQuestion.QuestionTypeString = questionDto.QuestionType;
-        existingQuestion.QuestionScore = questionDto.QuestionScore;
-        existingQuestion.QuestionAnswer = questionDto.QuestionAnswer;
-        existingQuestion.OptionsJson = questionDto.OptionsJson;
-        existingQuestion.TestId = questionDto.TestId;
-
-        await databaseContext.SaveChangesAsync();
-        return NoContent();
-    }
-
-    [HttpDelete("{questionId}")]
-    public async Task<IActionResult> Delete(int questionId)
-    {
-        var existingQuestion = await databaseContext.Questions.FindAsync(questionId);
-        if (existingQuestion == null) return NotFound();
-
-        databaseContext.Questions.Remove(existingQuestion);
-        await databaseContext.SaveChangesAsync();
-        return NoContent();
-    }
 }

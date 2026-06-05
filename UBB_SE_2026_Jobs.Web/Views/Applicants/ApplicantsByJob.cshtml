@@ -1,5 +1,7 @@
+@using UBB_SE_2026_Jobs.Library.Domain
+@using UBB_SE_2026_Jobs.Library.Domain.Enums
 @using UBB_SE_2026_Jobs.Web.Dtos
-@model List<ApplicantDto>
+@model IReadOnlyList<Match>
 
 @{
     ViewData["Title"] = "Applicants";
@@ -30,65 +32,36 @@
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
-                            <th>User ID</th>
-                            <th>Applied Date</th>
-                            <th>Application Status</th>
-                            <th>App Test</th>
-                            <th>CV Grade</th>
-                            <th>Company Test</th>
-                            <th>Interview</th>
+                            <th>Candidate</th>
+                            <th>Email</th>
+                            <th>Applied</th>
+                            <th>Status</th>
+                            <th>Feedback</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var applicant in Model)
+                        @foreach (var match in Model)
                         {
+                            var candidateName = $"{match.User?.FirstName} {match.User?.LastName}".Trim();
+                            if (string.IsNullOrWhiteSpace(candidateName)) candidateName = $"User {match.User?.UserId}";
+
+                            var badgeClass = match.Status switch
+                            {
+                                MatchStatus.Accepted => "bg-success",
+                                MatchStatus.Rejected => "bg-danger",
+                                MatchStatus.Advanced => "bg-primary",
+                                _ => "bg-secondary"
+                            };
+
                             <tr>
-                                <td>@applicant.UserId</td>
-                                <td>@applicant.AppliedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@candidateName</td>
+                                <td>@match.User?.Email</td>
+                                <td>@match.Timestamp.ToString("dd MMM yyyy HH:mm")</td>
+                                <td><span class="badge @badgeClass">@match.Status</span></td>
                                 <td>
-                                    @if (string.IsNullOrEmpty(applicant.ApplicationStatus))
+                                    @if (!string.IsNullOrWhiteSpace(match.FeedbackMessage))
                                     {
-                                        <span class="badge bg-secondary">Pending</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-info">@applicant.ApplicationStatus</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (applicant.AppTestGrade.HasValue)
-                                    {
-                                        <span>@applicant.AppTestGrade.Value.ToString("F2")</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (applicant.CvGrade.HasValue)
-                                    {
-                                        <span>@applicant.CvGrade.Value.ToString("F2")</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (applicant.CompanyTestGrade.HasValue)
-                                    {
-                                        <span>@applicant.CompanyTestGrade.Value.ToString("F2")</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (applicant.InterviewGrade.HasValue)
-                                    {
-                                        <span>@applicant.InterviewGrade.Value.ToString("F2")</span>
+                                        <span class="text-muted small">@match.FeedbackMessage</span>
                                     }
                                     else
                                     {
@@ -103,4 +76,3 @@
         }
     </div>
 </div>
-

@@ -50,11 +50,12 @@ using UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
 using UBB_SE_2026_Jobs.Library.Services.Users;
 using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
-using UBB_SE_2026_Jobs.Library.Services.UserRecommendations;
-using UBB_SE_2026_Jobs.Library.Services.Completeness;
-using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // Add services to the container.
 builder.Services.AddControllers(options =>

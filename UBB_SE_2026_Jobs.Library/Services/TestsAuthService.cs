@@ -2,9 +2,8 @@ using System.Security.Claims;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using UBB_SE_2026_Jobs.Library.Persistence;
 using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Core;
@@ -17,19 +16,25 @@ namespace UBB_SE_2026_Jobs.Library.Services
 {
     public class TestsAuthService : ITestsAuthService
     {
-        private const string SecretKey = "O_CHEIE_SECRET_FOARTE_LUNGA_SI_SIGURA_AICI_12345!";
         private const string Issuer = "UBB-SE-2026";
         private const string Audience = "UBB-SE-Client";
 
         private readonly ITestsCompanyRepository companyRepository;
         private readonly IUserRepository userRepository;
         private readonly IRecruiterRepository recruiterRepository;
+        private readonly string secretKey;
 
-        public TestsAuthService(ITestsCompanyRepository companyRepository, IUserRepository userRepository, IRecruiterRepository recruiterRepository)
+        public TestsAuthService(
+            ITestsCompanyRepository companyRepository,
+            IUserRepository userRepository,
+            IRecruiterRepository recruiterRepository,
+            IConfiguration configuration)
         {
             this.companyRepository = companyRepository;
             this.userRepository = userRepository;
             this.recruiterRepository = recruiterRepository;
+            this.secretKey = configuration["TiJwt:Key"]
+                ?? throw new InvalidOperationException("Missing 'TiJwt:Key' configuration. Add it to appsettings.json.");
         }
 
         public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
@@ -111,7 +116,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
 
         private string GenerateJwt(User user)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SecretKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var claims = new List<Claim>
             {

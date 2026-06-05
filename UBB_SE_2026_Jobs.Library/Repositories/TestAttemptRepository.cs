@@ -30,11 +30,20 @@
         }
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// Returns the most recent IN_PROGRESS attempt for the user/test pair.
+        /// Tests are replayable; a user may have multiple attempts. Submission flow
+        /// always targets the current active attempt, not a previously completed one.
+        /// </remarks>
         public async Task<TestAttempt?> FindByUserAndTestAsync(int userId, int testId)
         {
             return await databaseContext.TestAttempts
                 .Include(testAttempt => testAttempt.Answers)
-                .FirstOrDefaultAsync(testAttempt => testAttempt.ExternalUserId == userId && testAttempt.TestId == testId);
+                .Where(testAttempt => testAttempt.ExternalUserId == userId
+                                   && testAttempt.TestId == testId
+                                   && testAttempt.Status == "IN_PROGRESS")
+                .OrderByDescending(testAttempt => testAttempt.StartedAt)
+                .FirstOrDefaultAsync();
         }
 
         /// <inheritdoc/>
@@ -47,6 +56,11 @@
         /// <inheritdoc/>
         public async Task<TestAttempt?> UpdateAsync(TestAttempt testAttempt)
         {
+            if (databaseContext.Entry(testAttempt).State == Microsoft.EntityFrameworkCore.EntityState.Detached)
+            {
+                databaseContext.TestAttempts.Update(testAttempt);
+            }
+
             try
             {
                 await databaseContext.SaveChangesAsync();
@@ -64,18 +78,31 @@
         }
 
         /// <inheritdoc/>
+        /// <remarks>
+        /// Returns the single best attempt per user for leaderboard ranking.
+        /// With replayability a user can have multiple COMPLETED attempts; only their
+        /// highest PercentageScore (earliest CompletedAt on tie) enters the board.
+        /// </remarks>
         public async Task<List<TestAttempt>> FindValidAttemptsByTestIdAsync(int testId)
         {
-            return await databaseContext.TestAttempts
+            var all = await databaseContext.TestAttempts
                 .Include(testAttempt => testAttempt.User)
                 .Where(testAttempt => testAttempt.TestId == testId
                          && testAttempt.Status == "COMPLETED"
                          && testAttempt.IsValidated
                          && testAttempt.PercentageScore != null
                          && testAttempt.CompletedAt != null)
-                .OrderByDescending(testAttempt => testAttempt.PercentageScore)
-                .ThenBy(testAttempt => testAttempt.CompletedAt)
                 .ToListAsync();
+
+            return all
+                .GroupBy(a => a.ExternalUserId)
+                .Select(g => g
+                    .OrderByDescending(a => a.PercentageScore)
+                    .ThenBy(a => a.CompletedAt)
+                    .First())
+                .OrderByDescending(a => a.PercentageScore)
+                .ThenBy(a => a.CompletedAt)
+                .ToList();
         }
 
         /// <inheritdoc/>

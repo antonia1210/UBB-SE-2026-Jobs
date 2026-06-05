@@ -73,9 +73,13 @@ public sealed partial class UserProfilePage : Page
             var fileName = Uri.EscapeDataString(Path.GetFileName(user.ProfilePicturePath));
             var fullUrl = $"{baseUrl}/api/files/{fileName}";
             publicAvatar.ProfilePicture = new BitmapImage(new Uri(fullUrl));
+            btnRemoveAvatar.Visibility = Visibility.Visible;
         }
         else
+        {
             publicAvatar.ProfilePicture = null;
+            btnRemoveAvatar.Visibility = Visibility.Collapsed;
+        }
         /*
 
         if (!string.IsNullOrEmpty(user.ProfilePicturePath))

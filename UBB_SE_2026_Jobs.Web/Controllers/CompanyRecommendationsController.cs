@@ -1,7 +1,7 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UBB_SE_2026_Jobs.Library.Services.CompanyRecommendationService;
-using UBB_SE_2026_Jobs.Web.Configuration;
 using UBB_SE_2026_Jobs.Web.Models;
 
 namespace UBB_SE_2026_Jobs.Web.Controllers;
@@ -10,20 +10,16 @@ namespace UBB_SE_2026_Jobs.Web.Controllers;
 public class CompanyRecommendationsController : Controller
 {
     private readonly ICompanyRecommendationService companyRecommendations;
-    private readonly ApiConfiguration apiConfiguration;
 
-    public CompanyRecommendationsController(
-        ICompanyRecommendationService companyRecommendations,
-        ApiConfiguration apiConfiguration)
+    public CompanyRecommendationsController(ICompanyRecommendationService companyRecommendations)
     {
         this.companyRecommendations = companyRecommendations;
-        this.apiConfiguration = apiConfiguration;
     }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
         var applicants = await companyRecommendations.GetRankedApplicantsAsync(
-            apiConfiguration.TemporaryCompanyId,
+            GetCompanyId(),
             cancellationToken);
         return View(applicants);
     }
@@ -31,7 +27,7 @@ public class CompanyRecommendationsController : Controller
     public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
     {
         var applicant = await companyRecommendations.GetApplicantByMatchIdAsync(
-            apiConfiguration.TemporaryCompanyId,
+            GetCompanyId(),
             id,
             cancellationToken);
 
@@ -46,5 +42,13 @@ public class CompanyRecommendationsController : Controller
             Applicant = applicant,
             Breakdown = breakdown,
         });
+    }
+
+    private int GetCompanyId()
+    {
+        var value = User.FindFirstValue("CompanyId");
+        if (string.IsNullOrWhiteSpace(value) || !int.TryParse(value, System.Globalization.CultureInfo.InvariantCulture, out var companyId))
+            throw new InvalidOperationException("Recruiter session is missing a company ID.");
+        return companyId;
     }
 }

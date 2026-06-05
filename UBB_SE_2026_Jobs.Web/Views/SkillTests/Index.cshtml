@@ -2,20 +2,20 @@
 @using UBB_SE_2026_Jobs.Library.Services
 
 @{
-    ViewData["Title"] = "Skill Tests";
+    ViewData["Title"] = "Test Attempts";
 }
 
 <section class="page-shell skill-tests">
     <header class="skill-tests__hero">
         <div>
             <p class="eyebrow">Assessment Center</p>
-            <h1 class="page-title">Skill Tests</h1>
-            <p class="page-subtitle">Track results, retake when eligible, and keep your profile sharp.</p>
+            <h1 class="page-title">Test Attempts</h1>
+            <p class="page-subtitle">Your test history — see scores for every attempt you have submitted.</p>
         </div>
         <div class="skill-tests__hero-badge">
             <span class="badge-label">Your Progress</span>
             <span class="badge-value">@Model.Count()</span>
-            <span class="badge-caption">tests logged</span>
+            <span class="badge-caption">attempts logged</span>
         </div>
     </header>
 
