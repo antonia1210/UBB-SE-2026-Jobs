@@ -64,12 +64,12 @@ public sealed class UserRecommendationViewModel : DispatchableObservableObject
 
     public static IReadOnlyList<string> EmploymentTypeOptions { get; } =
     [
-        "Full-time", "Part-time", "Internship", "Volunteer", "Remote", "Hybrid",
+        "Full-time", "Part-time", "Contract", "Internship", "Volunteer", "Remote", "Hybrid",
     ];
 
     public static IReadOnlyList<string> ExperienceLevelOptions { get; } =
     [
-        "Internship", "Entry", "MidSenior", "Director", "Executive",
+        "Internship", "Entry Level", "Mid-Level", "Senior", "Director", "Executive",
     ];
 
     public ObservableCollection<FilterCheckItem> DraftEmploymentSelections { get; } = new();
