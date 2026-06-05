@@ -15,10 +15,12 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 public class TestsController : ControllerBase
 {
     private readonly ITestService testService;
+    private readonly ILeaderboardService leaderboardService;
 
-    public TestsController(ITestService testService)
+    public TestsController(ITestService testService, ILeaderboardService leaderboardService)
     {
         this.testService = testService;
+        this.leaderboardService = leaderboardService;
     }
 
     [HttpGet]
@@ -54,58 +56,6 @@ public class TestsController : ControllerBase
         return Ok(tests.Select(test => test.ToDto()).ToList());
     }
 
-    [HttpPost]
-    public async Task<ActionResult<TestDto>> Create([FromBody] TestDto testDto)
-    {
-        try
-        {
-            Test createdTest = await this.testService.AddTestASync(testDto.ToEntity());
-            return Ok(createdTest.ToDto());
-        }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
-    }
-
-    [HttpPut("{testId}")]
-    public async Task<ActionResult<TestDto>> Update(int testId, [FromBody] TestDto testDto)
-    {
-        try
-        {
-            Test updatedTest = await this.testService.UpdateTestAsync(testId, testDto.ToEntity());
-            return Ok(updatedTest.ToDto());
-        }
-        catch (KeyNotFoundException keyNotFoundException)
-        {
-            return NotFound(keyNotFoundException.Message);
-        }
-        catch (Exception exception)
-        {
-            return BadRequest(exception.Message);
-        }
-    }
-
-    [HttpDelete("{testId}")]
-    public async Task<ActionResult> Delete(int testId)
-    {
-        try
-        {
-            bool deleted = await this.testService.DeleteTestAsync(testId);
-
-            if (deleted)
-            {
-                return Ok(new { message = "Test was deleted successfully" });
-            }
-
-            return BadRequest();
-        }
-        catch (KeyNotFoundException keyNotFoundException)
-        {
-            return NotFound(keyNotFoundException.Message);
-        }
-    }
-
     /// <summary>
     /// Starts a test attempt for the specified user and test.
     /// </summary>
@@ -131,6 +81,7 @@ public class TestsController : ControllerBase
     {
         float score = await this.testService.SubmitAttemptAsync(
             submitAttemptDto.UserId, submitAttemptDto.TestId, submitAttemptDto.Answers);
+        await this.leaderboardService.RecalculateAsync(submitAttemptDto.TestId);
         return this.Ok(score);
     }
 }
