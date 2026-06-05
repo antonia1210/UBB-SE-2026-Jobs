@@ -209,9 +209,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             {
                 return this.NotFound();
             }
-
-            // HasApplicants and force was not granted: re-show the page with the warning so the
-            // recruiter can choose to delete anyway.
+            
             JobPostingDto? job = await this.jobsApiClient.GetJobByIdAsync(id);
             if (job == null)
             {
