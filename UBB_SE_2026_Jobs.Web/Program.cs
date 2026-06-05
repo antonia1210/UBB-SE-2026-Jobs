@@ -114,7 +114,7 @@ builder.Services.AddHttpClient<IUserSkillService, UserSkillServiceProxy>(client 
     client.BaseAddress = new Uri(apiConfig.BaseUrl);
 }).AddHttpMessageHandler<JwtForwardingHandler>();
 
-// ── Tests & Interviews API clients ───────────────────────────────────────────
+// Tests & Interviews API clients
 builder.Services.AddHttpClient<ITiAuthService, TiAuthService>(c => c.BaseAddress = new Uri(apiConfig.BaseUrl));
 RegisterApiClient<TestsApiClient>(builder.Services, apiConfig);
 RegisterApiClient<JobsApiClient>(builder.Services, apiConfig);

@@ -7,7 +7,7 @@
     <div class="mode-hero__inner">
         <div class="mode-hero__badge">PussyCats Platform</div>
         <h1 class="mode-hero__title">Choose your workspace</h1>
-        <p class="mode-hero__lead">Pick a mode to tailor the experience. User mode uses authentication, while Company and Developer routes enter directly.</p>
+        <p class="mode-hero__lead">Pick a mode to tailor the experience. Protected workspaces will ask you to sign in with the right account.</p>
 
         @if (!string.IsNullOrWhiteSpace(modeError))
         {
@@ -33,7 +33,7 @@
                 <span class="mode-card__eyebrow">Company</span>
                 <h2 class="mode-card__title">Review applicants</h2>
             </div>
-            <p class="mode-card__copy">Browse matches, rank applicants, and manage listings. Direct access.</p>
+            <p class="mode-card__copy">Browse matches, rank applicants, and manage listings. Recruiter account required.</p>
             <button class="btn btn-outline-dark mode-card__cta" type="submit" name="mode" value="Company">Enter Company Mode</button>
         </form>
         <form asp-action="SelectMode" method="post" class="mode-card" data-mode="Developer">
@@ -42,7 +42,7 @@
                 <span class="mode-card__eyebrow">Developer</span>
                 <h2 class="mode-card__title">Explore insights</h2>
             </div>
-            <p class="mode-card__copy">Inspect platform metrics, diagnostics, and prototype tooling.</p>
+            <p class="mode-card__copy">Inspect platform metrics, diagnostics, and prototype tooling. Sign-in may be required.</p>
             <button class="btn btn-outline-dark mode-card__cta" type="submit" name="mode" value="Developer">Enter Developer Mode</button>
         </form>
     </div>

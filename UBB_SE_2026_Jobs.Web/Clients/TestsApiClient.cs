@@ -27,17 +27,17 @@ namespace UBB_SE_2026_Jobs.Web.Clients
 
         public async Task<List<TestDto>> GetAll()
         {
-            return await this.http.GetFromJsonAsync<List<TestDto>>(ApiPath);
+            return await this.http.GetFromJsonAsync<List<TestDto>>(ApiPath) ?? new List<TestDto>();
         }
 
         public async Task<List<string>> GetCategories()
         {
-            return await this.http.GetFromJsonAsync<List<string>>($"{ApiPath}/categories");
+            return await this.http.GetFromJsonAsync<List<string>>($"{ApiPath}/categories") ?? new List<string>();
         }
 
         public async Task<List<TestDto>> GetByCategory(string category)
         {
-            return await this.http.GetFromJsonAsync<List<TestDto>>($"{ApiPath}/bycategory/{category}");
+            return await this.http.GetFromJsonAsync<List<TestDto>>($"{ApiPath}/bycategory/{category}") ?? new List<TestDto>();
         }
 
         public async Task<TestDto?> GetById(int id)
@@ -77,7 +77,7 @@ namespace UBB_SE_2026_Jobs.Web.Clients
                 Answers = answers
             };
 
-            var response = await this.http.PostAsJsonAsync($"{AttemptsApiPath}/submit", payload);
+            var response = await this.http.PostAsJsonAsync($"{ApiPath}/submit-attempt", payload);
 
             if (!response.IsSuccessStatusCode)
             {

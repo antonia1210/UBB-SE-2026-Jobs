@@ -8,9 +8,10 @@ namespace UBB_SE_2026_Jobs.Web.Dtos
     public class AddJobDto
     {
         /// <summary>
-        /// Gets or sets the job posting data.
+        /// Gets or sets the job posting data. The property name matches the
+        /// merged API's AddJobDto contract.
         /// </summary>
-        public JobPostingDto JobPosting { get; set; } = null!;
+        public JobPostingDto Job { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the unique identifier of the user adding the job.

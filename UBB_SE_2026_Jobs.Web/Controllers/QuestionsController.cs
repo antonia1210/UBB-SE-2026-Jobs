@@ -19,7 +19,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         [Authorize(Roles = "Recruiter,Admin")]
         public async Task<IActionResult> Index(int? testId = null)
         {
-            List<QuestionDto>? questions;
+            List<QuestionDto> questions;
             if (testId.HasValue)
             {
                 questions = await this._api.GetByTest(testId.Value);
@@ -33,7 +33,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
                 ViewBag.TestId = null;
             }
 
-            int count = (questions ?? new List<QuestionDto>()).Count;
+            int count = questions.Count;
             ViewBag.QuestionCount = count;
             ViewBag.RemainingToTarget = Math.Max(0, 25 - count);
 

@@ -122,9 +122,10 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         /// Starts the interview recording for a booked interview session.
         /// </summary>
         [Authorize(Roles = "Candidate")]
-        public async Task<IActionResult> StartInterview(int sessionId)
+        public IActionResult StartInterview(int id)
         {
-            return null;
+            this.TempData["Error"] = "Interview recording is not available yet.";
+            return this.RedirectToAction(nameof(this.CandidateBookedInterviews));
         }
 
         // ---------------------------------------------------------------
@@ -189,7 +190,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
                 await this.slotsClient.AddRecruiterSlotAsync(baseSlot, duration);
                 return Ok();
-            } catch (HttpRequestException ex) {
+            } catch (HttpRequestException) {
                 this.TempData["Error"] = "Slot not available.";
             }
 

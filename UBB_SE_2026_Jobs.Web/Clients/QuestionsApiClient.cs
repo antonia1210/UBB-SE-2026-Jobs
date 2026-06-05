@@ -16,10 +16,10 @@ namespace UBB_SE_2026_Jobs.Web.Clients
         {
             if (testId.HasValue)
             {
-                return await this._http.GetFromJsonAsync<List<QuestionDto>>($"{s_apiPath}/bytest/{testId.Value}");
+                return await this._http.GetFromJsonAsync<List<QuestionDto>>($"{s_apiPath}/bytest/{testId.Value}") ?? new List<QuestionDto>();
             }
 
-            return await this._http.GetFromJsonAsync<List<QuestionDto>>(s_apiPath);
+            return await this._http.GetFromJsonAsync<List<QuestionDto>>(s_apiPath) ?? new List<QuestionDto>();
         }
 
         public async Task<QuestionDto?> GetQuestion(int id)
@@ -27,17 +27,15 @@ namespace UBB_SE_2026_Jobs.Web.Clients
             return await this._http.GetFromJsonAsync<QuestionDto>($"{s_apiPath}/{id}");
         }
 
-        public async Task<List<QuestionDto>?> GetByTest(int testId)
+        public async Task<List<QuestionDto>> GetByTest(int testId)
         {
             var response = await this._http.GetAsync($"{s_apiPath}/bytest/{testId}");
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return new List<QuestionDto>();
 
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<List<QuestionDto>>();
+            return await response.Content.ReadFromJsonAsync<List<QuestionDto>>() ?? new List<QuestionDto>();
         }
-
-       
 
         public async Task<QuestionDto?> Create(QuestionDto dto)
         {

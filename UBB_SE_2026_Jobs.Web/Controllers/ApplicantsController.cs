@@ -9,6 +9,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
     using UBB_SE_2026_Jobs.Library.Services.Matches;
     using UBB_SE_2026_Jobs.Web.Clients;
     using UBB_SE_2026_Jobs.Web.Dtos;
+    using UBB_SE_2026_Jobs.Web.Infrastructure;
 
     /// <summary>
     /// Handles all applicant-related pages. Delegates all data operations to <see cref="ApplicantsApiClient"/>.
@@ -160,11 +161,11 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         }
 
         /// <summary>
-        /// Helper method to attach JWT token from claims to the HTTP client.
+        /// Helper method to attach the main API JWT token from session to the HTTP client.
         /// </summary>
         private void AttachJwt()
         {
-            string? jwt = this.User.FindFirstValue("jwt");
+            string? jwt = this.HttpContext.Session.GetString(SessionKeys.JwtToken);
             if (!string.IsNullOrEmpty(jwt))
             {
                 this.applicantsApiClient.SetAuthToken(jwt);

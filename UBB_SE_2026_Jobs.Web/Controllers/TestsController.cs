@@ -287,7 +287,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             float maxPossibleScore = 0f;
             List<AnswerDto> gradedAnswers = new List<AnswerDto>();
 
-            foreach (var kvp in model.Answers)
+            foreach (var kvp in model.Answers ?? new Dictionary<int, List<string>>())
             {
                 var q = questions.FirstOrDefault(x => x.Id == kvp.Key);
                 if (q == null) continue;

@@ -8,6 +8,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
     using Microsoft.AspNetCore.Mvc;
     using UBB_SE_2026_Jobs.Web.Clients;
     using UBB_SE_2026_Jobs.Web.Dtos;
+    using UBB_SE_2026_Jobs.Web.Infrastructure;
 
     /// <summary>
     /// Handles all job-related pages. Delegates all data operations to <see cref="JobsApiClient"/>.
@@ -95,7 +96,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
             AddJobDto addDto = new AddJobDto
             {
-                JobPosting = dto,
+                Job = dto,
                 UserId = int.Parse(this.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0"),
                 SkillLinks = selectedSkills,
             };
@@ -192,11 +193,11 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         }
 
         /// <summary>
-        /// Reads the JWT token from the current user's claims and attaches it to the API client.
+        /// Reads the main API JWT token from session and attaches it to the API client.
         /// </summary>
         private void AttachJwt()
         {
-            string? jwt = this.User.FindFirstValue("jwt");
+            string? jwt = this.HttpContext.Session.GetString(SessionKeys.JwtToken);
             if (!string.IsNullOrEmpty(jwt))
             {
                 this.jobsApiClient.SetAuthToken(jwt);
