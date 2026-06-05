@@ -175,6 +175,10 @@
 						Content="See Public Profile" />
 					<Button
 						HorizontalAlignment="Stretch"
+						Click="OnSkillTestsClick"
+						Content="Skill Tests" />
+					<Button
+						HorizontalAlignment="Stretch"
 						Click="OnPreferencesClick"
 						Content="Go to Preferences" />
 				</StackPanel>
