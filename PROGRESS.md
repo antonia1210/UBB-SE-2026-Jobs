@@ -234,6 +234,26 @@ Tests are now treated as static seeded content for candidates to replay. Recruit
 
 ---
 
+### 7. Latest main merge and Visual Studio F5 SQL config (2026-06-05)
+
+Pulled the latest `origin/main` into the local branch without committing or pushing.
+
+**Conflict resolution:**
+- `Web/Controllers/TestsController.cs` - kept candidate replayability state (`HasBeenTaken`) while preserving candidate-only access to the test catalog.
+- `Web/Views/Tests/Index.cshtml` - kept the Start/Retake behavior and removed recruiter/admin Edit/Delete controls.
+
+**F5/local SQL configuration:**
+- `Api/appsettings.json` - changed `JobsDb` from `LucaT2\MSSQLSERVER01` to `DESKTOP-G09FIFT`.
+- `Api/appsettings.Development.json` - added the same `DESKTOP-G09FIFT` override so Visual Studio F5 does not fall back to LocalDB or another machine.
+- `Library/Helpers/Env.cs` - changed the shared connection string to `DESKTOP-G09FIFT`.
+- `Api/Program.cs` - uses console/debug logging explicitly to avoid Windows Event Log write failures during local startup.
+
+**Verification:**
+- `dotnet build UBB_SE_2026_Jobs.Api\UBB_SE_2026_Jobs.Api.csproj --no-restore -p:UseSharedCompilation=false -v minimal` - succeeded with existing warnings.
+- API startup reached SQL connection/migration, but this Codex shell still hit `Cannot generate SSPI context` for Windows auth. Visual Studio may behave differently under the interactive user session; the code/config side now uses the requested machine name.
+
+---
+
 ## Outstanding tasks
 
 ### HIGH PRIORITY

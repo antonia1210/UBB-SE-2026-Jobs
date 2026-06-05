@@ -97,6 +97,7 @@ public partial class UserProfileViewModel : DispatchableObservableObject
         try
         {
             TotalExperiencePoints = await profileService.RecalculateLevelAsync(UserProfile, cancellationToken);
+            UserProfile = await profileService.GetProfileAsync(UserProfile.UserId, cancellationToken);
             LevelUpdated?.Invoke();
         }
         catch (Exception exception)
