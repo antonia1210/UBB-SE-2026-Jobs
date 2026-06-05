@@ -46,7 +46,7 @@ public class ChatRepository : IChatRepository
             .Include(chat => chat.SecondUser)
             .AsNoTracking()
             .Include(chat => chat.BlockedByUser)
-            .Where(chat => chat.Company!=null && chat.Company.CompanyId == companyId)
+            .Where(chat => chat.Company != null && chat.Company.CompanyId == companyId)
             .Include(chat => chat.Company)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -77,9 +77,9 @@ public class ChatRepository : IChatRepository
             .Include(chat => chat.BlockedByUser)
             .FirstOrDefaultAsync(
                 chat => chat.User.UserId == userId
-                        && chat.Company != null 
+                        && chat.Company != null
                         && chat.Company.CompanyId == company.CompanyId
-                        && chat.Job!=null && chat.Job.JobId == jobId
+                        && chat.Job != null && chat.Job.JobId == jobId
                         && chat.SecondUser == null,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -100,23 +100,17 @@ public class ChatRepository : IChatRepository
         }
 
         databaseContext.Chats.Add(chat);
-        /*
-        foreach (var entry in databaseContext.ChangeTracker.Entries())
-        {
-            Console.WriteLine(
-                $"{entry.Entity.GetType().Name} : {entry.State}");
-        }
-        */
+
         await databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return await GetByIdAsync(chat.ChatId, cancellationToken).ConfigureAwait(false) ?? chat;
     }
 
     public async Task UpdateAsync(Chat chat, CancellationToken cancellationToken = default)
     {
-        var tracked = databaseContext.Chats.Local.FirstOrDefault(existing => existing.ChatId == chat.ChatId);
-        if (tracked is not null)
+        var trackedChat = databaseContext.Chats.Local.FirstOrDefault(existingChat => existingChat.ChatId == chat.ChatId);
+        if (trackedChat is not null)
         {
-            databaseContext.Entry(tracked).CurrentValues.SetValues(chat);
+            databaseContext.Entry(trackedChat).CurrentValues.SetValues(chat);
         }
         else
         {
@@ -125,4 +119,3 @@ public class ChatRepository : IChatRepository
         await databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }
-

@@ -6,6 +6,34 @@ namespace UBB_SE_2026_Jobs.Library.Services.PersonalityTestService;
 
 public class PersonalityTestService : IPersonalityTestService
 {
+    private const int FrontendVisibilityWeight = 2;
+    private const int FrontendCreativityWeight = 2;
+
+    private const int BackendDepthWeight = 2;
+    private const int BackendVisibilityWeight = 2;
+    private const int BackendVisibilityBaseline = 5;
+
+    private const int UiUxVisibilityWeight = 3;
+    private const int UiUxCreativityWeight = 2;
+
+    private const int DevOpsDepthWeight = 2;
+    private const int DevOpsPaceWeight = 2;
+    private const int DevOpsInteractionBaseline = 5;
+
+    private const int ProjectManagerInteractionWeight = 3;
+    private const int ProjectManagerDepthBaseline = 5;
+
+    private const int DataAnalystDepthWeight = 2;
+    private const int DataAnalystAbstractionWeight = 2;
+    private const int DataAnalystInteractionBaseline = 5;
+
+    private const int CybersecurityDepthWeight = 3;
+    private const int CybersecurityInteractionBaseline = 6;
+    private const int CybersecurityPaceBaseline = 6;
+
+    private const int AiEngineerDepthWeight = 3;
+    private const int AiEngineerAbstractionWeight = 2;
+
     private readonly IPersonalityTestRepository personalityTestRepository;
 
     public PersonalityTestService(IPersonalityTestRepository personalityTestRepository)
@@ -28,7 +56,10 @@ public class PersonalityTestService : IPersonalityTestService
         questions.AddRange(GetAbstractionTraitQuestions(Make));
         return questions.AsReadOnly();
     }
-    public async Task<PersonalityTestResult?> GetByUserIdAsync(int userId, CancellationToken cancellationToken = default) => await personalityTestRepository.GetByUserIdAsync(userId, cancellationToken).ConfigureAwait(false);
+
+    public async Task<PersonalityTestResult?> GetByUserIdAsync(int userId, CancellationToken cancellationToken = default)
+        => await personalityTestRepository.GetByUserIdAsync(userId, cancellationToken).ConfigureAwait(false);
+
     private static List<PersonalityQuestion> GetVisibilityTraitQuestions(Func<string, TraitType, PersonalityQuestion> make)
     {
         return
@@ -127,12 +158,12 @@ public class PersonalityTestService : IPersonalityTestService
         var roleScores = new Dictionary<JobRole, double>();
         roleScores.Add(JobRole.FrontendDeveloper, CalculateFrontend(traitScores));
         roleScores.Add(JobRole.BackendDeveloper, CalculateBackend(traitScores));
-        roleScores.Add(JobRole.UiUxDesigner, CalculateUIUX(traitScores));
+        roleScores.Add(JobRole.UiUxDesigner, CalculateUiUxDesigner(traitScores));
         roleScores.Add(JobRole.DevOpsEngineer, CalculateDevOps(traitScores));
         roleScores.Add(JobRole.ProjectManager, CalculateProjectManager(traitScores));
         roleScores.Add(JobRole.DataAnalyst, CalculateDataAnalyst(traitScores));
-        roleScores.Add(JobRole.CybersecuritySpecialist, CalculateCyberSecurity(traitScores));
-        roleScores.Add(JobRole.AiMlEngineer, CalculateAIEngineer(traitScores));
+        roleScores.Add(JobRole.CybersecuritySpecialist, CalculateCybersecurity(traitScores));
+        roleScores.Add(JobRole.AiMlEngineer, CalculateAiMlEngineer(traitScores));
         return roleScores;
     }
 
@@ -178,77 +209,57 @@ public class PersonalityTestService : IPersonalityTestService
 
     private double CalculateFrontend(IReadOnlyDictionary<TraitType, double> traitScores)
     {
-        const int visibilityWeight = 2;
-        const int creativiyWeight = 2;
-        return (traitScores[TraitType.Visibility] * visibilityWeight) +
-               (traitScores[TraitType.Creativity] * creativiyWeight) +
+        return (traitScores[TraitType.Visibility] * FrontendVisibilityWeight) +
+               (traitScores[TraitType.Creativity] * FrontendCreativityWeight) +
                traitScores[TraitType.Pace];
     }
 
     private double CalculateBackend(IReadOnlyDictionary<TraitType, double> traitScores)
     {
-        const int depthWeight = 2;
-        const int visibilityWeight = 2;
-        const int baselineForVisibility = 5;
-        return (traitScores[TraitType.Depth] * depthWeight) +
-               ((baselineForVisibility - traitScores[TraitType.Visibility]) * visibilityWeight) +
+        return (traitScores[TraitType.Depth] * BackendDepthWeight) +
+               ((BackendVisibilityBaseline - traitScores[TraitType.Visibility]) * BackendVisibilityWeight) +
                traitScores[TraitType.Pace];
     }
 
-    private double CalculateUIUX(IReadOnlyDictionary<TraitType, double> traitScores)
+    private double CalculateUiUxDesigner(IReadOnlyDictionary<TraitType, double> traitScores)
     {
-        const int visibilityWeight = 3;
-        const int creativityWeight = 2;
-        return (traitScores[TraitType.Visibility] * visibilityWeight) +
-               (traitScores[TraitType.Creativity] * creativityWeight) +
+        return (traitScores[TraitType.Visibility] * UiUxVisibilityWeight) +
+               (traitScores[TraitType.Creativity] * UiUxCreativityWeight) +
                traitScores[TraitType.Interaction];
     }
 
     private double CalculateDevOps(IReadOnlyDictionary<TraitType, double> traitScores)
     {
-        const int depthWeight = 2;
-        const int paceWeight = 2;
-        const int baselineForInteraction = 5;
-        return (traitScores[TraitType.Depth] * depthWeight) +
-               (traitScores[TraitType.Pace] * paceWeight) +
-               (baselineForInteraction - traitScores[TraitType.Interaction]);
+        return (traitScores[TraitType.Depth] * DevOpsDepthWeight) +
+               (traitScores[TraitType.Pace] * DevOpsPaceWeight) +
+               (DevOpsInteractionBaseline - traitScores[TraitType.Interaction]);
     }
 
     private double CalculateProjectManager(IReadOnlyDictionary<TraitType, double> traitScores)
     {
-        const int interactionWeight = 3;
-        const int baselineForDepth = 5;
-        return (traitScores[TraitType.Interaction] * interactionWeight) +
+        return (traitScores[TraitType.Interaction] * ProjectManagerInteractionWeight) +
                traitScores[TraitType.Creativity] +
-               (baselineForDepth - traitScores[TraitType.Depth]);
+               (ProjectManagerDepthBaseline - traitScores[TraitType.Depth]);
     }
 
     private double CalculateDataAnalyst(IReadOnlyDictionary<TraitType, double> traitScores)
     {
-        const int depthWeight = 2;
-        const int abstractionWeight = 2;
-        const int baselineForInteraction = 5;
-        return (traitScores[TraitType.Depth] * depthWeight) +
-               (traitScores[TraitType.Abstraction] * abstractionWeight) +
-               (baselineForInteraction - traitScores[TraitType.Interaction]);
+        return (traitScores[TraitType.Depth] * DataAnalystDepthWeight) +
+               (traitScores[TraitType.Abstraction] * DataAnalystAbstractionWeight) +
+               (DataAnalystInteractionBaseline - traitScores[TraitType.Interaction]);
     }
 
-    private double CalculateCyberSecurity(IReadOnlyDictionary<TraitType, double> traitScores)
+    private double CalculateCybersecurity(IReadOnlyDictionary<TraitType, double> traitScores)
     {
-        const int depthWeight = 3;
-        const int baselineForInteraction = 6;
-        const int baselineForPace = 6;
-        return (traitScores[TraitType.Depth] * depthWeight) +
-               (baselineForInteraction - traitScores[TraitType.Interaction]) +
-               (baselineForPace - traitScores[TraitType.Pace]);
+        return (traitScores[TraitType.Depth] * CybersecurityDepthWeight) +
+               (CybersecurityInteractionBaseline - traitScores[TraitType.Interaction]) +
+               (CybersecurityPaceBaseline - traitScores[TraitType.Pace]);
     }
 
-    private double CalculateAIEngineer(IReadOnlyDictionary<TraitType, double> traitScores)
+    private double CalculateAiMlEngineer(IReadOnlyDictionary<TraitType, double> traitScores)
     {
-        const int depthWeight = 3;
-        const int abstractionWeight = 2;
-        return (traitScores[TraitType.Depth] * depthWeight) +
+        return (traitScores[TraitType.Depth] * AiEngineerDepthWeight) +
                traitScores[TraitType.Creativity] +
-               (traitScores[TraitType.Abstraction] * abstractionWeight);
+               (traitScores[TraitType.Abstraction] * AiEngineerAbstractionWeight);
     }
 }

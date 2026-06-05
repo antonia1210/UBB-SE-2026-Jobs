@@ -16,7 +16,6 @@ using UBB_SE_2026_Jobs.Library.Repositories.Messages;
 using UBB_SE_2026_Jobs.Library.Repositories.PersonalityTests;
 using UBB_SE_2026_Jobs.Library.Repositories.Recommendations;
 using UBB_SE_2026_Jobs.Library.Repositories.Skills;
-using UBB_SE_2026_Jobs.Library.Repositories.SkillTests;
 using UBB_SE_2026_Jobs.Library.Repositories.Users;
 using UBB_SE_2026_Jobs.Library.Services;
 using UBB_SE_2026_Jobs.Library.Services.ChatService;
@@ -48,6 +47,9 @@ using UBB_SE_2026_Jobs.Library.Services.UserRecommendationService;
 using UBB_SE_2026_Jobs.Library.Services.Users;
 using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
+using UBB_SE_2026_Jobs.Library.Services.UserRecommendations;
+using UBB_SE_2026_Jobs.Library.Services.Completeness;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,7 +105,6 @@ builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<IJobSkillRepository, JobSkillRepository>();
 builder.Services.AddScoped<IUserSkillRepository, UserSkillRepository>();
 builder.Services.AddScoped<ISkillGroupRepository, SkillGroupRepository>();
-builder.Services.AddScoped<ISkillTestRepository, SkillTestRepository>();
 builder.Services.AddScoped<IPersonalityTestRepository, PersonalityTestRepository>();
 builder.Services.AddScoped<IRecommendationRepository, RecommendationRepository>();
 

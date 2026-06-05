@@ -45,6 +45,6 @@ namespace UBB_SE_2026_Jobs.Library.Services.Interfaces
         /// <param name="start">The updated start date of the event.</param>
         /// <param name="end">The updated end date of the event.</param>
         /// <param name="location">The updated location of the event.</param>
-        void UpdateEventToRepo(int id, string photo, string title, string description, DateTime start, DateTime end, string location);
+        void UpdateEventToRepo(int id, string photo, string title, string description, DateTime start, DateTime end, string location, List<int> collaboratorCompanyIds);
     }
 }

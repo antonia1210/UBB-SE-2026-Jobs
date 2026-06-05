@@ -1,16 +1,18 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UBB_SE_2026_Jobs.Library.Domain;
-using UBB_SE_2026_Jobs.Library.Services.Documents;
-using UBB_SE_2026_Jobs.Library.Services.Matches;
-using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
-using UBB_SE_2026_Jobs.Library.Services.Users;
 using UBB_SE_2026_Jobs.Library.Services;
+using UBB_SE_2026_Jobs.Library.Services.Completeness;
 using UBB_SE_2026_Jobs.Library.Services.CompletenessService;
 using UBB_SE_2026_Jobs.Library.Services.CvParsing;
+using UBB_SE_2026_Jobs.Library.Services.Documents;
+using UBB_SE_2026_Jobs.Library.Services.Matches;
 using UBB_SE_2026_Jobs.Library.Services.PdfExport;
 using UBB_SE_2026_Jobs.Library.Services.SkillGapService;
+using UBB_SE_2026_Jobs.Library.Services.SkillTests;
+using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
+using UBB_SE_2026_Jobs.Library.Services.Users;
 
 namespace UBB_SE_2026_Jobs.Api.Controllers;
 
@@ -19,29 +21,32 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
 [Route("api/users")]
 public class PussyCatsUsersController : ControllerBase
 {
-    private readonly IUserService users;
-    private readonly IMatchService matches;
-    private readonly IDocumentService documents;
+    private readonly IUserService userService;
+    private readonly IMatchService matchService;
+    private readonly IDocumentService documentService;
     private readonly IUserProfileService userProfileService;
+    private readonly ISkillTestService skillTestService;
     private readonly ICvParsingService cvParsingService;
     private readonly ICompletenessService completenessService;
     private readonly ISkillGapService skillGapService;
     private readonly IPdfExportService pdfExportService;
 
     public PussyCatsUsersController(
-        IUserService users,
-        IMatchService matches,
-        IDocumentService documents,
+        IUserService userService,
+        IMatchService matchService,
+        IDocumentService documentService,
         IUserProfileService userProfileService,
+        ISkillTestService skillTestService,
         ICvParsingService cvParsingService,
         ICompletenessService completenessService,
         ISkillGapService skillGapService,
         IPdfExportService pdfExportService)
     {
-        this.users = users;
-        this.matches = matches;
-        this.documents = documents;
+        this.userService = userService;
+        this.matchService = matchService;
+        this.documentService = documentService;
         this.userProfileService = userProfileService;
+        this.skillTestService = skillTestService;
         this.cvParsingService = cvParsingService;
         this.completenessService = completenessService;
         this.skillGapService = skillGapService;
@@ -50,114 +55,114 @@ public class PussyCatsUsersController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-        => Ok(await users.GetAllAsync(cancellationToken));
+        => Ok(await userService.GetAllAsync(cancellationToken));
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}")]
+    public async Task<IActionResult> GetById(int userId, CancellationToken cancellationToken)
     {
-        var user = await users.GetByIdAsync(id, cancellationToken);
+        var user = await userService.GetByIdAsync(userId, cancellationToken);
         return user is null ? NotFound() : Ok(user);
     }
 
     [HttpGet("by-email/{email}")]
     public async Task<IActionResult> GetByEmail(string email, CancellationToken cancellationToken)
     {
-        var user = await users.GetByEmailAsync(email, cancellationToken);
+        var user = await userService.GetByEmailAsync(email, cancellationToken);
         return user is null ? NotFound() : Ok(user);
     }
 
     [HttpGet("exists-by-email/{email}")]
     public async Task<IActionResult> ExistsByEmail(string email, CancellationToken cancellationToken)
     {
-        return Ok(await users.ExistsWithEmailAsync(email, cancellationToken));
+        return Ok(await userService.ExistsWithEmailAsync(email, cancellationToken));
     }
 
     [HttpPost]
     public async Task<IActionResult> Add([FromBody] User user, CancellationToken cancellationToken)
     {
         user.UserId = 0;
-        var saved = await users.AddAsync(user, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = saved.UserId }, saved);
+        var savedUser = await userService.AddAsync(user, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { userId = savedUser.UserId }, savedUser);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] User user, CancellationToken cancellationToken)
+    [HttpPut("{userId}")]
+    public async Task<IActionResult> Update(int userId, [FromBody] User user, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        user.UserId = id;
-        await users.UpdateAsync(user, cancellationToken);
+        user.UserId = userId;
+        await userService.UpdateAsync(user, cancellationToken);
         return NoContent();
     }
 
-    [HttpPut("{id}/profile")]
-    public async Task<IActionResult> SaveProfile(int id, [FromBody] User user, CancellationToken cancellationToken)
+    [HttpPut("{userId}/profile")]
+    public async Task<IActionResult> SaveProfile(int userId, [FromBody] User user, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        await userProfileService.SaveAsync(id, user, cancellationToken);
+        await userProfileService.SaveAsync(userId, user, cancellationToken);
         return NoContent();
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Remove(int id, CancellationToken cancellationToken)
+    [HttpDelete("{userId}")]
+    public async Task<IActionResult> Remove(int userId, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        await users.RemoveAsync(id, cancellationToken);
+        await userService.RemoveAsync(userId, cancellationToken);
         return NoContent();
     }
 
-    [HttpPatch("{id}/active")]
-    public async Task<IActionResult> UpdateActive(int id, [FromBody] UpdateActiveRequest body, CancellationToken cancellationToken)
+    [HttpPatch("{userId}/active")]
+    public async Task<IActionResult> UpdateActive(int userId, [FromBody] UpdateActiveRequest updateActiveRequest, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        await users.SetActiveAsync(id, body.IsActive, cancellationToken);
+        await userService.SetActiveAsync(userId, updateActiveRequest.IsActive, cancellationToken);
         return NoContent();
     }
 
-    [HttpPatch("{id}/profile-picture")]
-    public async Task<IActionResult> UpdateProfilePicture(int id, [FromBody] UpdateProfilePictureRequest body, CancellationToken cancellationToken)
+    [HttpPatch("{userId}/profile-picture")]
+    public async Task<IActionResult> UpdateProfilePicture(int userId, [FromBody] UpdateProfilePictureRequest updateProfilePictureRequest, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        await users.SetProfilePicturePathAsync(id, body.Path ?? string.Empty, cancellationToken);
+        await userService.SetProfilePicturePathAsync(userId, updateProfilePictureRequest.Path ?? string.Empty, cancellationToken);
         return NoContent();
     }
 
-    [HttpDelete("{id}/profile-picture")]
-    public async Task<IActionResult> RemoveProfilePicture(int id, CancellationToken cancellationToken)
+    [HttpDelete("{userId}/profile-picture")]
+    public async Task<IActionResult> RemoveProfilePicture(int userId, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        await users.SetProfilePicturePathAsync(id, string.Empty, cancellationToken);
+        await userService.SetProfilePicturePathAsync(userId, string.Empty, cancellationToken);
         return NoContent();
     }
 
-    [HttpGet("{id}/matches")]
-    public async Task<IActionResult> GetMatches(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}/matches")]
+    public async Task<IActionResult> GetMatches(int userId, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        return Ok(await matches.GetMatchesForUserAsync(id, cancellationToken));
+        return Ok(await matchService.GetMatchesForUserAsync(userId, cancellationToken));
     }
 
-    [HttpGet("{id}/documents")]
-    public async Task<IActionResult> GetDocuments(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}/documents")]
+    public async Task<IActionResult> GetDocuments(int userId, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        return Ok(await documents.GetDocumentsByUserIdAsync(id, cancellationToken));
+        return Ok(await documentService.GetDocumentsByUserIdAsync(userId, cancellationToken));
     }
 
-    [HttpPost("{id}/cv")]
+    [HttpPost("{userId}/cv")]
     public async Task<IActionResult> UploadCv(
-    int id,
-    IFormFile file,
-    CancellationToken cancellationToken)
+        int userId,
+        IFormFile file,
+        CancellationToken cancellationToken)
     {
-        var user = await users.GetByIdAsync(id, cancellationToken);
+        var user = await userService.GetByIdAsync(userId, cancellationToken);
         if (user is null)
             return NotFound();
 
@@ -168,13 +173,9 @@ public class PussyCatsUsersController : ControllerBase
         {
             using var reader = new StreamReader(file.OpenReadStream());
             var content = await reader.ReadToEndAsync();
-
             var fileType = Path.GetExtension(file.FileName);
-
             var parsedUser = cvParsingService.ParseCvFile(content, fileType);
-
-            await userProfileService.SaveAsync(id, parsedUser, cancellationToken);
-
+            await userProfileService.SaveAsync(userId, parsedUser, cancellationToken);
             return Ok(parsedUser);
         }
         catch (Exception exception)
@@ -183,15 +184,14 @@ public class PussyCatsUsersController : ControllerBase
         }
     }
 
-    [HttpGet("{id}/compatibility")]
-    public IActionResult GetCompatibility(int id) =>
-
+    [HttpGet("{userId}/compatibility")]
+    public IActionResult GetCompatibility(int userId) =>
         Problem("Compatibility computation is wired in Phase 5.", statusCode: 501);
 
-    [HttpGet("{id}/completeness")]
-    public async Task<IActionResult> GetCompleteness(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}/completeness")]
+    public async Task<IActionResult> GetCompleteness(int userId, CancellationToken cancellationToken)
     {
-        var user = await users.GetByIdAsync(id, cancellationToken);
+        var user = await userService.GetByIdAsync(userId, cancellationToken);
         if (user is null) return NotFound();
 
         return Ok(new
@@ -201,60 +201,59 @@ public class PussyCatsUsersController : ControllerBase
         });
     }
 
-    [HttpGet("{id}/skill-gap")]
-    public async Task<IActionResult> GetSkillGap(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}/skill-gap")]
+    public async Task<IActionResult> GetSkillGap(int userId, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
 
         return Ok(new
         {
-            Summary = await skillGapService.GetSummaryAsync(id, cancellationToken),
-            MissingSkills = await skillGapService.GetMissingSkillsAsync(id, cancellationToken),
-            UnderscoredSkills = await skillGapService.GetUnderscoredSkillsAsync(id, cancellationToken),
+            Summary = await skillGapService.GetSummaryAsync(userId, cancellationToken),
+            MissingSkills = await skillGapService.GetMissingSkillsAsync(userId, cancellationToken),
+            UnderscoredSkills = await skillGapService.GetUnderscoredSkillsAsync(userId, cancellationToken),
         });
     }
 
-    [HttpGet("{id}/experience")]
-    public async Task<IActionResult> RecalculateExperience(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}/experience")]
+    public async Task<IActionResult> RecalculateExperience(int userId, CancellationToken cancellationToken)
     {
-        var user = await users.GetByIdAsync(id, cancellationToken);
+        var user = await userService.GetByIdAsync(userId, cancellationToken);
         if (user is null) return NotFound();
 
         int experiencePoints = await userProfileService.RecalculateLevelAsync(user, cancellationToken);
         return Ok(new { TotalExperiencePoints = experiencePoints });
     }
 
-    [HttpGet("{id}/skill-tests")]
-    public async Task<IActionResult> GetSkillTests(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}/skill-tests")]
+    public async Task<IActionResult> GetSkillTests(int userId, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        return Ok(await userProfileService.GetSkillTestsForUserAsync(id, cancellationToken));
+        return Ok(await skillTestService.GetTestsForUserAsync(userId, cancellationToken));
     }
 
-    [HttpGet("{id}/is-active")]
-    public async Task<IActionResult> IsProfileAvailable(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}/is-active")]
+    public async Task<IActionResult> IsProfileAvailable(int userId, CancellationToken cancellationToken)
     {
-        if (await users.GetByIdAsync(id, cancellationToken) is null)
+        if (await userService.GetByIdAsync(userId, cancellationToken) is null)
             return NotFound();
-        return Ok(await userProfileService.IsProfileAvailableAsync(id, cancellationToken));
+        return Ok(await userProfileService.IsProfileAvailableAsync(userId, cancellationToken));
     }
-    
-    // This might not be needed, but I'll leave it here just in case.
-    [HttpGet("{id}/parsed-cv")]
-    public async Task<IActionResult> GetParsedCv(int id, CancellationToken cancellationToken)
+
+    [HttpGet("{userId}/parsed-cv")]
+    public async Task<IActionResult> GetParsedCv(int userId, CancellationToken cancellationToken)
     {
-        var user = await users.GetByIdAsync(id, cancellationToken);
+        var user = await userService.GetByIdAsync(userId, cancellationToken);
         if (user is null) return NotFound();
         string parsedCv = Helpers.GenerateParsedCvText(user);
         return Ok(new { ParsedCv = parsedCv });
     }
 
-    [HttpGet("{id}/cv/html")]
-    public async Task<IActionResult> GetCvHtml(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}/cv/html")]
+    public async Task<IActionResult> GetCvHtml(int userId, CancellationToken cancellationToken)
     {
-        var user = await userProfileService.GetProfileAsync(id, cancellationToken);
+        var user = await userProfileService.GetProfileAsync(userId, cancellationToken);
         if (user is null)
             return NotFound();
 
@@ -262,18 +261,17 @@ public class PussyCatsUsersController : ControllerBase
         return Content(html, "text/html");
     }
 
-    [HttpGet("{id}/cv/pdf")]
-    public async Task<IActionResult> DownloadCvPdf(int id, CancellationToken cancellationToken)
+    [HttpGet("{userId}/cv/pdf")]
+    public async Task<IActionResult> DownloadCvPdf(int userId, CancellationToken cancellationToken)
     {
-        var user = await userProfileService.GetProfileAsync(id, cancellationToken);
+        var user = await userProfileService.GetProfileAsync(userId, cancellationToken);
         if (user is null)
             return NotFound();
 
-        var pdfFile = await pdfExportService.GeneratePdfAsync(user);
-        return File(pdfFile, "application/pdf", $"{user.FirstName}_{user.LastName}_CV.pdf");
+        var pdfBytes = await pdfExportService.GeneratePdfAsync(user);
+        return File(pdfBytes, "application/pdf", $"{user.FirstName}_{user.LastName}_CV.pdf");
     }
 
     public record UpdateActiveRequest(bool IsActive);
     public record UpdateProfilePictureRequest(string? Path);
 }
-

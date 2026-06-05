@@ -1,86 +1,82 @@
-using UBB_SE_2026_Jobs.Library.Services;
-using UBB_SE_2026_Jobs.Library.Domain;
-using UBB_SE_2026_Jobs.Library.Repositories.SkillTests;
+using UBB_SE_2026_Jobs.Library.DTOs;
+using UBB_SE_2026_Jobs.Library.Repositories.Interfaces;
 
 namespace UBB_SE_2026_Jobs.Library.Services.SkillTests;
 
+/// <summary>
+/// Provides a display-oriented view of completed test results.
+/// Previously read from the SkillTests table; now queries TestAttempts
+/// (joined to Test for the title) so there is a single source of truth.
+/// The SkillTests table and SkillTest domain class have been removed.
+/// </summary>
 public class SkillTestService : ISkillTestService
 {
-    private const int RetakeEligibilityMonths = 3;
+    private const float MaximumScoreWhenNoQuestions = 0f;
+    private const float PercentageMultiplier = 100f;
+    private const int ZeroPercentage = 0;
+    private const int FallbackUserId = 0;
 
-    private readonly ISkillTestRepository skillTestRepository;
+    private readonly ITestAttemptRepository testAttemptRepository;
 
-    public SkillTestService(ISkillTestRepository skillTestRepository)
+    public SkillTestService(ITestAttemptRepository testAttemptRepository)
     {
-        this.skillTestRepository = skillTestRepository;
+        this.testAttemptRepository = testAttemptRepository;
     }
 
-    public async Task<IReadOnlyList<SkillTest>> GetTestsForUserAsync(int userId, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<SkillTestViewDto>> GetTestsForUserAsync(
+        int userId,
+        CancellationToken cancellationToken = default)
     {
-        return await skillTestRepository.GetByUserIdAsync(userId, cancellationToken).ConfigureAwait(false);
+        var attempts = await testAttemptRepository
+            .FindCompletedByUserIdAsync(userId, cancellationToken)
+            .ConfigureAwait(false);
+
+        return attempts
+            .Select(ProjectToView)
+            .ToList()
+            .AsReadOnly();
     }
 
-    public async Task<bool> CanRetakeTestAsync(int skillTestId, CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async Task<SkillTestViewDto?> GetSkillTestByIdAsync(
+        int skillTestId,
+        CancellationToken cancellationToken = default)
     {
-        var skillTest = await skillTestRepository.GetByIdAsync(skillTestId, cancellationToken).ConfigureAwait(false);
+        var attempt = await testAttemptRepository
+            .FindByIdAsync(skillTestId)
+            .ConfigureAwait(false);
 
-        if (skillTest is null)
+        if (attempt is null || !IsCompleted(attempt))
         {
-            throw new Exception($"No test found for ID {skillTestId}");
+            return null;
         }
 
-        return IsRetakeEligible(skillTest);
+        return ProjectToView(attempt);
     }
 
-    public async Task<Badge> SubmitRetakeAsync(int skillTestId, int newScore, CancellationToken cancellationToken = default)
+    private static bool IsCompleted(Domain.Core.TestAttempt attempt) =>
+        attempt.Status == "COMPLETED" &&
+        attempt.CompletedAt is not null;
+
+    private static SkillTestViewDto ProjectToView(Domain.Core.TestAttempt attempt)
     {
-        if (!await CanRetakeTestAsync(skillTestId, cancellationToken).ConfigureAwait(false))
+        float maximumPossibleScore = attempt.Test?.Questions
+            .Sum(question => question.QuestionScore) ?? MaximumScoreWhenNoQuestions;
+
+        int scorePercentage = maximumPossibleScore > MaximumScoreWhenNoQuestions
+            ? (int)Math.Round((float)(attempt.Score ?? 0m) / maximumPossibleScore * PercentageMultiplier)
+            : ZeroPercentage;
+
+        return new SkillTestViewDto
         {
-            throw new Exception("Test is not yet eligible for a retake. Action blocked at service layer.");
-        }
-
-        await skillTestRepository.UpdateScoreAsync(skillTestId, newScore, cancellationToken).ConfigureAwait(false);
-        await skillTestRepository.UpdateAchievedDateAsync(skillTestId, DateOnly.FromDateTime(DateTime.Now), cancellationToken).ConfigureAwait(false);
-
-        return SimpleModelOperations.AssignTier(newScore);
-    }
-
-    public async Task<SkillTest> AddSkillTestAsync(SkillTest skillTest, CancellationToken cancellationToken = default)
-    {
-        SkillTest resultSkillTest = await skillTestRepository.AddAsync(skillTest, cancellationToken).ConfigureAwait(false);
-        return resultSkillTest;
-    }
-
-    public async Task UpdateScoreAsync(int skillTestId, int newScore, CancellationToken cancellationToken = default)
-    {
-        await skillTestRepository.UpdateScoreAsync(skillTestId, newScore, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task UpdateAchievedDateAsync(int skillTestId, DateOnly newDate, CancellationToken cancellationToken = default)
-    {
-        await skillTestRepository.UpdateAchievedDateAsync(skillTestId, newDate, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task RemoveAsync(int skillTestId, CancellationToken cancellationToken = default)
-    {
-        await skillTestRepository.RemoveAsync(skillTestId, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task<SkillTest?> GetSkillTestByIdAsync(int skillTestId, CancellationToken cancellationToken = default)
-    {
-        return await skillTestRepository.GetByIdAsync(skillTestId, cancellationToken).ConfigureAwait(false);
-    }
-
-    public static bool IsRetakeEligible(SkillTest skillTest)
-    {
-        DateOnly currentDate = DateOnly.FromDateTime(DateTime.Now);
-        DateOnly eligibilityDate = currentDate.AddMonths(-RetakeEligibilityMonths);
-
-        return eligibilityDate >= skillTest.AchievedDate;
-    }
-
-    public static string AchievedDateFormatted(SkillTest skillTest)
-    {
-        return skillTest.AchievedDate.ToString("dd.MM.yyyy");
+            SkillTestId = attempt.Id,
+            Name = attempt.Test?.Title ?? string.Empty,
+            Score = scorePercentage,
+            AchievedDate = attempt.CompletedAt.HasValue
+                               ? DateOnly.FromDateTime(attempt.CompletedAt.Value)
+                               : DateOnly.MinValue,
+            UserId = attempt.ExternalUserId ?? FallbackUserId,
+        };
     }
 }

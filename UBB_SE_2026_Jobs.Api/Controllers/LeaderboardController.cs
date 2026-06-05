@@ -28,7 +28,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (entries is null || !entries.Any())
                 return NotFound($"No leaderboard entries found for test ID {testId}.");
 
-            return Ok(entries.Select(e => e.ToDto()).ToList());
+            return Ok(entries.Select(entry => entry.ToDto()).ToList());
         }
 
         [HttpGet("bytest/{testId}/top/{limit}")]
@@ -39,7 +39,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
             if (entries is null || !entries.Any())
                 return NotFound($"No leaderboard entries found for test ID {testId}.");
 
-            return Ok(entries.Select(e => e.ToDto()).ToList());
+            return Ok(entries.Select(entry => entry.ToDto()).ToList());
         }
 
         [HttpGet("bytest/{testId}/byuser/{userId}")]
@@ -64,7 +64,7 @@ namespace UBB_SE_2026_Jobs.Api.Controllers;
         [HttpPost]
         public async Task<ActionResult> SaveRange([FromBody] List<LeaderboardEntryDto> dtos)
         {
-            List<LeaderboardEntry> entries = dtos.Select(d => d.ToEntity()).ToList();
+            List<LeaderboardEntry> entries = dtos.Select(dto => dto.ToEntity()).ToList();
             await this._service.SaveRangeAsync(entries);
 
             return Ok();

@@ -11,35 +11,35 @@
     /// <inheritdoc cref="ILeaderboardRepository"/>
     public class LeaderboardRepository : ILeaderboardRepository
     {
-        private readonly JobsDbContext JobsDbContext;
+        private readonly JobsDbContext databaseContext;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LeaderboardRepository"/> class.
         /// </summary>
-        public LeaderboardRepository(JobsDbContext JobsDbContext)
+        public LeaderboardRepository(JobsDbContext databaseContext)
         {
-            this.JobsDbContext = JobsDbContext;
+            this.databaseContext = databaseContext;
         }
 
         /// <inheritdoc />
         public async Task<List<LeaderboardEntry>> FindByTestIdAsync(int testId)
         {
-            return await this.JobsDbContext.LeaderboardEntries
-                .Include(le => le.User)
-                .Include(le => le.Test)
-                .Where(le => le.TestId == testId)
-                .OrderBy(le => le.RankPosition)
+            return await this.databaseContext.LeaderboardEntries
+                .Include(leaderboardEntry => leaderboardEntry.User)
+                .Include(leaderboardEntry => leaderboardEntry.Test)
+                .Where(leaderboardEntry => leaderboardEntry.TestId == testId)
+                .OrderBy(leaderboardEntry => leaderboardEntry.RankPosition)
                 .ToListAsync();
         }
 
         /// <inheritdoc />
         public async Task<List<LeaderboardEntry>> FindTopByTestIdAsync(int testId, int limit)
         {
-            return await this.JobsDbContext.LeaderboardEntries
-                .Include(le => le.User)
-                .Include(le => le.Test)
-                .Where(le => le.TestId == testId)
-                .OrderBy(le => le.RankPosition)
+            return await this.databaseContext.LeaderboardEntries
+                .Include(leaderboardEntry => leaderboardEntry.User)
+                .Include(leaderboardEntry => leaderboardEntry.Test)
+                .Where(leaderboardEntry => leaderboardEntry.TestId == testId)
+                .OrderBy(leaderboardEntry => leaderboardEntry.RankPosition)
                 .Take(limit)
                 .ToListAsync();
         }
@@ -47,34 +47,33 @@
         /// <inheritdoc />
         public async Task<LeaderboardEntry?> FindUserEntryAsync(int userId, int testId)
         {
-            return await this.JobsDbContext.LeaderboardEntries
-                .Include(le => le.User)
-                .Include(le => le.Test)
-                .FirstOrDefaultAsync(le => le.UserId == userId && le.TestId == testId);
+            return await this.databaseContext.LeaderboardEntries
+                .Include(leaderboardEntry => leaderboardEntry.User)
+                .Include(leaderboardEntry => leaderboardEntry.Test)
+                .FirstOrDefaultAsync(leaderboardEntry => leaderboardEntry.UserId == userId && leaderboardEntry.TestId == testId);
         }
 
         /// <inheritdoc />
         public async Task DeleteByTestIdAsync(int testId)
         {
-            var entries = await this.JobsDbContext.LeaderboardEntries
-                .Where(le => le.TestId == testId)
+            var entries = await this.databaseContext.LeaderboardEntries
+                .Where(leaderboardEntry => leaderboardEntry.TestId == testId)
                 .ToListAsync();
 
-            this.JobsDbContext.LeaderboardEntries.RemoveRange(entries);
-            await this.JobsDbContext.SaveChangesAsync();
+            this.databaseContext.LeaderboardEntries.RemoveRange(entries);
+            await this.databaseContext.SaveChangesAsync();
         }
 
         /// <inheritdoc />
-        public async Task SaveRangeAsync(List<LeaderboardEntry> entries)
+        public async Task SaveRangeAsync(List<LeaderboardEntry> leaderboardEntries)
         {
-            if (entries == null || entries.Count == 0)
+            if (leaderboardEntries == null || leaderboardEntries.Count == 0)
             {
                 return;
             }
 
-            await this.JobsDbContext.LeaderboardEntries.AddRangeAsync(entries);
-            await this.JobsDbContext.SaveChangesAsync();
+            await this.databaseContext.LeaderboardEntries.AddRangeAsync(leaderboardEntries);
+            await this.databaseContext.SaveChangesAsync();
         }
     }
 }
-

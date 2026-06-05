@@ -21,13 +21,13 @@ public class PussyCatsJobRepository : IPussyCatsJobRepository
     {
         return await databaseContext.Jobs
             .Include(job => job.Company)
-            .Include(job => job.RequiredSkills).ThenInclude(skill => skill.Skill)
+            .Include(job => job.RequiredSkills).ThenInclude(jobSkill => jobSkill.Skill)
             .FirstOrDefaultAsync(job => job.JobId == jobId, cancellationToken)
             .ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Browse-jobs listing â€” includes Company so the listing card can show the employer name
+    /// Browse-jobs listing — includes Company so the listing card can show the employer name
     /// without an N+1.
     /// </summary>
     public async Task<IReadOnlyList<Job>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -40,7 +40,7 @@ public class PussyCatsJobRepository : IPussyCatsJobRepository
     }
 
     /// <summary>
-    /// Original: matchmaking PussyCatsJobRepository.GetByCompanyId â€” straight LINQ port of the foreach
+    /// Original: matchmaking PussyCatsJobRepository.GetByCompanyId — straight LINQ port of the foreach
     /// filter on CompanyId. Read-only, no Includes (callers already have the Company).
     /// </summary>
     public async Task<IReadOnlyList<Job>> GetByCompanyIdAsync(int companyId, CancellationToken cancellationToken = default)
@@ -61,10 +61,10 @@ public class PussyCatsJobRepository : IPussyCatsJobRepository
 
     public async Task UpdateAsync(Job job, CancellationToken cancellationToken = default)
     {
-        var tracked = databaseContext.Jobs.Local.FirstOrDefault(existing => existing.JobId == job.JobId);
-        if (tracked is not null)
+        var trackedJob = databaseContext.Jobs.Local.FirstOrDefault(existingJob => existingJob.JobId == job.JobId);
+        if (trackedJob is not null)
         {
-            databaseContext.Entry(tracked).CurrentValues.SetValues(job);
+            databaseContext.Entry(trackedJob).CurrentValues.SetValues(job);
         }
         else
         {
@@ -84,4 +84,3 @@ public class PussyCatsJobRepository : IPussyCatsJobRepository
         await databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 }
-
