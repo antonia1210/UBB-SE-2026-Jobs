@@ -225,7 +225,10 @@ public class PussyCatsUsersController : ControllerBase
         if (user is null) return NotFound();
 
         int experiencePoints = await userProfileService.RecalculateLevelAsync(user, cancellationToken);
-        return Ok(new { TotalExperiencePoints = experiencePoints });
+        await users.UpdateAsync(user, cancellationToken);
+
+        return Ok(new { TotalExperiencePoints = experiencePoints, CurrentLevel = user.CurrentLevel });
+
     }
 
     [HttpGet("{id}/skill-tests")]
