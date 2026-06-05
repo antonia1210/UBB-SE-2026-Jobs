@@ -30,8 +30,14 @@ namespace UBB_SE_2026_Jobs.Library.ServiceProxies
             var response = await _http.GetAsync($"api/users/{user.UserId}/experience", cancellationToken);
             response.EnsureSuccessStatusCode();
             var data = await response.Content.ReadFromJsonAsync<XpResponse>(_jsonOptions, cancellationToken);
-            return data?.TotalExperiencePoints ?? 0;
+
+            user.TotalExperiencePoints = data?.TotalExperiencePoints ?? 0;
+            user.CurrentLevel = data?.CurrentLevel ?? 1;
+
+            return user.TotalExperiencePoints;
         }
+
+        private record XpResponse(int TotalExperiencePoints, int CurrentLevel);
 
         public async Task UpdateAccountStatusAsync(int userId, bool isActive, CancellationToken cancellationToken = default)
         {
@@ -77,6 +83,6 @@ namespace UBB_SE_2026_Jobs.Library.ServiceProxies
             response.EnsureSuccessStatusCode();
         }
 
-        private record XpResponse(int TotalExperiencePoints);
+      
     }
 }

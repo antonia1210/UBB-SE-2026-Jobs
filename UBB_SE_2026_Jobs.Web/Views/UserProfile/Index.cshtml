@@ -84,9 +84,21 @@
                     <div class="col-sm-7">
                         <h5 class="mb-1 text-dark fw-bold">Level @Model.CurrentLevel</h5>
                         <div class="progress mb-1" style="height: 12px;">
-                            <div class="progress-bar" role="progressbar" style="width: @progressPercent%; background-color: purple;" aria-valuenow="@progressPercent" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="progress-bar" role="progressbar"
+                                 style="width: @progressPercent%; background-color: purple;"
+                                 aria-valuenow="@progressPercent" aria-valuemin="0" aria-valuemax="100">
+                            </div>
                         </div>
-                        <span class="text-muted small">@totalXp XP recorded on profile</span>
+                        @if ((int)(ViewBag.XpToNextLevel ?? 0) > 0)
+                        {
+                            <span class="text-muted small">
+                                @totalXp XP &mdash; @ViewBag.XpToNextLevel XP to next level
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">@totalXp XP &mdash; Max level reached</span>
+                        }
                     </div>
                 </div>
             </div>
