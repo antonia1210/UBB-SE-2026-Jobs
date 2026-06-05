@@ -15,6 +15,11 @@ public interface ITiSlotsService
     Task<List<TiInterviewSessionDto>> GetSessionsByStatusAsync(string status);
     Task<List<TiInterviewSessionDto>> GetBookedInterviewsByCandidate(int candidateId);
     Task<int?> GetCompanyIdByJobAsync(int jobId);
+    Task<List<TiSlotDto>> GetAllSlotsAsync();
+    Task<bool> CreateSlotAsync(TiSlotDto slot);
+    Task<bool> UpdateSlotAsync(TiSlotDto slot);
+    Task<bool> DeleteSlotAsync(int slotId);
+    Task<List<TiCompanyDto>> GetCompaniesAsync();
 }
 
 public class TiSlotsService : ITiSlotsService
@@ -93,5 +98,37 @@ public class TiSlotsService : ITiSlotsService
         if (!response.IsSuccessStatusCode) return null;
         var job = await response.Content.ReadFromJsonAsync<JobDto>();
         return job?.CompanyId;
+    }
+
+    public async Task<List<TiSlotDto>> GetAllSlotsAsync()
+    {
+        var response = await http.GetAsync("api/slots");
+        if (!response.IsSuccessStatusCode) return new();
+        return await response.Content.ReadFromJsonAsync<List<TiSlotDto>>() ?? new();
+    }
+
+    public async Task<bool> CreateSlotAsync(TiSlotDto slot)
+    {
+        var response = await http.PostAsJsonAsync("api/slots", slot);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> UpdateSlotAsync(TiSlotDto slot)
+    {
+        var response = await http.PutAsJsonAsync($"api/slots/{slot.Id}", slot);
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteSlotAsync(int slotId)
+    {
+        var response = await http.DeleteAsync($"api/slots/{slotId}");
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<List<TiCompanyDto>> GetCompaniesAsync()
+    {
+        var response = await http.GetAsync("api/companies");
+        if (!response.IsSuccessStatusCode) return new();
+        return await response.Content.ReadFromJsonAsync<List<TiCompanyDto>>() ?? new();
     }
 }
