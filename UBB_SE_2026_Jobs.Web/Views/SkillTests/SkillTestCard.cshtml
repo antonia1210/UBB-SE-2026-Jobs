@@ -5,7 +5,7 @@
     string dateFormatted = Model.AchievedDate != DateOnly.MinValue
         ? Model.AchievedDate.ToString("dd.MM.yyyy")
         : string.Empty;
-    string tierLabel = badge?.Tier.ToString() ?? string.Empty;
+    string tierLabel = badge?.Tier.ToString() ?? "Participant";
     string tierColor = tierLabel switch
     {
         "Gold" => "#FFD700",

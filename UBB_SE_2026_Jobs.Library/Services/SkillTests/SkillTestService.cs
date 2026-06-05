@@ -54,15 +54,24 @@ public class SkillTestService : ISkillTestService
         attempt.Status == "COMPLETED" &&
         attempt.CompletedAt is not null;
 
-    private static SkillTestViewDto ProjectToView(Domain.Core.TestAttempt attempt) =>
-        new()
+    private static SkillTestViewDto ProjectToView(Domain.Core.TestAttempt attempt)
+    {
+        float maxPossible = attempt.Test?.Questions
+            .Sum(q => q.QuestionScore) ?? 0f;
+
+        int percentage = maxPossible > 0
+            ? (int)Math.Round((float)(attempt.Score ?? 0m) / maxPossible * 100f)
+            : 0;
+
+        return new SkillTestViewDto
         {
             SkillTestId = attempt.Id,
             Name = attempt.Test?.Title ?? string.Empty,
-            Score = (int)Math.Round(attempt.Score ?? 0m),
+            Score = percentage,
             AchievedDate = attempt.CompletedAt.HasValue
                                ? DateOnly.FromDateTime(attempt.CompletedAt.Value)
                                : DateOnly.MinValue,
             UserId = attempt.ExternalUserId ?? 0,
         };
+    }
 }

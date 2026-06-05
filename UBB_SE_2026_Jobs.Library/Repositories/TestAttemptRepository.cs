@@ -92,6 +92,7 @@
             return await jobsDbContext.TestAttempts
                 .AsNoTracking()
                 .Include(a => a.Test)
+                    .ThenInclude(t => t!.Questions)
                 .Where(a => a.ExternalUserId == userId
                          && a.Status == "COMPLETED"
                          && a.CompletedAt != null)
