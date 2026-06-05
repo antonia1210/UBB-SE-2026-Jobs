@@ -55,6 +55,7 @@
                         <button type="submit" asp-action="RemoveAvatar" class="btn btn-sm btn-outline-danger"
                                 onclick="this.form.action='@Url.Action("RemoveAvatar")'; return true;">Remove</button>
                     }
+
                 </form>
                 @if (TempData["Error"] is string error)
                 {
