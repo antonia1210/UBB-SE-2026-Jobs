@@ -7,7 +7,7 @@ using UBB_SE_2026_Jobs.Library.Services.Jobs;
 using UBB_SE_2026_Jobs.Library.Services.JobSkills;
 using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
-using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
+using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 
 namespace UBB_SE_2026_Jobs.Tests.Services;
 

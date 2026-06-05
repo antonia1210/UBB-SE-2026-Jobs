@@ -63,57 +63,6 @@ namespace UBB_SE_2026_Jobs.Library.Domain
         /// </summary>
         public List<Slot> Slots { get; set; } = [];
 
-        /// <summary>
-        /// Gets a list of interview slots for the specified month and year, allowing the recruiter to view their schedule for that period.
-        /// </summary>
-        /// <param name="month">A DateTime object representing the month and year for which to retrieve the interview slots.
-        /// The day component of the DateTime is ignored, and only the month and year are used for filtering.</param>
-        /// <returns>A list of Slot objects representing the slots in that month.</returns>
-        public List<Slot> ViewMonthlyCalendar(DateTime month)
-        {
-            return [.. this.Slots.Where(s => s.StartTime.Month == month.Month && s.StartTime.Year == month.Year)];
-        }
 
-        /// <summary>
-        /// Creates a new interview slot and adds it to the recruiter's list of slots. This method takes a Slot object as a parameter, which contains the details of the slot to be created,
-        /// </summary>
-        /// <param name="slot">The Slot object representing the interview slot to be created.</param>
-        public void CreateSlot(Slot slot)
-        {
-            this.Slots.Add(slot);
-        }
-
-        /// <summary>
-        /// Edits an existing interview slot by updating its details based on the provided Slot object. This method searches for the slot with the same Id as the updatedSlot and updates its properties
-        /// </summary>
-        /// <param name="updatedSlot">The Slot object containing the updated details for the interview slot.</param>
-        public void EditSlot(Slot updatedSlot)
-        {
-            var existing = this.Slots.FirstOrDefault(s => s.Id == updatedSlot.Id);
-            if (existing != null)
-            {
-                existing.StartTime = updatedSlot.StartTime;
-                existing.EndTime = updatedSlot.EndTime;
-                existing.Duration = updatedSlot.Duration;
-                existing.Status = updatedSlot.Status;
-                existing.InterviewType = updatedSlot.InterviewType;
-            }
-        }
-
-        /// <summary>
-        /// Deletes an interview slot from the recruiter's list of slots based on the provided slotId. This method searches for the slot with the specified Id and removes it from the list if found.
-        /// </summary>
-        /// <param name="slotId">The Id of the Slot object representing the interview slot to be deleted.</param>
-        /// <returns>The Slot object that was deleted, or null if no slot with the specified Id was found.</returns>
-        public Slot? DeleteSlot(int slotId)
-        {
-            var slot = this.Slots.FirstOrDefault(s => s.Id == slotId);
-            if (slot != null)
-            {
-                this.Slots.Remove(slot);
-            }
-
-            return slot;
-        }
     }
 }
