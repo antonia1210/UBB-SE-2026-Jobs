@@ -421,7 +421,7 @@
     <div id="projectsContainer">
         @for (int i = 0; i < Model.Projects.Count; i++)
         {
-            <div class="card p-3 mb-3">
+            <div class="card p-3 mb-3 project-item">
 
                 <input name="Projects[@i].Name"
                        value="@Model.Projects[i].Name"
@@ -893,6 +893,71 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+        }
+    </script>
+    <script>
+        document.querySelector('form[action$="/Edit"]').addEventListener('submit', function (e)  {
+        let hasErrors = false;
+        clearValidationErrors();
+
+        document.querySelectorAll('.work-item').forEach((item, index) => {
+            const company = item.querySelector(`input[name="WorkExperiences[${index}].Company"]`);
+            const jobTitle = item.querySelector(`input[name="WorkExperiences[${index}].JobTitle"]`);
+            const startDate = item.querySelector(`input[name="WorkExperiences[${index}].StartDate"]`);
+
+            if (!company?.value?.trim()) { showError(company, 'Company is required.'); hasErrors = true; }
+            if (!jobTitle?.value?.trim()) { showError(jobTitle, 'Job title is required.'); hasErrors = true; }
+            if (!startDate?.value?.trim()) { showError(startDate, 'Start date is required.'); hasErrors = true; }
+        });
+        document.querySelectorAll('.project-item').forEach((item, index) => {
+            const name = item.querySelector(`input[name="Projects[${index}].Name"]`);
+            const desc = item.querySelector(`textarea[name="Projects[${index}].Description"]`);
+
+            if (!name?.value?.trim()) { showError(name, 'Project name is required.'); hasErrors = true; }
+            if (!desc?.value?.trim()) { showError(desc, 'Description is required.'); hasErrors = true; }
+        });
+
+        document.querySelectorAll('.activity-item').forEach((item, index) => {
+            const actName = item.querySelector(`input[name="ExtraCurricularActivities[${index}].ActivityName"]`);
+            const org = item.querySelector(`input[name="ExtraCurricularActivities[${index}].Organization"]`);
+            const role = item.querySelector(`input[name="ExtraCurricularActivities[${index}].Role"]`);
+            const period = item.querySelector(`input[name="ExtraCurricularActivities[${index}].Period"]`);
+
+            if (!actName?.value?.trim()) { showError(actName, 'Activity name is required.'); hasErrors = true; }
+            if (!org?.value?.trim()) { showError(org, 'Organization is required.'); hasErrors = true; }
+            if (!role?.value?.trim()) { showError(role, 'Role is required.'); hasErrors = true; }
+            if (!period?.value?.trim()) { showError(period, 'Period is required.'); hasErrors = true; }
+        });
+
+        if (hasErrors) {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            showGlobalError('Please fill in all required fields before saving.');
+        }
+            });
+
+        function showError(field, message) {
+            if (!field) return;
+            field.classList.add('is-invalid');
+            const feedback = document.createElement('div');
+            feedback.className = 'invalid-feedback';
+            feedback.textContent = message;
+            field.parentNode.appendChild(feedback);
+        }
+
+        function clearValidationErrors() {
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+            const globalError = document.getElementById('global-validation-error');
+            if (globalError) globalError.remove();
+        }
+
+        function showGlobalError(message) {
+            const alert = document.createElement('div');
+            alert.id = 'global-validation-error';
+            alert.className = 'alert alert-danger mt-2';
+            alert.textContent = message;
+            document.querySelector('form[action$="/Edit"]').prepend(alert);
         }
     </script>
 }

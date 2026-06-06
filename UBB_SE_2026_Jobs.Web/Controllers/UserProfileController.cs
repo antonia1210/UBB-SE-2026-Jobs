@@ -118,6 +118,48 @@ public class UserProfileController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(User model)
     {
+        if (model.WorkExperiences != null)
+        {
+            for (int i = 0; i < model.WorkExperiences.Count; i++)
+            {
+                var we = model.WorkExperiences[i];
+                if (string.IsNullOrWhiteSpace(we.Company))
+                    ModelState.AddModelError($"WorkExperiences[{i}].Company", "Company is required.");
+                if (string.IsNullOrWhiteSpace(we.JobTitle))
+                    ModelState.AddModelError($"WorkExperiences[{i}].JobTitle", "Job title is required.");
+                if (we.StartDate == default)
+                    ModelState.AddModelError($"WorkExperiences[{i}].StartDate", "Start date is required.");
+            }
+        }
+
+        if (model.Projects != null)
+        {
+            for (int i = 0; i < model.Projects.Count; i++)
+            {
+                var p = model.Projects[i];
+                if (string.IsNullOrWhiteSpace(p.Name))
+                    ModelState.AddModelError($"Projects[{i}].Name", "Project name is required.");
+                if (string.IsNullOrWhiteSpace(p.Description))
+                    ModelState.AddModelError($"Projects[{i}].Description", "Description is required.");
+            }
+        }
+
+        if (model.ExtraCurricularActivities != null)
+        {
+            for (int i = 0; i < model.ExtraCurricularActivities.Count; i++)
+            {
+                var a = model.ExtraCurricularActivities[i];
+                if (string.IsNullOrWhiteSpace(a.ActivityName))
+                    ModelState.AddModelError($"ExtraCurricularActivities[{i}].ActivityName", "Activity name is required.");
+                if (string.IsNullOrWhiteSpace(a.Organization))
+                    ModelState.AddModelError($"ExtraCurricularActivities[{i}].Organization", "Organization is required.");
+                if (string.IsNullOrWhiteSpace(a.Role))
+                    ModelState.AddModelError($"ExtraCurricularActivities[{i}].Role", "Role is required.");
+                if (string.IsNullOrWhiteSpace(a.Period))
+                    ModelState.AddModelError($"ExtraCurricularActivities[{i}].Period", "Period is required.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             return View(model);
