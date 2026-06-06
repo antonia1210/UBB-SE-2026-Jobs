@@ -15,7 +15,6 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <Button Content="← Back" Click="Back_Click" Background="Transparent" BorderThickness="0"/>
             <TextBlock Text="Payment" FontSize="24" FontWeight="Bold" Margin="0,8,0,4"/>
             <TextBlock Text="{x:Bind ViewModel.JobTitle, Mode=OneWay}"
                        FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>

@@ -33,11 +33,6 @@ public sealed partial class TiManageSlotsPage : Page
         };
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e)
-    {
-        if (Frame.CanGoBack) Frame.GoBack();
-    }
-
     private void PreviousWeek_Click(object sender, RoutedEventArgs e) => ViewModel.PreviousWeekCommand.Execute(null);
     private void NextWeek_Click(object sender, RoutedEventArgs e) => ViewModel.NextWeekCommand.Execute(null);
     private void Today_Click(object sender, RoutedEventArgs e) => ViewModel.TodayCommand.Execute(null);

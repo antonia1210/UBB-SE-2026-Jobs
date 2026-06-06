@@ -31,8 +31,6 @@ public sealed partial class TiEventDetailsPage : Page
         }
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e) => Frame.GoBack();
-
     private void EditEvent_Click(object sender, RoutedEventArgs e)
     {
         if (currentDto is not null)

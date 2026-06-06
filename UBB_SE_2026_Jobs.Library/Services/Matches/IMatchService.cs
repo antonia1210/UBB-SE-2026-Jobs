@@ -34,7 +34,5 @@ public interface IMatchService
 
     Task AdvanceAsync(int matchId, CancellationToken cancellationToken = default);
 
-    Task RevertToAppliedAsync(int matchId, CancellationToken cancellationToken = default);
-
     bool IsDecisionTransitionAllowed(Match current, MatchStatus next);
 }

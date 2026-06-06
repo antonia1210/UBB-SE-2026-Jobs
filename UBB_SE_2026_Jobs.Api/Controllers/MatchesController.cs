@@ -135,20 +135,6 @@ public class MatchesController : ControllerBase
         }
     }
 
-    [HttpPatch("{id}/revert")]
-    public async Task<IActionResult> Revert(int id, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await matches.RevertToAppliedAsync(id, cancellationToken);
-            return NoContent();
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
-    }
-
     public record CreateMatchRequest(int UserId, int JobId);
     public record SubmitDecisionRequest(MatchStatus Decision, string? Feedback);
 }

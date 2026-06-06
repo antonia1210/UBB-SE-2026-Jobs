@@ -41,8 +41,6 @@ public sealed partial class TiJobDetailsPage : Page
         ApplyButton.IsEnabled = !ViewModel.HasApplied;
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e) => Frame.GoBack();
-
     private void ViewApplicants_Click(object sender, RoutedEventArgs e)
     {
         if (ViewModel.CurrentJob is { } job)

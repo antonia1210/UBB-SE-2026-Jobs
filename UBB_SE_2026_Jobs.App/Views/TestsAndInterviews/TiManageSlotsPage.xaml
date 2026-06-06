@@ -20,16 +20,11 @@
 
         <!-- Header -->
         <Grid Grid.Row="0" Margin="0,0,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Spacing="4">
+            <StackPanel Spacing="4">
                 <TextBlock Text="Manage Interview Slots" FontSize="24" FontWeight="Bold"/>
                 <TextBlock Text="Click an empty cell to add a slot. Click a slot to edit or delete it."
                            FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
             </StackPanel>
-            <Button Grid.Column="1" Content="Back" VerticalAlignment="Center" Click="Back_Click"/>
         </Grid>
 
         <!-- Week Navigation -->

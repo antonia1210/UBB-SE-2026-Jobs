@@ -16,7 +16,6 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
     private readonly SessionContext session;
     private readonly RelayCommand advanceCommand;
     private readonly RelayCommand skipCommand;
-    private readonly RelayCommand undoCommand;
     private readonly RelayCommand refreshCommand;
     private readonly RelayCommand expandCommand;
     private readonly RelayCommand collapseCommand;
@@ -26,11 +25,8 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
     private bool hasApplicant;
     private bool isExpanded;
     private bool isContactRevealed;
-    private bool canUndo;
     private bool isLoading;
     private string statusMessage = string.Empty;
-    private UserApplicationResult? lastUndoApplicant;
-    private bool undoUsed;
 
     public CompanyRecommendationViewModel(
         ICompanyRecommendationService recommendationService,
@@ -43,7 +39,6 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
 
         advanceCommand = new RelayCommand(ExecuteAdvanceCommand, CanAdvanceOrSkip);
         skipCommand = new RelayCommand(ExecuteSkipCommand, CanAdvanceOrSkip);
-        undoCommand = new RelayCommand(ExecuteUndoCommand, CanUndoAction);
         refreshCommand = new RelayCommand(ExecuteRefreshCommand);
         expandCommand = new RelayCommand(ExecuteExpandCommand, CanExpandCard);
         collapseCommand = new RelayCommand(CollapseCard);
@@ -104,18 +99,6 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
         }
     }
 
-    public bool CanUndo
-    {
-        get => canUndo;
-        private set
-        {
-            if (SetProperty(ref canUndo, value))
-            {
-                undoCommand.NotifyCanExecuteChanged();
-            }
-        }
-    }
-
     public bool IsLoading
     {
         get => isLoading;
@@ -156,7 +139,6 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
 
     public ICommand AdvanceCommand => advanceCommand;
     public ICommand SkipCommand => skipCommand;
-    public ICommand UndoCommand => undoCommand;
     public ICommand RefreshCommand => refreshCommand;
     public ICommand ExpandCommand => expandCommand;
     public ICommand CollapseCommand => collapseCommand;
@@ -204,7 +186,6 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
         try
         {
             await matchService.AdvanceAsync(CurrentApplicant.Match.MatchId, cancellationToken);
-            StoreForUndo();
             recommendationService.MoveToNext();
             LoadNextApplicant();
         }
@@ -229,39 +210,12 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
         try
         {
             await matchService.RejectAsync(CurrentApplicant.Match.MatchId, "Rejected on first pass", cancellationToken);
-            StoreForUndo();
             recommendationService.MoveToNext();
             LoadNextApplicant();
         }
         catch (Exception exception)
         {
             ReportError($"Could not skip applicant: {exception.Message}");
-        }
-    }
-
-    public async Task UndoLastActionAsync(CancellationToken cancellationToken = default)
-    {
-        if (lastUndoApplicant is null)
-        {
-            return;
-        }
-
-        try
-        {
-            await matchService.RevertToAppliedAsync(lastUndoApplicant.Match.MatchId, cancellationToken);
-            recommendationService.MoveToPrevious();
-
-            CurrentApplicant = lastUndoApplicant;
-            IsContactRevealed = false;
-            StatusMessage = string.Empty;
-            lastUndoApplicant = null;
-            undoUsed = true;
-            CanUndo = false;
-            RaiseDerivedPropertyChanges();
-        }
-        catch (Exception exception)
-        {
-            ReportError($"Could not undo: {exception.Message}");
         }
     }
 
@@ -321,15 +275,6 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
         return true;
     }
 
-    private void StoreForUndo()
-    {
-        if (!undoUsed)
-        {
-            lastUndoApplicant = CurrentApplicant;
-            CanUndo = true;
-        }
-    }
-
     private void RaiseDerivedPropertyChanges()
     {
         OnPropertyChanged(nameof(TopSkills));
@@ -343,7 +288,6 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
     {
         advanceCommand.NotifyCanExecuteChanged();
         skipCommand.NotifyCanExecuteChanged();
-        undoCommand.NotifyCanExecuteChanged();
         refreshCommand.NotifyCanExecuteChanged();
         expandCommand.NotifyCanExecuteChanged();
     }
@@ -355,11 +299,9 @@ public class CompanyRecommendationViewModel : DispatchableObservableObject
     }
 
     private bool CanAdvanceOrSkip() => HasApplicant && !IsLoading;
-    private bool CanUndoAction() => CanUndo && !IsLoading;
     private bool CanExpandCard() => HasApplicant;
     private void ExecuteRefreshCommand() => _ = LoadApplicantsAsync();
     private void ExecuteAdvanceCommand() => _ = AdvanceApplicantAsync();
     private void ExecuteSkipCommand() => _ = SkipApplicantAsync();
-    private void ExecuteUndoCommand() => _ = UndoLastActionAsync();
     private void ExecuteExpandCommand() => _ = ExpandCardAsync();
 }

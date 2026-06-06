@@ -156,22 +156,6 @@ public class MatchServiceTests
     }
 
     [Fact]
-    public async Task RevertToAppliedAsync_Called_ResetsStatusAndFeedback()
-    {
-        matchRepository.Seed(new MatchBuilder()
-            .WithId(1)
-            .WithStatus(MatchStatus.Rejected)
-            .WithFeedback("Sorry")
-            .Build());
-
-        await service.RevertToAppliedAsync(1);
-
-        var match = await service.GetByIdAsync(1);
-        Assert.Equal(MatchStatus.Applied, match!.Status);
-        Assert.Empty(match.FeedbackMessage);
-    }
-
-    [Fact]
     public async Task GetByCompanyIdAsync_CompanyHasJobs_FiltersViaJobsOwnedByCompany()
     {
         int firstJobId = 10, secondJobId = 20;

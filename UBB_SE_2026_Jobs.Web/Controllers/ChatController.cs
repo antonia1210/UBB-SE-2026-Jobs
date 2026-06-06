@@ -47,6 +47,23 @@ public class ChatController : Controller
         ViewBag.ApiBase = apiConfiguration.BaseUrl.TrimEnd('/') + "/api/files";
         ViewBag.IsBlocked = chatEntity?.IsBlocked ?? false;
         ViewBag.BlockedByCurrentUser = chatEntity?.IsBlocked == true && chatEntity.BlockedByUserId == userId;
+
+        string otherName = "Unknown";
+        if (chatEntity is not null)
+        {
+            if (chatEntity.SecondUser is not null)
+            {
+                var other = chatEntity.User.UserId == userId ? chatEntity.SecondUser : chatEntity.User;
+                otherName = $"{other.FirstName} {other.LastName}".Trim();
+            }
+            else if (chatEntity.Company is not null)
+            {
+                otherName = chatEntity.Company.Name ?? "Unknown";
+            }
+        }
+        ViewBag.OtherPersonName = otherName;
+        ViewBag.OtherPersonInitial = otherName.Length > 0 ? otherName[0].ToString().ToUpperInvariant() : "?";
+
         return View(messages);
     }
 
