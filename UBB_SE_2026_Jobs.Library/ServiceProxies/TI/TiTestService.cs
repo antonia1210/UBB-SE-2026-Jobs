@@ -32,7 +32,8 @@ public class TiTestService : ITiTestService
 
     public async Task<List<TiTestDto>> GetByCategoryAsync(string category)
     {
-        var response = await http.GetAsync($"api/tests/bycategory/{category}");
+        string encodedCategory = Uri.EscapeDataString(category);
+        var response = await http.GetAsync($"api/tests/bycategory/{encodedCategory}");
         if (!response.IsSuccessStatusCode) return new();
         return await response.Content.ReadFromJsonAsync<List<TiTestDto>>() ?? new();
     }

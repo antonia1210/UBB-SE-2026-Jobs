@@ -59,6 +59,7 @@ namespace UBB_SE_2026_Jobs.Library.Repositories
         {
             return await this.databaseContext.Tests
                 .Include(test => test.Questions)
+                .Include(test => test.Skill)
                 .FirstOrDefaultAsync(test => test.Id == testId);
         }
 

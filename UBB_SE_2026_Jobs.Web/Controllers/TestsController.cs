@@ -38,7 +38,6 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             string? userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : -1;
 
-            List<string> categories = await this._api.GetCategories();
             TestsViewModel viewModel = new TestsViewModel();
 
             // Fetch all user attempts in one call so we can mark previously-taken tests.
@@ -53,20 +52,17 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
                 }
             }
 
-            foreach (string category in categories)
+            List<TestDto> tests = await this._api.GetAll();
+            foreach (TestDto test in tests)
             {
-                List<TestDto> tests = await this._api.GetByCategory(category);
-                foreach (TestDto test in tests)
+                viewModel.Tests.Add(new TestCardViewModel
                 {
-                    viewModel.Tests.Add(new TestCardViewModel
-                    {
-                        TestId = test.Id,
-                        Title = test.Title,
-                        Category = test.Category,
-                        QuestionTypeLabel = test.QuestionTypeLabel,
-                        HasBeenTaken = completedTestIds.Contains(test.Id)
-                    });
-                }
+                    TestId = test.Id,
+                    Title = test.Title,
+                    Category = test.Category,
+                    QuestionTypeLabel = test.QuestionTypeLabel,
+                    HasBeenTaken = completedTestIds.Contains(test.Id)
+                });
             }
 
             return View(viewModel);

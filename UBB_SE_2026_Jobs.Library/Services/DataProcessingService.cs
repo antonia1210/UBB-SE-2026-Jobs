@@ -90,10 +90,14 @@ namespace UBB_SE_2026_Jobs.Library.Services
             if (attempt.ExternalUserId == null) return;
 
             var test = await this.testRepository.FindByIdAsync(attempt.TestId);
-            if (test == null || string.IsNullOrWhiteSpace(test.Category)) return;
+            if (test?.SkillId == null) return;
 
-            var skills = await this.skillRepository.GetAllAsync();
-            var skill = skills.FirstOrDefault(s => s.Name.ToLower() == test.Category.ToLower());
+            var skill = test.Skill;
+            if (skill == null)
+            {
+                var skills = await this.skillRepository.GetAllAsync();
+                skill = skills.FirstOrDefault(s => s.SkillId == test.SkillId.Value);
+            }
 
             if (skill == null) return;
 

@@ -10,6 +10,8 @@ namespace UBB_SE_2026_Jobs.App.Views.TestsAndInterviews;
 
 public sealed partial class TiTestPage : Page
 {
+    private bool isActive;
+
     public TiTestPageViewModel ViewModel { get; }
 
     public TiTestPage()
@@ -21,6 +23,7 @@ public sealed partial class TiTestPage : Page
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
+        isActive = true;
 
         int testId = e.Parameter is int id ? id : 0;
         var session = App.Services.GetRequiredService<SessionContext>();
@@ -28,23 +31,57 @@ public sealed partial class TiTestPage : Page
 
         ViewModel.OnTimerExpired = async () =>
         {
+            if (!isActive || App.IsShuttingDown)
+            {
+                return;
+            }
+
             await ViewModel.SubmitAsync();
-            ShowResultDialog("Time's up!", "Your test has been auto-submitted.");
-            Frame.Navigate(typeof(TiMainTestPage));
+            await ShowResultDialogAsync("Time's up!", "Your test has been auto-submitted.");
+            if (isActive && !App.IsShuttingDown)
+            {
+                Frame.Navigate(typeof(TiMainTestPage));
+            }
         };
 
         await ViewModel.LoadAsync(testId, userId);
     }
 
-    private async void SubmitTest_Click(object sender, RoutedEventArgs e)
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
-        float score = await ViewModel.SubmitAsync();
-        ShowResultDialog("Test Submitted!", $"Your score: {score:0.##}");
-        Frame.Navigate(typeof(TiMainTestPage));
+        Shutdown();
+        base.OnNavigatedFrom(e);
     }
 
-    private async void ShowResultDialog(string title, string message)
+    private async void SubmitTest_Click(object sender, RoutedEventArgs e)
     {
+        if (!isActive || App.IsShuttingDown)
+        {
+            return;
+        }
+
+        float score = await ViewModel.SubmitAsync();
+        await ShowResultDialogAsync("Test Submitted!", $"Your score: {score:0.##}");
+        if (isActive && !App.IsShuttingDown)
+        {
+            Frame.Navigate(typeof(TiMainTestPage));
+        }
+    }
+
+    public void Shutdown()
+    {
+        isActive = false;
+        ViewModel.StopTimer();
+        ViewModel.OnTimerExpired = null;
+    }
+
+    private async Task ShowResultDialogAsync(string title, string message)
+    {
+        if (!isActive || App.IsShuttingDown || XamlRoot is null)
+        {
+            return;
+        }
+
         var dialog = new ContentDialog
         {
             Title = title,

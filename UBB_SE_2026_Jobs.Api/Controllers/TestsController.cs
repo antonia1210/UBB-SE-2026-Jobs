@@ -49,7 +49,7 @@ public class TestsController : ControllerBase
         return Ok(test.ToDto());
     }
 
-    [HttpGet("bycategory/{category}")]
+    [HttpGet("bycategory/{*category}")]
     public async Task<ActionResult<List<TestDto>>> FindByCategory(string category)
     {
         List<Test> tests = await this.testService.FindTestsByCategoryAsync(category);
