@@ -36,12 +36,6 @@ public sealed partial class TiTestPage : Page
         await ViewModel.LoadAsync(testId, userId);
     }
 
-    private void BackToTests_Click(object sender, RoutedEventArgs e)
-    {
-        ViewModel.StopTimer();
-        Frame.Navigate(typeof(TiMainTestPage));
-    }
-
     private async void SubmitTest_Click(object sender, RoutedEventArgs e)
     {
         float score = await ViewModel.SubmitAsync();

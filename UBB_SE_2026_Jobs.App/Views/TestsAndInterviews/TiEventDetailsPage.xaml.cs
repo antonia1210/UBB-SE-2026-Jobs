@@ -1,8 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
 using UBB_SE_2026_Jobs.App.ViewModels.TI;
 using UBB_SE_2026_Jobs.App;
 
@@ -30,8 +30,6 @@ public sealed partial class TiEventDetailsPage : Page
             CompanyActions.Visibility = ViewModel.IsCompanyMode ? Visibility.Visible : Visibility.Collapsed;
         }
     }
-
-    private void Back_Click(object sender, RoutedEventArgs e) => Frame.GoBack();
 
     private void EditEvent_Click(object sender, RoutedEventArgs e)
     {

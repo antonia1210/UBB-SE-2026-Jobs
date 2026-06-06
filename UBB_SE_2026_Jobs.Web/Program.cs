@@ -25,10 +25,9 @@ using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
 using UBB_SE_2026_Jobs.Library.Services.Auth;
 using UBB_SE_2026_Jobs.Library.ServiceProxies;
-using UBB_SE_2026_Jobs.Web.Clients;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.Web;
 using UBB_SE_2026_Jobs.Web.Configuration;
 using UBB_SE_2026_Jobs.Web.Infrastructure;
-using UBB_SE_2026_Jobs.Web.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);

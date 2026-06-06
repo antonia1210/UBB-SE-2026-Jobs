@@ -6,69 +6,214 @@
     int currentUserId = ViewBag.CurrentUserId ?? 0;
 }
 
-<div class="container mt-4">
-    <h2 class="mb-3">Messages</h2>
+<style>
+    .inbox-wrapper {
+        max-width: 680px;
+        margin: 24px auto;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+    .inbox-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 18px 22px;
+        color: white;
+    }
+    .inbox-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+    }
+    .inbox-search-wrap {
+        background: white;
+        padding: 14px 16px;
+        border-bottom: 1px solid #f0f2f5;
+        position: relative;
+    }
+    .inbox-search {
+        background: #f0f2f5 !important;
+        border: none !important;
+        border-radius: 24px !important;
+        padding: 9px 18px !important;
+    }
+    .inbox-search:focus {
+        box-shadow: none !important;
+        background: #e8eaed !important;
+    }
+    .chat-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        background: white;
+        border-bottom: 1px solid #f0f2f5;
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.12s;
+    }
+    .chat-item:hover {
+        background: #f8f9ff;
+        text-decoration: none;
+        color: inherit;
+    }
+    .chat-item:last-child {
+        border-bottom: none;
+    }
+    .chat-item.blocked-item {
+        background: #fffbea;
+    }
+    .chat-item.blocked-item:hover {
+        background: #fff8d6;
+    }
+    .chat-avatar-circle {
+        width: 48px; height: 48px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1.15rem;
+        flex-shrink: 0;
+    }
+    .chat-item-name {
+        font-weight: 600;
+        font-size: 0.97rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .chat-item-snippet {
+        font-size: 0.82rem;
+        color: #6c757d;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .chat-item-time {
+        font-size: 0.75rem;
+        color: #adb5bd;
+        white-space: nowrap;
+    }
+    .empty-state {
+        background: white;
+        padding: 52px 24px;
+        text-align: center;
+    }
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 12px;
+    }
+    #userSearchResults .search-hit {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border: none;
+        background: white;
+        width: 100%;
+        text-align: left;
+        border-bottom: 1px solid #f0f2f5;
+        cursor: pointer;
+        transition: background 0.1s;
+    }
+    #userSearchResults .search-hit:hover { background: #f8f9ff; }
+    #userSearchResults .search-hit:last-child { border-bottom: none; }
+    .search-hit-avatar {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; font-weight: 600;
+        flex-shrink: 0;
+    }
+</style>
 
-    <div class="mb-3 position-relative">
-        @Html.AntiForgeryToken()
-        <input id="chatSearch" type="search" class="form-control"
-               placeholder="@(isCompanyMode ? "Search co-recruiters to chat with..." : "Search or find a user to chat with...")"
-               autocomplete="off" />
-        <div id="userSearchResults" class="list-group position-absolute w-100 shadow-sm" style="z-index:1000;display:none;"></div>
+<div class="inbox-wrapper">
+
+    <!-- Header -->
+    <div class="inbox-header d-flex align-items-center justify-content-between">
+        <h2>Messages</h2>
+        <span style="font-size:0.82rem; opacity:0.8;">
+            @(isCompanyMode ? "Recruiter mode" : "Candidate mode")
+        </span>
     </div>
 
+    <!-- Search -->
+    <div class="inbox-search-wrap">
+        @Html.AntiForgeryToken()
+        <input id="chatSearch" type="search" class="form-control inbox-search"
+               placeholder="@(isCompanyMode ? "Search co-recruiters…" : "Search people to chat with…")"
+               autocomplete="off" />
+        <div id="userSearchResults"
+             style="display:none; position:absolute; left:16px; right:16px; top:100%;
+                    background:white; border-radius:0 0 12px 12px;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+                    border:1px solid #e9ecef; border-top:none;
+                    max-height:260px; overflow-y:auto; z-index:1000;"></div>
+    </div>
+
+    <!-- Chat list -->
     @{
         var visible = Model.Where(c => c.SecondUser != null).ToList();
     }
 
-    @if (!visible.Any())
-    {
-        <div class="alert alert-info" id="emptyState">
-            No conversations yet.
-            @if (!isCompanyMode)
-            {
-                <span>Use the search above to start a new chat.</span>
-            }
-        </div>
-    }
-
-    <div class="list-group" id="chatList">
-        @foreach (var c in visible)
+    <div id="chatList">
+        @if (!visible.Any())
         {
-            var other = c.SecondUser is not null
-                ? (c.User.UserId == currentUserId
-                    ? $"{c.SecondUser.FirstName} {c.SecondUser.LastName}".Trim()
-                    : $"{c.User.FirstName} {c.User.LastName}".Trim())
-                : c.Company?.Name ?? "Unknown";
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">💬</div>
+                <p class="fw-semibold mb-1">No conversations yet</p>
+                <small class="text-muted">
+                    @(isCompanyMode ? "Find a co-recruiter above to start chatting." : "Search for someone above to start a conversation.")
+                </small>
+            </div>
+        }
+        else
+        {
+            @foreach (var c in visible)
+            {
+                var other = c.SecondUser is not null
+                    ? (c.User.UserId == currentUserId
+                        ? $"{c.SecondUser.FirstName} {c.SecondUser.LastName}".Trim()
+                        : $"{c.User.FirstName} {c.User.LastName}".Trim())
+                    : c.Company?.Name ?? "Unknown";
+                var initial = other.Length > 0 ? other[0].ToString().ToUpperInvariant() : "?";
 
-            <a asp-action="Show" asp-route-id="@c.ChatId"
-               class="list-group-item list-group-item-action d-flex align-items-center gap-3 @(c.IsBlocked ? "list-group-item-warning" : "")"
-               data-name="@other.ToLowerInvariant()">
-                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0"
-                     style="width:42px;height:42px;font-weight:600;font-size:1rem;">
-                    @(other.Length > 0 ? other[0].ToString().ToUpperInvariant() : "?")
-                </div>
-                <div class="flex-grow-1 overflow-hidden">
-                    <div class="fw-semibold text-truncate">
-                        @other
-                        @if (c.IsBlocked)
+                <a asp-action="Show" asp-route-id="@c.ChatId"
+                   class="chat-item @(c.IsBlocked ? "blocked-item" : "")"
+                   data-name="@other.ToLowerInvariant()">
+                    <div class="chat-avatar-circle">@initial</div>
+                    <div class="flex-grow-1 overflow-hidden">
+                        <div class="chat-item-name">
+                            @other
+                            @if (c.IsBlocked)
+                            {
+                                <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem; font-weight:500;">Blocked</span>
+                            }
+                        </div>
+                        <div class="chat-item-snippet">@c.LastMessageSnippet</div>
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+                        <span class="chat-item-time">@c.LastMessageTime</span>
+                        @if (c.UnreadCount > 0)
                         {
-                            <span class="badge bg-warning text-dark ms-1">Blocked</span>
+                            <span class="badge rounded-pill"
+                                  style="background: linear-gradient(135deg,#667eea,#764ba2); font-size:0.72rem;">
+                                @c.UnreadCount
+                            </span>
                         }
                     </div>
-                    <small class="text-muted text-truncate d-block">@c.LastMessageSnippet</small>
-                </div>
-                <div class="text-end flex-shrink-0">
-                    <small class="text-muted d-block">@c.LastMessageTime</small>
-                    @if (c.UnreadCount > 0)
-                    {
-                        <span class="badge bg-primary rounded-pill">@c.UnreadCount</span>
-                    }
-                </div>
-            </a>
+                </a>
+            }
         }
     </div>
-    <div id="noResults" class="alert alert-info d-none">No conversations match your search.</div>
+
+    <div id="noResults" class="empty-state d-none">
+        <div class="empty-icon">🔍</div>
+        <p class="text-muted mb-0">No conversations match your search.</p>
+    </div>
+
 </div>
 
 @section Scripts {
@@ -77,18 +222,17 @@
             var input = document.getElementById('chatSearch');
             if (!input) return;
 
-            var items = document.querySelectorAll('#chatList .list-group-item');
+            var items = document.querySelectorAll('#chatList .chat-item');
             var noResults = document.getElementById('noResults');
+            var emptyState = document.getElementById('emptyState');
             var userResults = document.getElementById('userSearchResults');
             var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-
             var searchTimer = null;
 
             input.addEventListener('input', function () {
                 var query = this.value.trim();
                 var lower = query.toLowerCase();
 
-                // Filter existing chats client-side
                 var visibleCount = 0;
                 items.forEach(function (item) {
                     var show = !lower || (item.dataset.name || '').includes(lower);
@@ -96,8 +240,8 @@
                     if (show) visibleCount++;
                 });
                 if (noResults) noResults.classList.toggle('d-none', visibleCount > 0 || !lower);
+                if (emptyState) emptyState.classList.toggle('d-none', !!lower);
 
-                // API user search (candidates only)
                 if (!userResults || !tokenInput) return;
 
                 clearTimeout(searchTimer);
@@ -120,13 +264,12 @@
                         }
                         var token = tokenInput.value;
                         userResults.innerHTML = users.map(function (u) {
-                            return '<button type="button" class="list-group-item list-group-item-action d-flex align-items-center gap-2"'
+                            var initLetter = u.name.charAt(0).toUpperCase();
+                            return '<button type="button" class="search-hit"'
                                 + ' onclick="startUserChat(' + u.id + ')">'
-                                + '<div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0"'
-                                + ' style="width:32px;height:32px;font-size:0.85rem;">'
-                                + escapeHtml(u.name.charAt(0).toUpperCase()) + '</div>'
-                                + '<span>' + escapeHtml(u.name) + '</span>'
-                                + '<small class="text-muted ms-auto">Start chat</small>'
+                                + '<div class="search-hit-avatar">' + escapeHtml(initLetter) + '</div>'
+                                + '<span style="font-weight:500;">' + escapeHtml(u.name) + '</span>'
+                                + '<small class="text-muted ms-auto">Start chat &rarr;</small>'
                                 + '</button>';
                         }).join('');
                         userResults.style.display = 'block';

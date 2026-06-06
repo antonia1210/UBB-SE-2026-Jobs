@@ -407,7 +407,7 @@ public class ChatServiceTests
             .Returns(Task.FromResult<IReadOnlyCollection<int>>(new List<int>()));
 
         var users = Enumerable.Range(1, 20)
-            .Select(i => new User { UserId = i, FirstName = "Bob", LastName = $"Smith {i}" })
+            .Select(userId => new User { UserId = userId, FirstName = "Bob", LastName = $"Smith {userId}" })
             .ToList();
         userService.GetAllAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IReadOnlyList<User>>(users));
@@ -421,7 +421,7 @@ public class ChatServiceTests
     public async Task SearchCompaniesAsync_ResultsExceedCap_OnlyTenReturned()
     {
         var companies = Enumerable.Range(1, 20)
-            .Select(i => new Company { Name = $"Acme {i}" })
+            .Select(companyId => new Company { Name = $"Acme {companyId}" })
             .ToList();
         companyService.GetAllAsync(Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<IReadOnlyList<Company>>(companies));
@@ -525,12 +525,12 @@ public class ChatServiceTests
         await chatService.SendStoredAttachmentAsync(chatId: 1, storedPath: storedPath, originalFileName: originalFileName, senderId: 1, MessageType.Image);
 
         await messageRepository.Received(1).AddAsync(
-            Arg.Is<Message>(m =>
-                m.Chat.ChatId == 1 &&
-                m.Sender.SenderId == 1 &&
-                m.Content == storedPath &&
-                m.OriginalFileName == originalFileName &&
-                m.Type == MessageType.Image),
+            Arg.Is<Message>(message =>
+                message.Chat.ChatId == 1 &&
+                message.Sender.SenderId == 1 &&
+                message.Content == storedPath &&
+                message.OriginalFileName == originalFileName &&
+                message.Type == MessageType.Image),
             Arg.Any<CancellationToken>());
     }
 
@@ -545,12 +545,12 @@ public class ChatServiceTests
         await chatService.SendStoredAttachmentAsync(chatId: 1, storedPath: storedPath, originalFileName: originalFileName, senderId: 999, MessageType.File, companyId: 100);
 
         await messageRepository.Received(1).AddAsync(
-            Arg.Is<Message>(m =>
-                m.Chat.ChatId == 1 &&
-                m.Sender.SenderId == 999 &&
-                m.Content == storedPath &&
-                m.OriginalFileName == originalFileName &&
-                m.Type == MessageType.File),
+            Arg.Is<Message>(message =>
+                message.Chat.ChatId == 1 &&
+                message.Sender.SenderId == 999 &&
+                message.Content == storedPath &&
+                message.OriginalFileName == originalFileName &&
+                message.Type == MessageType.File),
             Arg.Any<CancellationToken>());
     }
 

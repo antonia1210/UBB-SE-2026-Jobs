@@ -24,7 +24,6 @@ public sealed partial class TiLeaderboardPage : Page
         await ViewModel.LoadAsync(testId);
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e) => Frame.Navigate(typeof(TiMainTestPage));
     private void PrevPage_Click(object sender, RoutedEventArgs e) => ViewModel.GoToPrevPage();
     private void NextPage_Click(object sender, RoutedEventArgs e) => ViewModel.GoToNextPage();
 }

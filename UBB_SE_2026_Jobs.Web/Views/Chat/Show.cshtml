@@ -7,120 +7,266 @@
     string apiBase = ViewBag.ApiBase ?? string.Empty;
     bool isBlocked = ViewBag.IsBlocked ?? false;
     bool blockedByCurrentUser = ViewBag.BlockedByCurrentUser ?? false;
+    string otherName = ViewBag.OtherPersonName ?? "Chat";
+    string otherInitial = ViewBag.OtherPersonInitial ?? "?";
 }
 
-<div class="container mt-4" style="max-width: 760px;">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">&larr; Back</a>
+<style>
+    .chat-wrapper {
+        max-width: 780px;
+        margin: 24px auto;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .chat-avatar {
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.25);
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .chat-messages {
+        background: #f0f2f5;
+        padding: 20px 16px;
+        min-height: 420px;
+        max-height: 520px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    .bubble {
+        max-width: 68%;
+        padding: 10px 14px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        font-size: 0.93rem;
+        line-height: 1.4;
+    }
+    .bubble-mine {
+        background: #667eea;
+        color: white;
+        border-radius: 18px 18px 4px 18px;
+    }
+    .bubble-theirs {
+        background: white;
+        color: #212529;
+        border-radius: 18px 18px 18px 4px;
+        border: 1px solid #e9ecef;
+    }
+    .bubble-time {
+        font-size: 0.7rem;
+        margin-top: 4px;
+        text-align: right;
+        opacity: 0.7;
+    }
+    .sender-avatar {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        background: #764ba2;
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; font-weight: 600;
+        flex-shrink: 0;
+        align-self: flex-end;
+        margin-right: 8px;
+    }
+    .chat-input-area {
+        background: white;
+        padding: 14px 16px;
+        border-top: 1px solid #e9ecef;
+    }
+    .chat-input {
+        background: #f0f2f5 !important;
+        border: none !important;
+        border-radius: 24px !important;
+        padding: 10px 18px !important;
+        resize: none;
+    }
+    .chat-input:focus {
+        box-shadow: none !important;
+        background: #e8eaed !important;
+    }
+    .send-btn {
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+    .send-btn:hover { opacity: 0.88; }
+    .header-action-btn {
+        background: rgba(255,255,255,0.18);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 8px;
+        padding: 4px 12px;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .header-action-btn:hover { background: rgba(255,255,255,0.28); }
+    .header-delete-btn {
+        background: rgba(220,53,69,0.65);
+        border-color: transparent;
+    }
+    .header-delete-btn:hover { background: rgba(220,53,69,0.85); }
+</style>
+
+<div class="chat-wrapper">
+
+    <!-- Header -->
+    <div class="chat-header">
+        <a asp-action="Index" style="color:white; font-size:1.3rem; text-decoration:none; line-height:1; margin-right:4px;">&#8592;</a>
+        <div class="chat-avatar">@otherInitial</div>
+        <div class="flex-grow-1">
+            <div class="fw-semibold text-white" style="font-size:1rem; line-height:1.2;">@otherName</div>
+            @if (isBlocked)
+            {
+                <small class="text-white-50" style="font-size:0.75rem;">Blocked</small>
+            }
+        </div>
         <div class="d-flex gap-2">
             @if (!isBlocked)
             {
                 <form asp-action="Block" asp-route-id="@chatId" method="post" class="d-inline">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-outline-warning btn-sm">Block</button>
+                    <button type="submit" class="header-action-btn">Block</button>
                 </form>
             }
             else if (blockedByCurrentUser)
             {
                 <form asp-action="Unblock" asp-route-id="@chatId" method="post" class="d-inline">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn btn-outline-success btn-sm">Unblock</button>
+                    <button type="submit" class="header-action-btn">Unblock</button>
                 </form>
             }
             <form asp-action="Delete" asp-route-id="@chatId" method="post" class="d-inline">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-outline-danger btn-sm"
+                <button type="submit" class="header-action-btn header-delete-btn"
                         onclick="return confirm('Delete this conversation?')">Delete</button>
             </form>
         </div>
     </div>
 
+    <!-- Blocked / error banners -->
     @if (isBlocked)
     {
-        <div class="alert @(blockedByCurrentUser ? "alert-warning" : "alert-secondary") py-2 mb-3">
+        <div class="alert @(blockedByCurrentUser ? "alert-warning" : "alert-secondary") py-2 mb-0 rounded-0 border-start-0 border-end-0" style="font-size:0.85rem;">
             @(blockedByCurrentUser ? "You blocked this user. No new messages can be sent." : "You have been blocked. You cannot send messages.")
         </div>
     }
-
     @if (TempData["ChatError"] is string error)
     {
-        <div class="alert alert-danger alert-dismissible py-2">@error <button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div class="alert alert-danger alert-dismissible py-2 mb-0 rounded-0 border-start-0 border-end-0" style="font-size:0.85rem;">
+            @error <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        </div>
     }
 
-    <div id="messages" class="border rounded p-3 mb-3 bg-white" style="min-height: 400px; max-height: 500px; overflow-y: auto;">
+    <!-- Messages -->
+    <div id="messages" class="chat-messages">
         @if (!Model.Any())
         {
-            <p class="text-muted text-center mt-5">No messages yet. Say hello!</p>
+            <div class="text-center" style="margin-top: 60px;">
+                <div style="font-size:2.5rem;">💬</div>
+                <p class="text-muted mt-2">No messages yet. Say hello!</p>
+            </div>
         }
         else
         {
             @foreach (var msg in Model)
             {
                 var isMine = msg.Sender.SenderId == currentUserId;
-                <div class="d-flex @(isMine ? "justify-content-end" : "justify-content-start") mb-2">
-                    <div class="px-3 py-2 rounded-3 @(isMine ? "bg-primary text-white" : "bg-light border")"
-                         style="max-width: 70%;">
+                <div class="d-flex @(isMine ? "justify-content-end" : "justify-content-start") mb-2 align-items-end">
+                    @if (!isMine)
+                    {
+                        <div class="sender-avatar">@(string.IsNullOrWhiteSpace(msg.SenderInitials) ? otherInitial : msg.SenderInitials)</div>
+                    }
+                    <div class="bubble @(isMine ? "bubble-mine" : "bubble-theirs")">
                         @if (msg.Type == MessageType.Image)
                         {
                             <a href="@(apiBase + "/" + msg.Content)" target="_blank">
                                 <img src="@(apiBase + "/" + msg.Content)" alt="image"
-                                     style="max-width:220px; max-height:200px; border-radius:6px; display:block;" />
+                                     style="max-width:220px; max-height:200px; border-radius:10px; display:block;" />
                             </a>
                         }
                         else if (msg.Type == MessageType.File)
                         {
                             <a href="@(apiBase + "/" + msg.Content)" target="_blank"
-                               class="@(isMine ? "text-white" : "text-primary")">
-                                &#128196; @(string.IsNullOrWhiteSpace(msg.OriginalFileName) ? msg.Content : msg.OriginalFileName)
+                               class="@(isMine ? "text-white" : "text-primary")" style="text-decoration:none;">
+                                📄 @(string.IsNullOrWhiteSpace(msg.OriginalFileName) ? msg.Content : msg.OriginalFileName)
                             </a>
                         }
                         else
                         {
-                            <div>@msg.Content</div>
+                            <span>@msg.Content</span>
                         }
-                        <small class="@(isMine ? "text-white-50" : "text-muted") d-block mt-1" style="font-size:0.75rem;">
+                        <div class="bubble-time">
                             @msg.Timestamp.ToLocalTime().ToString("HH:mm")
                             @if (isMine && msg.IsRead)
                             {
-                                <span>&#10003;&#10003;</span>
+                                <span style="margin-left:2px;">✓✓</span>
                             }
-                        </small>
+                        </div>
                     </div>
                 </div>
             }
         }
     </div>
 
+    <!-- Input -->
     @if (!isBlocked)
     {
-    <form asp-action="Send" asp-route-id="@chatId" method="post" class="d-flex gap-2 mb-2">
-        @Html.AntiForgeryToken()
-        <input type="text" name="content" class="form-control" placeholder="Type a message…" autocomplete="off" required />
-        <button type="submit" class="btn btn-primary">Send</button>
-    </form>
-
-    <div class="d-flex gap-2">
-        <form asp-action="SendAttachment" asp-route-id="@chatId" method="post"
-              enctype="multipart/form-data" class="d-inline">
-            @Html.AntiForgeryToken()
-            <label class="btn btn-outline-secondary mb-0 flex-shrink-0">
-                &#128247; Image
-                <input type="file" name="attachment" accept=".jpg,.jpeg,.png" hidden
-                       onchange="if(this.files && this.files.length > 0) this.form.submit()" />
-            </label>
-        </form>
-        <form asp-action="SendAttachment" asp-route-id="@chatId" method="post"
-              enctype="multipart/form-data" class="d-inline">
-            @Html.AntiForgeryToken()
-            <label class="btn btn-outline-secondary mb-0 flex-shrink-0">
-                &#128196; Document
-                <input type="file" name="attachment" accept=".pdf,.docx,.doc" hidden
-                       onchange="if(this.files && this.files.length > 0) this.form.submit()" />
-            </label>
-        </form>
-        <small class="text-muted align-self-center">Max 20 MB</small>
-    </div>
-    } @* end if (!isBlocked) *@
+        <div class="chat-input-area">
+            <form asp-action="Send" asp-route-id="@chatId" method="post" class="d-flex gap-2 align-items-center mb-2">
+                @Html.AntiForgeryToken()
+                <input type="text" name="content" class="form-control chat-input"
+                       placeholder="Type a message…" autocomplete="off" required />
+                <button type="submit" class="send-btn">&#10148;</button>
+            </form>
+            <div class="d-flex gap-2 align-items-center">
+                <form asp-action="SendAttachment" asp-route-id="@chatId" method="post"
+                      enctype="multipart/form-data" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <label class="btn btn-sm btn-outline-secondary rounded-pill mb-0" style="font-size:0.8rem;">
+                        🖼 Image
+                        <input type="file" name="attachment" accept=".jpg,.jpeg,.png" hidden
+                               onchange="if(this.files && this.files.length > 0) this.form.submit()" />
+                    </label>
+                </form>
+                <form asp-action="SendAttachment" asp-route-id="@chatId" method="post"
+                      enctype="multipart/form-data" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <label class="btn btn-sm btn-outline-secondary rounded-pill mb-0" style="font-size:0.8rem;">
+                        📄 Document
+                        <input type="file" name="attachment" accept=".pdf,.docx,.doc" hidden
+                               onchange="if(this.files && this.files.length > 0) this.form.submit()" />
+                    </label>
+                </form>
+                <small class="text-muted ms-auto" style="font-size:0.75rem;">Max 20 MB</small>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="chat-input-area text-center text-muted py-3">
+            <small>You cannot send messages in this conversation.</small>
+        </div>
+    }
 </div>
 
 <script>

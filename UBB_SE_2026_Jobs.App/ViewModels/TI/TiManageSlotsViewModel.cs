@@ -1,9 +1,9 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using UBB_SE_2026_Jobs.App.Configuration;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
-using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels.TI;
 
@@ -78,7 +78,7 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
     {
         try
         {
-            var slots = await slotsService.GetAllSlotsAsync();
+            var slots = await slotsService.GetAllSlotsAsync(session.UserId);
             var weekSlots = slots
                 .Where(s => s.StartTime >= WeekStart && s.StartTime < WeekStart.AddDays(7))
                 .ToList();

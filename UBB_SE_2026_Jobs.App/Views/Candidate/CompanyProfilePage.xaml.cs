@@ -72,14 +72,6 @@ public sealed partial class CompanyProfilePage : Page
         ErrorBorder.Visibility = Visibility.Visible;
     }
 
-    private void BackButton_Click(object sender, RoutedEventArgs eventArguments)
-    {
-        if (Frame.CanGoBack)
-        {
-            Frame.GoBack();
-        }
-    }
-
     private static string GetInitials(string name)
     {
         if (string.IsNullOrWhiteSpace(name))

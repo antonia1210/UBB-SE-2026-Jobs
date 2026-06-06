@@ -53,8 +53,8 @@ public class CvParsingServiceTests
     {
         Action unsupportedFileType = () => service.ParseCvFile("ignored", ".txt");
 
-        var ex = Assert.Throws<InvalidOperationException>(unsupportedFileType);
-        Assert.Contains("Unsupported file type", ex.Message);
+        var exception = Assert.Throws<InvalidOperationException>(unsupportedFileType);
+        Assert.Contains("Unsupported file type", exception.Message);
     }
 
     [Fact]
@@ -182,8 +182,8 @@ public class CvParsingServiceTests
     {
         Action formatNotJsonFailedToParseCv = () => service.ParseCvFile("{ not json", ".json");
 
-        var ex = Assert.Throws<InvalidOperationException>(formatNotJsonFailedToParseCv);
-        Assert.Contains("Failed to parse CV file", ex.Message);
+        var exception = Assert.Throws<InvalidOperationException>(formatNotJsonFailedToParseCv);
+        Assert.Contains("Failed to parse CV file", exception.Message);
     }
 
 

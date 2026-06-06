@@ -93,9 +93,6 @@ public class MatchServiceProxy : IMatchService
     public async Task AdvanceAsync(int matchId, CancellationToken cancellationToken = default)
         => await SendPatchWithoutBodyAsync($"api/matches/{matchId}/advance", cancellationToken);
 
-    public async Task RevertToAppliedAsync(int matchId, CancellationToken cancellationToken = default)
-        => await SendPatchWithoutBodyAsync($"api/matches/{matchId}/revert", cancellationToken);
-
     public bool IsDecisionTransitionAllowed(Match current, MatchStatus next)
         => MatchStatusTransitions.IsDecisionTransitionAllowed(current.Status, next);
 

@@ -1,8 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
 using UBB_SE_2026_Jobs.App.ViewModels.TI;
 using UBB_SE_2026_Jobs.App;
 
@@ -25,5 +25,4 @@ public sealed partial class TiSubmittedAnswersPage : Page
             await ViewModel.LoadAsync(p.TestId, p.AttemptId);
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e) => Frame.GoBack();
 }

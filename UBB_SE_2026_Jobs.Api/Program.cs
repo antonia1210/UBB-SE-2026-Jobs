@@ -91,8 +91,11 @@ builder.Services
 builder.Services.AddAuthorization();
 
 // Database Configuration
-builder.Services.AddDbContext<JobsDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("JobsDb")));
+if (!builder.Environment.IsEnvironment("IntegrationTests"))
+{
+    builder.Services.AddDbContext<JobsDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("JobsDb")));
+}
 
 // --- REPOSITORIES ---
 
@@ -212,10 +215,13 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Auto-migrate database
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("IntegrationTests"))
 {
-    var database = scope.ServiceProvider.GetRequiredService<JobsDbContext>();
-    database.Database.Migrate();
+    using (var scope = app.Services.CreateScope())
+    {
+        var database = scope.ServiceProvider.GetRequiredService<JobsDbContext>();
+        database.Database.Migrate();
+    }
 }
 
 // Configure the HTTP request pipeline.

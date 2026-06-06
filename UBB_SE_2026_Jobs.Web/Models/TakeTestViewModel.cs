@@ -1,7 +1,7 @@
 namespace UBB_SE_2026_Jobs.Web.Models
 {
     using System.Collections.Generic;
-    using UBB_SE_2026_Jobs.Web.Dtos;
+    using UBB_SE_2026_Jobs.Library.DTOs.Web;
 
     /// <summary>
     /// View model used to transport test data and capture candidate answers 

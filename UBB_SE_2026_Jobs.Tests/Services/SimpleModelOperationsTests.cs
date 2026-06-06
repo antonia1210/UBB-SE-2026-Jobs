@@ -33,9 +33,9 @@ public class SimpleModelOperationsTests
     // [InlineData(799, 4)]
     // [InlineData(800, 5)]
     // [InlineData(10_000, 5)]
-    public void CalculateLevelNumber_ExperiencePointsProvided_MapsXpToLevel(int xp, int expectedLevel)
+    public void CalculateLevelNumber_ExperiencePointsProvided_MapsXpToLevel(int experiencePoints, int expectedLevel)
     {
-        Assert.Equal(expectedLevel, SimpleModelOperations.CalculateLevelNumber(xp));
+        Assert.Equal(expectedLevel, SimpleModelOperations.CalculateLevelNumber(experiencePoints));
     }
 
     [Theory]

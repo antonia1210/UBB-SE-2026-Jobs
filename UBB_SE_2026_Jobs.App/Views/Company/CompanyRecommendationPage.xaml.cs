@@ -37,7 +37,6 @@ public sealed partial class CompanyRecommendationPage : Page
         if (eventArguments.PropertyName is nameof(CompanyRecommendationViewModel.IsLoading)
                            or nameof(CompanyRecommendationViewModel.HasApplicant)
                            or nameof(CompanyRecommendationViewModel.IsExpanded)
-                           or nameof(CompanyRecommendationViewModel.CanUndo)
                            or null)
         {
             DispatcherQueue.TryEnqueue(UpdateView);
@@ -53,12 +52,6 @@ public sealed partial class CompanyRecommendationPage : Page
     private async void OnSkipClick(object sender, RoutedEventArgs eventArguments)
     {
         await viewModel.SkipApplicantAsync();
-        UpdateView();
-    }
-
-    private async void OnUndoClick(object sender, RoutedEventArgs eventArguments)
-    {
-        await viewModel.UndoLastActionAsync();
         UpdateView();
     }
 
@@ -132,7 +125,6 @@ public sealed partial class CompanyRecommendationPage : Page
     {
         SkipButton.IsEnabled    = enabled;
         AdvanceButton.IsEnabled = enabled;
-        UndoButton.IsEnabled    = viewModel.CanUndo;
     }
 
     private void BindCardData()
@@ -156,8 +148,6 @@ public sealed partial class CompanyRecommendationPage : Page
             ? $"+{viewModel.RemainingSkillCount} more skills"
             : string.Empty;
         MoreSkillsText.Visibility = viewModel.RemainingSkillCount > 0 ? Visibility.Visible : Visibility.Collapsed;
-
-        UndoButton.IsEnabled = viewModel.CanUndo;
     }
 
     private void BindExpandedData()

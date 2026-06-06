@@ -18,8 +18,6 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Button Grid.Row="0" Content="Back" Click="ButtonBack_Click" Margin="0,0,0,16"/>
-
         <TextBlock x:Name="roleNameLabel" Grid.Row="1" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,8"/>
         <TextBlock x:Name="matchScoreLabel" Grid.Row="2" FontSize="16" Margin="0,0,0,16"/>
 
