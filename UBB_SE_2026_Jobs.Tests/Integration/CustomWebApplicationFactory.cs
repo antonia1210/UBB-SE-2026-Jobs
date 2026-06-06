@@ -9,7 +9,7 @@ using UBB_SE_2026_Jobs.Library.Persistence;
 
 namespace UBB_SE_2026_Jobs.Tests.Integration;
 
-public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+public class CustomWebApplicationFactory : WebApplicationFactory<PartialProgram>
 {
     private readonly string _inMemoryDatabaseName = $"IntegrationTestsDb_{Guid.NewGuid():N}";
 
