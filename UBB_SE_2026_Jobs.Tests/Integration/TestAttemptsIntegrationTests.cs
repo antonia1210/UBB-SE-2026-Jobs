@@ -61,12 +61,12 @@ public class TestAttemptsIntegrationTests : IClassFixture<CustomWebApplicationFa
         int seededId;
         using (var scope = _factory.Services.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<JobsDbContext>();
+            var jobsDatabaseContext = scope.ServiceProvider.GetRequiredService<JobsDbContext>();
 
 
             var test = new Test { Title = "IT Test", Category = "Integration", CreatedAt = System.DateTime.UtcNow };
-            db.Tests.Add(test);
-            await db.SaveChangesAsync();
+            jobsDatabaseContext.Tests.Add(test);
+            await jobsDatabaseContext.SaveChangesAsync();
 
             var attempt = new TestAttempt
             {
@@ -76,8 +76,8 @@ public class TestAttemptsIntegrationTests : IClassFixture<CustomWebApplicationFa
                 Status = "COMPLETED",
             };
 
-            db.TestAttempts.Add(attempt);
-            await db.SaveChangesAsync();
+            jobsDatabaseContext.TestAttempts.Add(attempt);
+            await jobsDatabaseContext.SaveChangesAsync();
             seededId = attempt.Id;
         }
 
@@ -87,9 +87,9 @@ public class TestAttemptsIntegrationTests : IClassFixture<CustomWebApplicationFa
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-        var dto = await getResponse.Content.ReadFromJsonAsync<TestAttemptDto>();
-        Assert.NotNull(dto);
-        Assert.Equal(seededId, dto!.Id);
-        Assert.Equal(777, dto.ExternalUserId);
+        var testAttempt = await getResponse.Content.ReadFromJsonAsync<TestAttemptDto>();
+        Assert.NotNull(testAttempt);
+        Assert.Equal(seededId, testAttempt!.Id);
+        Assert.Equal(777, testAttempt.ExternalUserId);
     }
 }
