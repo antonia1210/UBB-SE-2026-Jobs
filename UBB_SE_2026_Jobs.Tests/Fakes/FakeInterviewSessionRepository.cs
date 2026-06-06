@@ -22,7 +22,7 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
     public Task<List<InterviewSession>> GetScheduledSessionsAsync()
     {
         var results = _store
-            .Where(s => s.Status == InterviewStatus.Scheduled.ToString())
+            .Where(interviewSession => interviewSession.Status == InterviewStatus.Scheduled.ToString())
             .ToList();
         return Task.FromResult(results);
     }
@@ -30,19 +30,19 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
     public Task<List<InterviewSession>> GetSessionsByStatusAsync(string status)
     {
         var results = _store
-            .Where(s => s.Status == status)
+            .Where(interviewSession => interviewSession.Status == status)
             .ToList();
         return Task.FromResult(results);
     }
 
     public Task<InterviewSession?> GetInterviewSessionByIdAsync(int id)
     {
-        var session = _store.FirstOrDefault(s => s.Id == id);
+        var session = _store.FirstOrDefault(interviewSession => interviewSession.Id == id);
         return Task.FromResult(session);
     }
 
     public InterviewSession GetInterviewSessionById(int id) {
-        var session = _store.FirstOrDefault(s => s.Id == id);
+        var session = _store.FirstOrDefault(interviewSession => interviewSession.Id == id);
         return session;
     }
 
@@ -55,7 +55,7 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
 
     public Task UpdateInterviewSessionAsync(InterviewSession session)
     {
-        var index = _store.FindIndex(s => s.Id == session.Id);
+        var index = _store.FindIndex(interviewSession => interviewSession.Id == session.Id);
         if (index >= 0)
             _store[index] = session;
         return Task.CompletedTask;
@@ -63,6 +63,6 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
 
     public void Delete(InterviewSession session)
     {
-        _store.RemoveAll(s => s.Id == session.Id);
+        _store.RemoveAll(interviewSession => interviewSession.Id == session.Id);
     }
 }

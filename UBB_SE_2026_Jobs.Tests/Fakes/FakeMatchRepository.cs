@@ -42,7 +42,7 @@ public class FakeMatchRepository : IMatchRepository
 
     public Task<IReadOnlyList<Match>> GetByJobIdAsync(int jobId, CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<Match> filtered = matchesById.Values.Where(m => m.Job.JobId == jobId).OrderByDescending(m => m.Timestamp).ToList();
+        IReadOnlyList<Match> filtered = matchesById.Values.Where(match => match.Job.JobId == jobId).OrderByDescending(match => match.Timestamp).ToList();
         return Task.FromResult(filtered);
     }
 

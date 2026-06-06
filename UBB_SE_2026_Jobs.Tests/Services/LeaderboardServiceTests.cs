@@ -178,11 +178,11 @@ public class LeaderboardServiceTests
             });
 
         leaderboardRepository
-            .When(r => r.DeleteByTestIdAsync(testId))
+            .When(deleteTest => deleteTest.DeleteByTestIdAsync(testId))
             .Do(_ => callOrder.Add("delete"));
 
         leaderboardRepository
-            .When(r => r.SaveRangeAsync(Arg.Any<List<LeaderboardEntry>>()))
+            .When(saveLeaderboardEntry => saveLeaderboardEntry.SaveRangeAsync(Arg.Any<List<LeaderboardEntry>>()))
             .Do(_ => callOrder.Add("save"));
 
         await leaderboardService.RecalculateAsync(testId);
