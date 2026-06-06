@@ -1,23 +1,13 @@
 using System.Net.Http.Json;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.Library.DTOs;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
 
-namespace UBB_SE_2026_Jobs.App.Services.TI;
+namespace UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 
 public interface ITiAuthService
 {
-    /// <summary>
-    /// Retrieves the list of companies from the T&amp;I API, used to populate the
-    /// recruiter company picker. Returns an empty list if the call fails.
-    /// </summary>
     Task<List<TiCompanyDto>> GetCompaniesAsync();
-
     Task<AuthResponseDto?> LoginAsync(string email, string password);
-
-    /// <summary>
-    /// Registers a user with the T&amp;I API. For recruiters this creates the
-    /// Recruiter record tied to <paramref name="companyId"/>.
-    /// </summary>
     Task<bool> RegisterAsync(string name, string email, string password, string role, int? companyId = null);
 }
 

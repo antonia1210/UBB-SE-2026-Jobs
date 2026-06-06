@@ -1,7 +1,7 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using UBB_SE_2026_Jobs.App.Configuration;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
-using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels.TI;

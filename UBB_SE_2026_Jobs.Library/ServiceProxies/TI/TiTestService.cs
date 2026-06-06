@@ -1,7 +1,7 @@
 using System.Net.Http.Json;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
 
-namespace UBB_SE_2026_Jobs.App.Services.TI;
+namespace UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 
 public interface ITiTestService
 {
@@ -69,11 +69,6 @@ public class TiTestService : ITiTestService
 
     public async Task<float> SubmitAttemptAsync(int userId, int testId, IEnumerable<TiAnswerDto> answers)
     {
-        // Submit through the TI composite endpoint, which saves the answers, grades them,
-        // computes the score, marks the attempt COMPLETED (with score + completed time),
-        // persists it via a tracked entity, and recalculates the leaderboard — server-side.
-        // (Replaces a client-side reimplementation whose PUT api/testattempts/{id} silently
-        // no-opped, leaving every submitted attempt stuck IN_PROGRESS with no score.)
         var payload = new
         {
             UserId = userId,
@@ -98,6 +93,7 @@ public class TiTestService : ITiTestService
         if (!response.IsSuccessStatusCode) return new();
         return await response.Content.ReadFromJsonAsync<List<TiAnswerDto>>() ?? new();
     }
+
     public async Task<List<TiTestAttemptDto>> GetAttemptsByUserAsync(int userId)
     {
         var response = await http.GetAsync($"api/testattempts/byuser/{userId}");

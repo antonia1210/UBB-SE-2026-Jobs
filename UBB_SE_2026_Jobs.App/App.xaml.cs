@@ -1,7 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using UBB_SE_2026_Jobs.App.Configuration;
-using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 using UBB_SE_2026_Jobs.Library.ServiceProxies;
 using UBB_SE_2026_Jobs.Library.Repositories.Documents;
 using UBB_SE_2026_Jobs.Library.Services.Auth;

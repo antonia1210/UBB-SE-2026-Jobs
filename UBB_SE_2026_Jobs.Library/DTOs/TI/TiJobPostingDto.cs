@@ -1,4 +1,4 @@
-namespace UBB_SE_2026_Jobs.App.Dtos.TI;
+namespace UBB_SE_2026_Jobs.Library.DTOs.TI;
 
 public class TiJobPostingDto
 {
@@ -20,9 +20,5 @@ public class TiJobPostingDto
     public DateTime? Deadline { get; set; }
     public List<TiJobSkillDto> JobSkills { get; set; } = new();
 
-    /// <summary>
-    /// True when the current session is in Company mode. Drives visibility of the recruiter
-    /// actions (Edit / Delete / etc.) on each job card. Set by <see cref="ViewModels.TI.TiJobsViewModel"/>.
-    /// </summary>
     public bool IsCompanyMode { get; set; }
 }

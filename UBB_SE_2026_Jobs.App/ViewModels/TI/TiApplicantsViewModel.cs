@@ -1,7 +1,7 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
-using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels.TI;
 

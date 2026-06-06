@@ -1,9 +1,9 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
 
-namespace UBB_SE_2026_Jobs.App.Services.TI;
+namespace UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 
 public interface ITiApplicantService
 {
@@ -54,7 +54,6 @@ public class TiApplicantService : ITiApplicantService
         return matches.Any(m => m.UserId == userId);
     }
 
-    // Local deserialization types for the /api/matches response
     private sealed class MatchApiResponse
     {
         public int MatchId { get; set; }
