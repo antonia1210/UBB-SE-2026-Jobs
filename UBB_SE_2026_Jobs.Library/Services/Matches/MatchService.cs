@@ -172,17 +172,6 @@ public class MatchService : IMatchService
         await matchRepository.UpdateAsync(match, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task RevertToAppliedAsync(int matchId, CancellationToken cancellationToken = default)
-    {
-        var match = await matchRepository.GetByIdAsync(matchId, cancellationToken).ConfigureAwait(false)
-            ?? throw new KeyNotFoundException($"Match with id {matchId} was not found.");
-
-        match.Status = MatchStatus.Applied;
-        match.FeedbackMessage = string.Empty;
-        match.Timestamp = DateTime.UtcNow;
-        await matchRepository.UpdateAsync(match, cancellationToken).ConfigureAwait(false);
-    }
-
     public bool IsDecisionTransitionAllowed(Match current, MatchStatus next)
     {
         return MatchStatusTransitions.IsDecisionTransitionAllowed(current.Status, next);

@@ -243,7 +243,7 @@ public class TestServiceTests
         const decimal score = 80m;
         attemptRepository.Seed(new TestAttempt { Id = attemptId, ExternalUserId = userId, TestId = testId });
 
-        gradingService.When(g => g.CalculateFinalScore(Arg.Any<TestAttempt>()))
+        gradingService.When(gradingService => gradingService.CalculateFinalScore(Arg.Any<TestAttempt>()))
             .Do(call => ((TestAttempt)call[0]).Score = score);
 
         var result = await service.SubmitAttemptAsync(userId, testId, new List<AnswerDto>());

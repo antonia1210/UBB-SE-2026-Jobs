@@ -10,7 +10,6 @@
 
     <NavigationView x:Name="navView"
                     SelectionChanged="NavView_SelectionChanged"
-                    BackRequested="NavView_BackRequested"
                     PaneOpened="NavView_PaneOpened"
                     PaneClosed="NavView_PaneClosed"
                     IsBackButtonVisible="Collapsed"

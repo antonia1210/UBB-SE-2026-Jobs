@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Services.Auth;
-using UBB_SE_2026_Jobs.Web.Dtos;
+using UBB_SE_2026_Jobs.Library.DTOs.Web;
 using UBB_SE_2026_Jobs.Web.Infrastructure;
 using UBB_SE_2026_Jobs.Web.Models;
-using UBB_SE_2026_Jobs.Web.Services;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.Web;
 
 namespace UBB_SE_2026_Jobs.Web.Controllers;
 
@@ -140,7 +140,7 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Login));
     }
 
-    private async Task SignInAsync(AuthResponse info, AuthResponseModel? tiInfo)
+    private async Task SignInAsync(AuthResponse info, AuthResponseDto? tiInfo)
     {
         var claims = new List<Claim>
         {

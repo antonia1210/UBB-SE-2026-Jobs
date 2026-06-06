@@ -26,11 +26,6 @@ public sealed partial class SkillGapPage : Page
     private async void OnLoaded(object sender, RoutedEventArgs eventArguments)
         => await viewModel.LoadDataAsync();
 
-    private void BackToStatus_Click(object sender, RoutedEventArgs eventArguments)
-    {
-        if (Frame.CanGoBack) Frame.GoBack();
-    }
-
     private void RefreshButton_Click(object sender, RoutedEventArgs eventArguments)
         => viewModel.Refresh();
 }

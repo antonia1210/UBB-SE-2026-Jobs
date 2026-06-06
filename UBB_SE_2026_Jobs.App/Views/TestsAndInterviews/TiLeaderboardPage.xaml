@@ -19,13 +19,7 @@
 
         <!-- Header -->
         <Grid Grid.Row="0" Margin="0,0,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Content="← Back to Tests" Click="Back_Click" Margin="0,0,16,0"
-                    Background="Transparent" BorderThickness="0"/>
-            <TextBlock Grid.Column="1" Text="Leaderboard" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock Text="Leaderboard" FontSize="24" FontWeight="Bold" VerticalAlignment="Center"/>
         </Grid>
 
         <!-- User rank alert -->

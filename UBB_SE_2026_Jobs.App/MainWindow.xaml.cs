@@ -79,8 +79,7 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        contentFrame.Navigated += ContentFrame_Navigated;
-        var session = App.Services.GetRequiredService<SessionContext>();
+var session = App.Services.GetRequiredService<SessionContext>();
         if (session.IsAuthenticated)
         {
             ShowAuthenticatedShell();
@@ -101,8 +100,6 @@ public sealed partial class MainWindow : Window
         }
 
         navView.IsPaneVisible = true;
-        navView.IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
-        navView.IsBackEnabled = false;
         accountSummary.Visibility = navView.IsPaneOpen ? Visibility.Visible : Visibility.Collapsed;
 
         UpdateModeVisibility();
@@ -115,7 +112,6 @@ public sealed partial class MainWindow : Window
     public void ShowLogin()
     {
         navView.IsPaneVisible = false;
-        navView.IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
         navView.SelectedItem = null;
         accountSummary.Visibility = Visibility.Collapsed;
         contentFrame.BackStack.Clear();
@@ -125,7 +121,6 @@ public sealed partial class MainWindow : Window
     public void ShowRegister()
     {
         navView.IsPaneVisible = false;
-        navView.IsBackButtonVisible = NavigationViewBackButtonVisible.Collapsed;
         navView.SelectedItem = null;
         accountSummary.Visibility = Visibility.Collapsed;
         contentFrame.BackStack.Clear();
@@ -147,18 +142,7 @@ public sealed partial class MainWindow : Window
         }
     }
 
-    private void NavView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs eventArguments)
-    {
-        if (contentFrame.CanGoBack)
-            contentFrame.GoBack();
-    }
-
-    private void ContentFrame_Navigated(object sender, NavigationEventArgs eventArguments)
-    {
-        navView.IsBackEnabled = false;
-    }
-
-    private void NavView_PaneOpened(NavigationView sender, object args)
+private void NavView_PaneOpened(NavigationView sender, object args)
     {
         accountSummary.Visibility = App.Services.GetRequiredService<SessionContext>().IsAuthenticated
             ? Visibility.Visible

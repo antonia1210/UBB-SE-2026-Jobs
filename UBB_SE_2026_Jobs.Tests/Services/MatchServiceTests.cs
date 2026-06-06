@@ -66,8 +66,8 @@ public class MatchServiceTests
 
         Func<Task> act = () => service.CreatePendingApplicationAsync(userId, jobId);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Contains("already exists", ex.Message);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Contains("already exists", exception.Message);
     }
 
     [Fact]
@@ -102,8 +102,8 @@ public class MatchServiceTests
 
         Func<Task> act = () => service.SubmitDecisionAsync(1, MatchStatus.Rejected, string.Empty);
 
-        var ex = await Assert.ThrowsAsync<ArgumentException>(act);
-        Assert.Contains("Feedback is required", ex.Message);
+        var exception = await Assert.ThrowsAsync<ArgumentException>(act);
+        Assert.Contains("Feedback is required", exception.Message);
     }
 
     [Fact]
@@ -153,22 +153,6 @@ public class MatchServiceTests
         Func<Task> act = () => service.AdvanceAsync(1);
 
         await Assert.ThrowsAsync<InvalidOperationException>(act);
-    }
-
-    [Fact]
-    public async Task RevertToAppliedAsync_Called_ResetsStatusAndFeedback()
-    {
-        matchRepository.Seed(new MatchBuilder()
-            .WithId(1)
-            .WithStatus(MatchStatus.Rejected)
-            .WithFeedback("Sorry")
-            .Build());
-
-        await service.RevertToAppliedAsync(1);
-
-        var match = await service.GetByIdAsync(1);
-        Assert.Equal(MatchStatus.Applied, match!.Status);
-        Assert.Empty(match.FeedbackMessage);
     }
 
     [Fact]

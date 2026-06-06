@@ -5,8 +5,8 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using UBB_SE_2026_Jobs.Web.Clients;
-    using UBB_SE_2026_Jobs.Web.Dtos;
+    using UBB_SE_2026_Jobs.Library.ServiceProxies.Web;
+    using UBB_SE_2026_Jobs.Library.DTOs.Web;
     using UBB_SE_2026_Jobs.Web.Models;
 
     /// <summary>

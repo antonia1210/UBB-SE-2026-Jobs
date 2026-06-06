@@ -1,10 +1,10 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.UI.Xaml;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
-using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels.TI;
 
