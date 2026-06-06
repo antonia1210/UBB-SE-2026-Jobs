@@ -39,18 +39,32 @@ public class CompatibilityService : ICompatibilityService
 
     public async Task<RoleResult> CalculateForRoleAsync(int userId, JobRole role, CancellationToken cancellationToken = default)
     {
-        var userSkills = await GetUserSkillsAsync(userId, cancellationToken).ConfigureAwait(false);
-        var groups = await skillGroupRepository.GetByJobRoleAsync(role, cancellationToken).ConfigureAwait(false);
+        var allGroups = await skillGroupRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        var userSkills = await GetUserSkillsAsync(userId, allGroups, cancellationToken).ConfigureAwait(false);
+        var roleGroups = allGroups.Where(g => g.JobRole == role).ToList();
+        return ComputeRole(role, userSkills, roleGroups);
+    }
 
-        int totalWeight = 0;
-        foreach (var group in groups)
-            totalWeight += group.Weight;
+    public async Task<IReadOnlyList<RoleResult>> CalculateAllAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        // Load groups and user skills once, then compute each role in memory.
+        var allGroups = await skillGroupRepository.GetAllAsync(cancellationToken).ConfigureAwait(false);
+        var userSkills = await GetUserSkillsAsync(userId, allGroups, cancellationToken).ConfigureAwait(false);
 
-        var groupScores = new List<double>();
-        foreach (var group in groups)
-            groupScores.Add(ComputeGroupScore(group, userSkills));
+        return Enum.GetValues<JobRole>()
+            .Select(role => ComputeRole(role, userSkills, allGroups.Where(g => g.JobRole == role).ToList()))
+            .ToList();
+    }
 
+    public IReadOnlyList<Suggestion> GetSuggestions(RoleResult result) => result.Suggestions;
+
+    // ── Core role computation ────────────────────────────────────────────────
+
+    private static RoleResult ComputeRole(JobRole role, List<CompatibilitySkill> userSkills, IReadOnlyList<SkillGroup> groups)
+    {
+        var groupScores = groups.Select(g => ComputeGroupScore(g, userSkills)).ToList();
         double matchScore = ComputeMatchScore(groups, groupScores);
+        int totalWeight = groups.Sum(g => g.Weight);
 
         var result = new RoleResult { JobRole = role };
 
@@ -68,23 +82,18 @@ public class CompatibilityService : ICompatibilityService
         return result;
     }
 
-    public async Task<IReadOnlyList<RoleResult>> CalculateAllAsync(int userId, CancellationToken cancellationToken = default)
-    {
-        var results = new List<RoleResult>();
-        foreach (JobRole role in Enum.GetValues(typeof(JobRole)))
-            results.Add(await CalculateForRoleAsync(userId, role, cancellationToken).ConfigureAwait(false));
-        return results;
-    }
+    // ── User skill aggregation ───────────────────────────────────────────────
 
-    public IReadOnlyList<Suggestion> GetSuggestions(RoleResult result) => result.Suggestions;
-
-    private async Task<List<CompatibilitySkill>> GetUserSkillsAsync(int userId, CancellationToken cancellationToken)
+    private async Task<List<CompatibilitySkill>> GetUserSkillsAsync(
+        int userId,
+        IReadOnlyList<SkillGroup> allGroups,
+        CancellationToken cancellationToken)
     {
         var profileSkills = await userSkillRepository.GetByUserIdAsync(userId, cancellationToken).ConfigureAwait(false);
         var user = await userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false);
         var cvSkills = ExtractSkillsFromParsedCv(user?.ParsedCv ?? string.Empty);
         var skills = MergeProfileAndCvSkills(profileSkills, cvSkills);
-        await ApplyBestTestAttemptScoresAsync(userId, skills, cancellationToken).ConfigureAwait(false);
+        await ApplyBestTestAttemptScoresAsync(userId, skills, allGroups, cancellationToken).ConfigureAwait(false);
         return skills;
     }
 
@@ -102,12 +111,14 @@ public class CompatibilityService : ICompatibilityService
             return new List<string>();
 
         return skillsLine.Split(SkillDelimiter)
-            .Select(skillToAdjust => skillToAdjust.Trim())
-            .Where(skillToAdjust => !string.IsNullOrWhiteSpace(skillToAdjust))
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrWhiteSpace(s))
             .ToList();
     }
 
-    private static List<CompatibilitySkill> MergeProfileAndCvSkills(IReadOnlyList<UserSkill> profileSkills, List<string> cvSkills)
+    private static List<CompatibilitySkill> MergeProfileAndCvSkills(
+        IReadOnlyList<UserSkill> profileSkills,
+        List<string> cvSkills)
     {
         var allSkills = new List<CompatibilitySkill>();
 
@@ -135,48 +146,41 @@ public class CompatibilityService : ICompatibilityService
         return allSkills;
     }
 
-    private async Task ApplyBestTestAttemptScoresAsync(int userId, List<CompatibilitySkill> skills, CancellationToken cancellationToken)
+    // Each seeded test maps 1-to-1 to a skill group (Test.Id == SkillGroup.SkillGroupId).
+    // A test therefore represents competency across the *entire* group, not just the primary
+    // skill stored in Test.SkillId. Apply the best attempt score to every skill in the group
+    // so the group score reflects the user's actual test performance correctly.
+    private async Task ApplyBestTestAttemptScoresAsync(
+        int userId,
+        List<CompatibilitySkill> skills,
+        IReadOnlyList<SkillGroup> allGroups,
+        CancellationToken cancellationToken)
     {
         var completedAttempts = await testAttemptRepository
             .FindCompletedByUserIdAsync(userId, cancellationToken)
             .ConfigureAwait(false);
 
-        var bestAttempts = completedAttempts
-            .Select(attempt => new
-            {
-                Attempt = attempt,
-                Skill = attempt.Test?.Skill,
-                Score = GetAttemptPercentageScore(attempt),
-            })
-            .Where(attemptInfo => attemptInfo.Skill is not null && attemptInfo.Score is not null)
-            .GroupBy(attemptInfo => attemptInfo.Skill!.SkillId)
-            .Select(group => group.OrderByDescending(attemptInfo => attemptInfo.Score).First());
+        // Best percentage score per test
+        var bestPerTest = completedAttempts
+            .Select(a => new { Attempt = a, Score = GetAttemptPercentageScore(a) })
+            .Where(x => x.Score.HasValue && x.Score.Value > TestScoreThreshold)
+            .GroupBy(x => x.Attempt.TestId)
+            .Select(g => g.OrderByDescending(x => x.Score).First())
+            .ToList();
 
-        foreach (var bestAttempt in bestAttempts)
+        // TestId == SkillGroupId by seeding convention
+        var groupByTestId = allGroups.ToDictionary(g => g.SkillGroupId);
+
+        foreach (var best in bestPerTest)
         {
-            var skill = bestAttempt.Skill!;
-            var score = NormalizeScore(bestAttempt.Score!.Value);
-            var existing = skills.FirstOrDefault(profileSkill =>
-                profileSkill.SkillId == skill.SkillId ||
-                string.Equals(profileSkill.Name, skill.Name, StringComparison.OrdinalIgnoreCase));
+            if (!groupByTestId.TryGetValue(best.Attempt.TestId, out var group)) continue;
 
-            var source = $"Best test attempt: {bestAttempt.Attempt.Test?.Title ?? skill.Name}";
-            if (existing is null)
-            {
-                // Only add test score if it's greater than the threshold
-                if (score > TestScoreThreshold)
-                {
-                    skills.Add(new CompatibilitySkill(skill.SkillId, skill.Name, score, source));
-                }
-                continue;
-            }
+            var score = NormalizeScore(best.Score!.Value);
+            var source = $"Best test attempt: {best.Attempt.Test?.Title ?? group.GroupName}";
 
-            // Only update score if test score is greater than the threshold
-            if (score > TestScoreThreshold)
+            foreach (var skill in group.Skills)
             {
-                existing.SkillId ??= skill.SkillId;
-                existing.Score = score;
-                existing.Source = source;
+                AddOrImproveSkill(skills, new CompatibilitySkill(skill.SkillId, skill.Name, score, source));
             }
         }
     }
@@ -186,35 +190,28 @@ public class CompatibilityService : ICompatibilityService
         if (attempt.PercentageScore.HasValue)
             return (double)attempt.PercentageScore.Value;
 
-        var maximumPossibleScore = attempt.Test?.Questions.Sum(question => question.QuestionScore) ?? 0;
+        var maximumPossibleScore = attempt.Test?.Questions.Sum(q => q.QuestionScore) ?? 0;
         if (!attempt.Score.HasValue || maximumPossibleScore <= 0)
             return null;
 
         return (double)attempt.Score.Value / maximumPossibleScore * ScoreNormalizationFactor;
     }
 
+    // ── Scoring algorithms ───────────────────────────────────────────────────
+
     private static double ComputeGroupScore(SkillGroup group, List<CompatibilitySkill> userSkills)
     {
         if (group.Skills.Count == 0)
             return 0;
 
-        int totalSkillsInGroup = group.Skills.Count;
         double totalContribution = 0;
+        int totalSkillsInGroup = group.Skills.Count;
 
-        // Each skill can contribute: (1 / totalSkillsInGroup) * (skillScore / 100)
         foreach (var skill in group.Skills)
         {
-            var match = userSkills.FirstOrDefault(userSkill => SkillMatches(userSkill, skill));
-            if (match is null)
-            {
-                // Skill not found, contributes 0
-                continue;
-            }
-
-            // Each skill contributes: (skillScore / 100) / numberOfSkillsInGroup
-            // Example: 20% baseline / 3 skills = 6.67% per skill
-            double skillContribution = (match.Score / ScoreNormalizationFactor) / totalSkillsInGroup;
-            totalContribution += skillContribution;
+            var match = userSkills.FirstOrDefault(u => SkillMatches(u, skill));
+            if (match is null) continue;
+            totalContribution += (match.Score / ScoreNormalizationFactor) / totalSkillsInGroup;
         }
 
         return totalContribution;
@@ -222,64 +219,72 @@ public class CompatibilityService : ICompatibilityService
 
     private static double ComputeMatchScore(IReadOnlyList<SkillGroup> groups, List<double> groupScores)
     {
-        int totalWeight = groups.Sum(groupWithWeight => groupWithWeight.Weight);
+        int totalWeight = groups.Sum(g => g.Weight);
         if (totalWeight == 0) return InvalidScore;
-        double weighted = groups.Select((groupWithWeight, indexOfGroup) => groupWithWeight.Weight * groupScores[indexOfGroup]).Sum();
+        double weighted = groups.Select((g, i) => g.Weight * groupScores[i]).Sum();
         return weighted * ScoreNormalizationFactor / totalWeight;
     }
 
-    private static List<Suggestion> IdentifyGaps(IReadOnlyList<SkillGroup> skillGroups, List<CompatibilitySkill> userSkills, int totalWeight)
+    private static List<Suggestion> IdentifyGaps(
+        IReadOnlyList<SkillGroup> skillGroups,
+        List<CompatibilitySkill> userSkills,
+        int totalWeight)
     {
         var suggestions = new List<Suggestion>();
+
         foreach (var group in skillGroups)
         {
             double groupScore = ComputeGroupScore(group, userSkills);
             if (groupScore > HighSkillCoverageThreshold) continue;
 
-            var skill = group.Skills.FirstOrDefault(skillToAdjust => !userSkills.Any(userSkillWithPossibleSkill => SkillMatches(userSkillWithPossibleSkill, skillToAdjust)));
-            if (skill is null) continue;
+            var missingSkill = group.Skills.FirstOrDefault(
+                s => !userSkills.Any(u => SkillMatches(u, s)));
+            if (missingSkill is null) continue;
 
             suggestions.Add(new Suggestion
             {
-                SkillName = skill.Name,
+                SkillName = missingSkill.Name,
                 GroupName = group.GroupName,
                 GainScore = ScoreNormalizationFactor * group.Weight * (TargetGroupScore - groupScore) / totalWeight,
             });
         }
 
-        return suggestions.OrderByDescending(suggestionsCheckScore => suggestionsCheckScore.GainScore).Take(MaxSuggestions).ToList();
+        return suggestions.OrderByDescending(s => s.GainScore).Take(MaxSuggestions).ToList();
     }
 
-    private static List<CompatibilitySkillScore> BuildSkillScores(IReadOnlyList<SkillGroup> skillGroups, List<CompatibilitySkill> userSkills)
+    private static List<CompatibilitySkillScore> BuildSkillScores(
+        IReadOnlyList<SkillGroup> skillGroups,
+        List<CompatibilitySkill> userSkills)
     {
-        var roleSkills = skillGroups
-            .SelectMany(group => group.Skills)
-            .ToList();
+        var roleSkillIds = skillGroups
+            .SelectMany(g => g.Skills)
+            .Select(s => s.SkillId)
+            .ToHashSet();
 
         return userSkills
-            .Where(userSkill => roleSkills.Any(roleSkill => SkillMatches(userSkill, roleSkill)))
-            .OrderByDescending(userSkill => userSkill.Score)
-            .ThenBy(userSkill => userSkill.Name)
-            .Select(userSkill => new CompatibilitySkillScore
+            .Where(u => skillGroups.Any(g => g.Skills.Any(s => SkillMatches(u, s))))
+            .OrderByDescending(u => u.Score)
+            .ThenBy(u => u.Name)
+            .Select(u => new CompatibilitySkillScore
             {
-                SkillName = userSkill.Name,
-                Score = userSkill.Score,
-                Source = userSkill.Source,
+                SkillName = u.Name,
+                Score = u.Score,
+                Source = u.Source,
             })
             .ToList();
     }
 
-    private static bool SkillMatches(CompatibilitySkill userSkill, Skill skill)
-    {
-        return userSkill.SkillId == skill.SkillId ||
-               string.Equals(userSkill.Name, skill.Name, StringComparison.OrdinalIgnoreCase);
-    }
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private static bool SkillMatches(CompatibilitySkill userSkill, Skill skill) =>
+        userSkill.SkillId == skill.SkillId ||
+        string.Equals(userSkill.Name, skill.Name, StringComparison.OrdinalIgnoreCase);
 
     private static void AddOrImproveSkill(List<CompatibilitySkill> skills, CompatibilitySkill candidate)
     {
-        var existing = skills.FirstOrDefault(skill =>
-            string.Equals(skill.Name, candidate.Name, StringComparison.OrdinalIgnoreCase) ||
-            (skill.SkillId is not null && skill.SkillId == candidate.SkillId));
+        var existing = skills.FirstOrDefault(s =>
+            string.Equals(s.Name, candidate.Name, StringComparison.OrdinalIgnoreCase) ||
+            (s.SkillId is not null && s.SkillId == candidate.SkillId));
 
         if (existing is null)
         {

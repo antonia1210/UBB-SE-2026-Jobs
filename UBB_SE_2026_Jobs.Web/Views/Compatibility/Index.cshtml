@@ -1,43 +1,82 @@
 @model IReadOnlyList<UBB_SE_2026_Jobs.Library.DTOs.RoleResult>
 @{
-    ViewData["Title"] = "Compatibility Overview";
+    ViewData["Title"] = "Role Compatibility";
+
+    string RoleName(UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole role) => role switch
+    {
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.FrontendDeveloper => "Frontend Developer",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.BackendDeveloper => "Backend Developer",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.UiUxDesigner => "UI/UX Designer",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.DevOpsEngineer => "DevOps Engineer",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.ProjectManager => "Project Manager",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.DataAnalyst => "Data Analyst",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.CybersecuritySpecialist => "Cybersecurity Specialist",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.AiMlEngineer => "AI / ML Engineer",
+        _ => role.ToString()
+    };
+
+    string ScoreColor(double score) =>
+        score >= 70 ? "text-success" : score >= 40 ? "text-warning" : "text-danger";
+
+    string BarColor(double score) =>
+        score >= 70 ? "bg-success" : score >= 40 ? "bg-warning" : "bg-danger";
 }
 
-<h2 class="mb-4">Compatibility Overview</h2>
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h2 class="mb-0">Role Compatibility</h2>
+        <p class="text-muted mb-0 mt-1">Your skill profile scored against 8 career paths. Scores rise as you complete tests and add verified skills.</p>
+    </div>
+</div>
 
 @if (!Model.Any())
 {
-    <p class="text-muted">No compatibility data available. Make sure your profile and skills are set up.</p>
+    <div class="alert alert-secondary">
+        No compatibility data available. Make sure your profile and skills are set up.
+    </div>
 }
 else
 {
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        @foreach (var result in Model.OrderByDescending(resultToOrder => resultToOrder.MatchScore))
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3">
+        @foreach (var result in Model.OrderByDescending(r => r.MatchScore))
         {
             <div class="col">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title">@result.JobRole</h5>
-                        <p class="card-text">
-                            <span class="fw-semibold">Match Score:</span>
-                            @if (result.MatchScore < 0)
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title fw-semibold mb-3">@RoleName(result.JobRole)</h6>
+
+                        @if (result.MatchScore < 0)
+                        {
+                            <p class="text-muted small flex-grow-1">No skill groups configured for this role.</p>
+                        }
+                        else
+                        {
+                            <div class="mb-2 d-flex align-items-baseline gap-2">
+                                <span class="fs-4 fw-bold @ScoreColor(result.MatchScore)">
+                                    @result.MatchScore.ToString("F0")%
+                                </span>
+                                <span class="text-muted small">match</span>
+                            </div>
+                            <div class="progress mb-3" style="height: 6px;">
+                                <div class="progress-bar @BarColor(result.MatchScore)"
+                                     role="progressbar"
+                                     style="width:@(Math.Max(0, Math.Min(100, result.MatchScore)).ToString(System.Globalization.CultureInfo.InvariantCulture))%">
+                                </div>
+                            </div>
+                            @if (result.SkillScores.Any())
                             {
-                                <span class="text-muted">N/A</span>
+                                <p class="text-muted small mb-3">@result.SkillScores.Count skill(s) matched</p>
                             }
                             else
                             {
-                                <span class="@(result.MatchScore >= 70 ? "text-success" : result.MatchScore >= 40 ? "text-warning" : "text-danger")">
-                                    @result.MatchScore.ToString("F1")%
-                                </span>
+                                <p class="text-muted small mb-3">No matching skills yet — take a test to get started.</p>
                             }
-                        </p>
-                        <div class="progress mb-3" style="height: 8px;">
-                            <div class="progress-bar @(result.MatchScore >= 70 ? "bg-success" : result.MatchScore >= 40 ? "bg-warning" : "bg-danger")"
-                                 role="progressbar"
-                                 style="width:@(Math.Max(0, Math.Min(100, result.MatchScore)).ToString(System.Globalization.CultureInfo.InvariantCulture))%">
-                            </div>
-                        </div>
-                        <a asp-action="Detail" asp-route-role="@result.JobRole" class="btn btn-outline-primary btn-sm">View Details</a>
+                        }
+
+                        <a asp-action="Detail" asp-route-role="@result.JobRole"
+                           class="btn btn-outline-primary btn-sm mt-auto align-self-start">
+                            View details &rarr;
+                        </a>
                     </div>
                 </div>
             </div>

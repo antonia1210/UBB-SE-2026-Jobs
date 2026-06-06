@@ -1,82 +1,126 @@
 @model UBB_SE_2026_Jobs.Library.DTOs.RoleResult
 @{
-    ViewData["Title"] = $"Compatibility — {Model.JobRole}";
+    string roleName = Model.JobRole switch
+    {
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.FrontendDeveloper => "Frontend Developer",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.BackendDeveloper => "Backend Developer",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.UiUxDesigner => "UI/UX Designer",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.DevOpsEngineer => "DevOps Engineer",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.ProjectManager => "Project Manager",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.DataAnalyst => "Data Analyst",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.CybersecuritySpecialist => "Cybersecurity Specialist",
+        UBB_SE_2026_Jobs.Library.Domain.Enums.JobRole.AiMlEngineer => "AI / ML Engineer",
+        _ => Model.JobRole.ToString()
+    };
+
+    ViewData["Title"] = $"Compatibility — {roleName}";
+
+    string scoreColor = Model.MatchScore >= 70 ? "text-success" : Model.MatchScore >= 40 ? "text-warning" : "text-danger";
+    string barColor   = Model.MatchScore >= 70 ? "bg-success"   : Model.MatchScore >= 40 ? "bg-warning"   : "bg-danger";
 }
 
-<a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-3">&larr; Back to Overview</a>
+<a asp-action="Index" class="btn btn-outline-secondary btn-sm mb-4">&larr; All Roles</a>
 
-<h2 class="mb-1">@Model.JobRole</h2>
-
-<div class="mb-4">
-    @if (Model.MatchScore < 0)
-    {
-        <p class="text-muted">No skill groups defined for this role yet.</p>
-    }
-    else
-    {
-        <h4>
-            Match Score:
-            <span class="@(Model.MatchScore >= 70 ? "text-success" : Model.MatchScore >= 40 ? "text-warning" : "text-danger")">
-                @Model.MatchScore.ToString("F1")%
-            </span>
-        </h4>
-        <div class="progress mb-3" style="height: 12px; max-width: 400px;">
-            <div class="progress-bar @(Model.MatchScore >= 70 ? "bg-success" : Model.MatchScore >= 40 ? "bg-warning" : "bg-danger")"
-                 role="progressbar"
-                 style="width:@(Math.Max(0, Math.Min(100, Model.MatchScore)).ToString(System.Globalization.CultureInfo.InvariantCulture))%">
+<div class="d-flex align-items-start gap-4 mb-4 flex-wrap">
+    <div>
+        <h2 class="mb-1">@roleName</h2>
+        @if (Model.MatchScore < 0)
+        {
+            <p class="text-muted">No skill groups are configured for this role yet.</p>
+        }
+        else
+        {
+            <div class="d-flex align-items-baseline gap-2 mb-2">
+                <span class="display-6 fw-bold @scoreColor">@Model.MatchScore.ToString("F1")%</span>
+                <span class="text-muted">overall match</span>
             </div>
-        </div>
-    }
+            <div class="progress" style="height: 10px; width: 300px; max-width: 100%;">
+                <div class="progress-bar @barColor"
+                     role="progressbar"
+                     style="width:@(Math.Max(0, Math.Min(100, Model.MatchScore)).ToString(System.Globalization.CultureInfo.InvariantCulture))%">
+                </div>
+            </div>
+            <p class="text-muted small mt-2">
+                Score is computed from your verified profile skills, CV skills, and test results.
+                Complete skill-group tests to increase your score significantly.
+            </p>
+        }
+    </div>
 </div>
 
 @if (Model.SkillScores.Any())
 {
-    <h4 class="mb-3">Skill Evidence Used</h4>
-    <table class="table table-bordered" style="max-width: 700px;">
-        <thead class="table-light">
-            <tr>
-                <th>Skill</th>
-                <th>Score</th>
-                <th>Source</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var skillScore in Model.SkillScores)
-            {
+    <h5 class="mb-3">Skills contributing to your score</h5>
+    <div class="table-responsive mb-4" style="max-width: 700px;">
+        <table class="table table-sm table-bordered align-middle">
+            <thead class="table-light">
                 <tr>
-                    <td>@skillScore.SkillName</td>
-                    <td>@skillScore.Score.ToString("F1")%</td>
-                    <td>@skillScore.Source</td>
+                    <th>Skill</th>
+                    <th style="width: 180px;">Score</th>
+                    <th>Source</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.SkillScores)
+                {
+                    string rowBar = s.Score >= 70 ? "bg-success" : s.Score >= 40 ? "bg-warning" : "bg-danger";
+                    <tr>
+                        <td class="fw-semibold">@s.SkillName</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 6px;">
+                                    <div class="progress-bar @rowBar"
+                                         role="progressbar"
+                                         style="width:@(Math.Max(0, Math.Min(100, s.Score)).ToString(System.Globalization.CultureInfo.InvariantCulture))%">
+                                    </div>
+                                </div>
+                                <span class="text-nowrap small">@s.Score.ToString("F0")%</span>
+                            </div>
+                        </td>
+                        <td class="text-muted small">@s.Source</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else if (Model.MatchScore >= 0)
+{
+    <div class="alert alert-info mb-4" style="max-width: 600px;">
+        <strong>No skills matched yet.</strong>
+        Take a test or add skills to your profile to start building your compatibility score for this role.
+    </div>
 }
 
 @if (Model.Suggestions.Any())
 {
-    <h4 class="mb-3">Suggested Skills to Improve Your Score</h4>
-    <table class="table table-bordered" style="max-width: 600px;">
-        <thead class="table-light">
-            <tr>
-                <th>Skill</th>
-                <th>Skill Group</th>
-                <th>Potential Gain</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var suggestion in Model.Suggestions)
-            {
+    <h5 class="mb-2">Top skills to improve your score</h5>
+    <p class="text-muted small mb-3">Completing the corresponding tests for these skills will have the biggest impact on your match score.</p>
+    <div class="table-responsive mb-4" style="max-width: 600px;">
+        <table class="table table-sm table-bordered align-middle">
+            <thead class="table-light">
                 <tr>
-                    <td>@suggestion.SkillName</td>
-                    <td>@suggestion.GroupName</td>
-                    <td>+@suggestion.GainScore.ToString("F1")%</td>
+                    <th>Skill</th>
+                    <th>Skill group</th>
+                    <th>Score gain</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var sug in Model.Suggestions)
+                {
+                    <tr>
+                        <td class="fw-semibold">@sug.SkillName</td>
+                        <td class="text-muted">@sug.GroupName</td>
+                        <td class="text-success fw-semibold">+@sug.GainScore.ToString("F1")%</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 }
-else
+else if (Model.MatchScore >= 0)
 {
-    <p class="text-success">Great job! No skill gaps detected for this role.</p>
+    <div class="alert alert-success" style="max-width: 600px;">
+        No significant skill gaps detected for this role. Keep your skills up to date!
+    </div>
 }
