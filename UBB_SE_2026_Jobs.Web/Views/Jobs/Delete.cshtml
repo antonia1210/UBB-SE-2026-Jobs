@@ -3,6 +3,8 @@
 
 @{
     ViewData["Title"] = "Delete Job";
+    var applicantCount = ViewBag.ApplicantCount as int? ?? 0;
+    var hasApplicants = applicantCount > 0;
 }
 
 <div class="mb-3">
@@ -14,6 +16,13 @@
         <h4 class="mb-0">Confirm Deletion</h4>
     </div>
     <div class="card-body">
+        @if (hasApplicants)
+        {
+            <div class="alert alert-warning" role="alert">
+                <strong>This job has @applicantCount applicant@(applicantCount == 1 ? "" : "s").</strong>
+                Deleting it will permanently remove @(applicantCount == 1 ? "their application" : "their applications") as well. This cannot be undone.
+            </div>
+        }
         <p class="lead">Are you sure you want to delete the following job posting? This action cannot be undone.</p>
         <table class="table table-borderless table-sm">
             <tr><th>Job Title</th><td>@Model.JobTitle</td></tr>
@@ -27,7 +36,15 @@
         <a asp-action="Details" asp-route-id="@Model.JobId" class="btn btn-outline-secondary">Cancel</a>
         <form asp-action="Delete" asp-route-id="@Model.JobId" method="post">
             @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            @if (hasApplicants)
+            {
+                <input type="hidden" name="force" value="true" />
+                <button type="submit" class="btn btn-danger">Delete anyway</button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+            }
         </form>
     </div>
 </div>

@@ -6,6 +6,7 @@ namespace UBB_SE_2026_Jobs.Web.Clients
     using System.Net.Http.Headers;
     using System.Net.Http.Json;
     using System.Threading.Tasks;
+    using UBB_SE_2026_Jobs.Library.Services;
     using UBB_SE_2026_Jobs.Web.Dtos;
 
     /// <summary>
@@ -115,15 +116,39 @@ namespace UBB_SE_2026_Jobs.Web.Clients
         }
 
         /// <summary>
+        /// Gets the number of applicants (Match records) for a job posting.
+        /// </summary>
+        /// <param name="jobId">The ID of the job.</param>
+        /// <returns>The applicant count, or 0 if it could not be determined.</returns>
+        public async Task<int> GetApplicantCountAsync(int jobId)
+        {
+            return await this.httpClient.GetFromJsonAsync<int>(
+                $"api/TestsJobs/{jobId}/applicant-count");
+        }
+
+        /// <summary>
         /// Deletes a job posting via the API.
         /// </summary>
         /// <param name="jobId">The ID of the job to delete.</param>
-        /// <returns>True if deletion succeeded.</returns>
-        public async Task<bool> DeleteJobAsync(int jobId)
+        /// <param name="force">When true, applicants are cascade-deleted along with the job.</param>
+        /// <returns>The outcome of the delete attempt.</returns>
+        public async Task<JobDeleteResult> DeleteJobAsync(int jobId, bool force)
         {
-            HttpResponseMessage response =
-                await this.httpClient.DeleteAsync($"api/TestsJobs/{jobId}");
-            return response.IsSuccessStatusCode;
+            string url = $"api/TestsJobs/{jobId}";
+            if (force)
+            {
+                url += "?force=true";
+            }
+
+            HttpResponseMessage response = await this.httpClient.DeleteAsync(url);
+
+            return response.StatusCode switch
+            {
+                System.Net.HttpStatusCode.NotFound => JobDeleteResult.NotFound,
+                System.Net.HttpStatusCode.Conflict => JobDeleteResult.HasApplicants,
+                _ when response.IsSuccessStatusCode => JobDeleteResult.Deleted,
+                _ => JobDeleteResult.NotFound,
+            };
         }
     }
 }

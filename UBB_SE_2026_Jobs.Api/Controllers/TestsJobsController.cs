@@ -76,6 +76,12 @@ public class TestsJobsController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{jobId}/applicant-count")]
+    public ActionResult<int> GetApplicantCount(int jobId)
+    {
+        return Ok(this.testsJobsService.GetApplicantCount(jobId));
+    }
+
     [HttpDelete("{jobId}")]
     public ActionResult DeleteJob(int jobId, [FromQuery] bool force = false)
     {

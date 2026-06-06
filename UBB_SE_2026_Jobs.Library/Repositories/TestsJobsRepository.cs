@@ -124,19 +124,30 @@
                     return false;
                 }
 
-                // Update scalar fields only; CompanyId and PostedAt are preserved
+                // Update scalar fields; CompanyId, PostedAt, Photo and JobRole are preserved.
                 existingJob.JobTitle = updatedJob.JobTitle;
+                existingJob.IndustryField = updatedJob.IndustryField;
+                existingJob.JobType = updatedJob.JobType;
+                existingJob.ExperienceLevel = updatedJob.ExperienceLevel;
+                existingJob.JobLocation = updatedJob.JobLocation;
                 existingJob.JobDescription = updatedJob.JobDescription;
+                existingJob.AvailablePositions = updatedJob.AvailablePositions;
+                existingJob.Salary = updatedJob.Salary;
+                existingJob.StartDate = updatedJob.StartDate;
+                existingJob.EndDate = updatedJob.EndDate;
+                existingJob.Deadline = updatedJob.Deadline;
                 existingJob.AmountPayed = updatedJob.AmountPayed ?? existingJob.AmountPayed;
 
-                // Replace skill links: remove old ones, insert new ones
-                if (existingJob.JobSkills != null)
+                // Replace skill links only when the caller actually supplies them; otherwise
+                // preserve the existing links (e.g. the web Edit form has no skills editor and
+                // would otherwise wipe them on every save).
+                if (skillLinks != null && skillLinks.Count > 0)
                 {
-                    this.databaseContext.JobSkills.RemoveRange(existingJob.JobSkills);
-                }
+                    if (existingJob.JobSkills != null)
+                    {
+                        this.databaseContext.JobSkills.RemoveRange(existingJob.JobSkills);
+                    }
 
-                if (skillLinks != null)
-                {
                     foreach (var (skillId, percentage) in skillLinks)
                     {
                         if (percentage < MinimumSkillPercentage || percentage > MaximumSkillPercentage)
