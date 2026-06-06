@@ -1,4 +1,4 @@
-@model UBB_SE_2026_Jobs.Web.Dtos.EventDto
+@model UBB_SE_2026_Jobs.Library.DTOs.Web.EventDto
 
 @{
     ViewData["Title"] = Model.Title;
@@ -17,7 +17,7 @@
 </div>
 
 @{
-    var collaborators = ViewBag.Collaborators as List<UBB_SE_2026_Jobs.Web.Dtos.CompanyDto> ?? new List<UBB_SE_2026_Jobs.Web.Dtos.CompanyDto>();
+    var collaborators = ViewBag.Collaborators as List<UBB_SE_2026_Jobs.Library.DTOs.Web.CompanyDto> ?? new List<UBB_SE_2026_Jobs.Library.DTOs.Web.CompanyDto>();
 }
 @if (collaborators.Any())
 {

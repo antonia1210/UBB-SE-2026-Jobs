@@ -1,4 +1,4 @@
-@model UBB_SE_2026_Jobs.Web.Dtos.EventDto
+@model UBB_SE_2026_Jobs.Library.DTOs.Web.EventDto
 
 @{
     ViewData["Title"] = "Edit Event";
@@ -33,7 +33,7 @@
         <select asp-for="CollaboratorCompanyIds" class="form-select" multiple="multiple">
             @if (ViewBag.Companies != null)
             {
-                @foreach (var company in (List<UBB_SE_2026_Jobs.Web.Dtos.CompanyDto>)ViewBag.Companies)
+                @foreach (var company in (List<UBB_SE_2026_Jobs.Library.DTOs.Web.CompanyDto>)ViewBag.Companies)
                 {
                     if (Model.CollaboratorCompanyIds.Contains(company.CompanyId))
                     {

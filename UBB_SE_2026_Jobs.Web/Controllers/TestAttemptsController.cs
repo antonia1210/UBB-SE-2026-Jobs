@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UBB_SE_2026_Jobs.Web.Clients;
-using UBB_SE_2026_Jobs.Web.Dtos;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.Web;
+using UBB_SE_2026_Jobs.Library.DTOs.Web;
 
 namespace UBB_SE_2026_Jobs.Web.Controllers
 {

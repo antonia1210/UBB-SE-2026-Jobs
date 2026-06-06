@@ -1,0 +1,82 @@
+using System.Net.Http.Json;
+using UBB_SE_2026_Jobs.Library.DTOs.Web;
+
+namespace UBB_SE_2026_Jobs.Library.ServiceProxies.Web;
+
+public class EventsApiClient
+{
+    private readonly HttpClient _http;
+    private static string s_apiPath = "api/events";
+
+    public EventsApiClient(HttpClient http)
+    {
+        this._http = http;
+    }
+
+    public async Task<List<EventDto>> GetCurrentEvents(int userId)
+    {
+        var response = await this._http.GetAsync($"{s_apiPath}/current/{userId}");
+        if (!response.IsSuccessStatusCode)
+            return new List<EventDto>();
+        return await response.Content.ReadFromJsonAsync<List<EventDto>>() ?? new List<EventDto>();
+    }
+
+    public async Task<List<EventDto>> GetPastEvents(int userId)
+    {
+        var response = await this._http.GetAsync($"{s_apiPath}/past/{userId}");
+        if (!response.IsSuccessStatusCode)
+            return new List<EventDto>();
+        return await response.Content.ReadFromJsonAsync<List<EventDto>>() ?? new List<EventDto>();
+    }
+
+    public async Task<EventDto?> Create(EventDto dto)
+    {
+        var response = await this._http.PostAsJsonAsync(s_apiPath, dto);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<EventDto>();
+    }
+
+    public async Task Update(int id, EventDto dto)
+    {
+        var response = await this._http.PutAsJsonAsync($"{s_apiPath}/{id}", dto);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task Delete(int id)
+    {
+        var response = await this._http.DeleteAsync($"{s_apiPath}/{id}");
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<List<CompanyDto>> GetEventCollaborators(int eventId)
+    {
+        var response = await this._http.GetAsync($"api/collaborators/event/{eventId}");
+        if (!response.IsSuccessStatusCode)
+            return new List<CompanyDto>();
+        return await response.Content.ReadFromJsonAsync<List<CompanyDto>>() ?? new List<CompanyDto>();
+    }
+
+    public async Task<List<CompanyDto>> GetAllCompanies()
+    {
+        var response = await this._http.GetAsync("api/companies");
+        if (!response.IsSuccessStatusCode)
+            return new List<CompanyDto>();
+        return await response.Content.ReadFromJsonAsync<List<CompanyDto>>() ?? new List<CompanyDto>();
+    }
+
+    public async Task<List<EventDto>> GetAllCurrentEvents()
+    {
+        var response = await this._http.GetAsync($"{s_apiPath}/current");
+        if (!response.IsSuccessStatusCode)
+            return new List<EventDto>();
+        return await response.Content.ReadFromJsonAsync<List<EventDto>>() ?? new List<EventDto>();
+    }
+
+    public async Task<List<EventDto>> GetAllPastEvents()
+    {
+        var response = await this._http.GetAsync($"{s_apiPath}/past");
+        if (!response.IsSuccessStatusCode)
+            return new List<EventDto>();
+        return await response.Content.ReadFromJsonAsync<List<EventDto>>() ?? new List<EventDto>();
+    }
+}
