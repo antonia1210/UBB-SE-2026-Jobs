@@ -12,10 +12,10 @@ namespace UBB_SE_2026_Jobs.Tests.Services;
 
 public class TestsAuthServiceTests
 {
-    private readonly ITestsCompanyRepository _companyRepository = Substitute.For<ITestsCompanyRepository>();
-    private readonly IUserRepository _userRepository = Substitute.For<IUserRepository>();
-    private readonly IRecruiterRepository _recruiterRepository = Substitute.For<IRecruiterRepository>();
-    private readonly TestsAuthService _service;
+    private readonly ITestsCompanyRepository companyRepository = Substitute.For<ITestsCompanyRepository>();
+    private readonly IUserRepository userRepository = Substitute.For<IUserRepository>();
+    private readonly IRecruiterRepository recruiterRepository = Substitute.For<IRecruiterRepository>();
+    private readonly TestsAuthService testsAuthService;
 
     private const string KnownPlaintextPassword = "TestPassword123!";
     private const string JwtSecretKey = "this-is-a-sufficiently-long-secret-key-for-tests";
@@ -29,10 +29,10 @@ public class TestsAuthServiceTests
             })
             .Build();
 
-        _service = new TestsAuthService(
-            _companyRepository,
-            _userRepository,
-            _recruiterRepository,
+        testsAuthService = new TestsAuthService(
+            companyRepository,
+            userRepository,
+            recruiterRepository,
             configuration);
     }
 
@@ -65,9 +65,9 @@ public class TestsAuthServiceTests
     [Fact]
     public async Task LoginAsync_UserNotFound_ReturnsNull()
     {
-        _userRepository.GetByEmailAsync("unknown@example.com").Returns((User?)null);
+        userRepository.GetByEmailAsync("unknown@example.com").Returns((User?)null);
 
-        var result = await _service.LoginAsync(LoginWith("unknown@example.com", KnownPlaintextPassword));
+        var result = await testsAuthService.LoginAsync(LoginWith("unknown@example.com", KnownPlaintextPassword));
 
         Assert.Null(result);
     }
@@ -76,9 +76,9 @@ public class TestsAuthServiceTests
     public async Task LoginAsync_WrongPassword_ReturnsNull()
     {
         var user = UserWithHashedPassword(userId: 1, email: "user@example.com", KnownPlaintextPassword);
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
 
-        var result = await _service.LoginAsync(LoginWith(user.Email, "WrongPassword!"));
+        var result = await testsAuthService.LoginAsync(LoginWith(user.Email, "WrongPassword!"));
 
         Assert.Null(result);
     }
@@ -87,10 +87,10 @@ public class TestsAuthServiceTests
     public async Task LoginAsync_CorrectCredentials_ReturnsResponseWithUserDetails()
     {
         var user = UserWithHashedPassword(userId: 1, email: "user@example.com", KnownPlaintextPassword);
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
 
-        var result = await _service.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
+        var result = await testsAuthService.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
 
         Assert.NotNull(result);
         Assert.Equal(user.Id, result!.UserId);
@@ -101,10 +101,10 @@ public class TestsAuthServiceTests
     public async Task LoginAsync_CorrectCredentials_ReturnsNonEmptyToken()
     {
         var user = UserWithHashedPassword(userId: 1, email: "user@example.com", KnownPlaintextPassword);
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
 
-        var result = await _service.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
+        var result = await testsAuthService.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
 
         Assert.NotNull(result);
         Assert.False(string.IsNullOrWhiteSpace(result!.Token));
@@ -114,10 +114,10 @@ public class TestsAuthServiceTests
     public async Task LoginAsync_UserIsRecruiter_ReturnsRecruiterRole()
     {
         var user = UserWithHashedPassword(userId: 1, email: "recruiter@example.com", KnownPlaintextPassword);
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns(42);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns(42);
 
-        var result = await _service.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
+        var result = await testsAuthService.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
 
         Assert.NotNull(result);
         Assert.Equal("Recruiter", result!.Role);
@@ -127,10 +127,10 @@ public class TestsAuthServiceTests
     public async Task LoginAsync_UserIsNotRecruiter_ReturnsCandidateRole()
     {
         var user = UserWithHashedPassword(userId: 1, email: "candidate@example.com", KnownPlaintextPassword);
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
 
-        var result = await _service.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
+        var result = await testsAuthService.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
 
         Assert.NotNull(result);
         Assert.Equal("Candidate", result!.Role);
@@ -141,10 +141,10 @@ public class TestsAuthServiceTests
     {
         const int companyId = 42;
         var user = UserWithHashedPassword(userId: 1, email: "recruiter@example.com", KnownPlaintextPassword);
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns(companyId);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns(companyId);
 
-        var result = await _service.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
+        var result = await testsAuthService.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
 
         Assert.NotNull(result);
         Assert.Equal(companyId, result!.CompanyId);
@@ -154,10 +154,10 @@ public class TestsAuthServiceTests
     public async Task LoginAsync_UserIsCandidate_ReturnsNullCompanyId()
     {
         var user = UserWithHashedPassword(userId: 1, email: "candidate@example.com", KnownPlaintextPassword);
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
 
-        var result = await _service.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
+        var result = await testsAuthService.LoginAsync(LoginWith(user.Email, KnownPlaintextPassword));
 
         Assert.NotNull(result);
         Assert.Null(result!.CompanyId);
@@ -170,9 +170,9 @@ public class TestsAuthServiceTests
     [Fact]
     public async Task RegisterAsync_UserNotFound_ReturnsNull()
     {
-        _userRepository.GetByEmailAsync("unknown@example.com").Returns((User?)null);
+        userRepository.GetByEmailAsync("unknown@example.com").Returns((User?)null);
 
-        var result = await _service.RegisterAsync(RegisterWith("unknown@example.com", role: "Candidate"));
+        var result = await testsAuthService.RegisterAsync(RegisterWith("unknown@example.com", role: "Candidate"));
 
         Assert.Null(result);
     }
@@ -181,9 +181,9 @@ public class TestsAuthServiceTests
     public async Task RegisterAsync_CandidateRole_ReturnsResponseWithCandidateRole()
     {
         var user = new User { Id = 1, Email = "candidate@example.com", FirstName = "Candidate", LastName = "User" };
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
 
-        var result = await _service.RegisterAsync(RegisterWith(user.Email, role: "Candidate"));
+        var result = await testsAuthService.RegisterAsync(RegisterWith(user.Email, role: "Candidate"));
 
         Assert.NotNull(result);
         Assert.Equal("Candidate", result!.Role);
@@ -195,9 +195,9 @@ public class TestsAuthServiceTests
     public async Task RegisterAsync_CandidateRole_ReturnsNullCompanyId()
     {
         var user = new User { Id = 1, Email = "candidate@example.com", FirstName = "Candidate", LastName = "User" };
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
 
-        var result = await _service.RegisterAsync(RegisterWith(user.Email, role: "Candidate"));
+        var result = await testsAuthService.RegisterAsync(RegisterWith(user.Email, role: "Candidate"));
 
         Assert.NotNull(result);
         Assert.Null(result!.CompanyId);
@@ -207,9 +207,9 @@ public class TestsAuthServiceTests
     public async Task RegisterAsync_RecruiterRoleWithNoCompanyId_ReturnsNull()
     {
         var user = new User { Id = 1, Email = "recruiter@example.com", FirstName = "Recruiter", LastName = "User" };
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
 
-        var result = await _service.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: null));
+        var result = await testsAuthService.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: null));
 
         Assert.Null(result);
     }
@@ -219,10 +219,10 @@ public class TestsAuthServiceTests
     {
         const int nonExistentCompanyId = 999;
         var user = new User { Id = 1, Email = "recruiter@example.com", FirstName = "Recruiter", LastName = "User" };
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _companyRepository.GetById(nonExistentCompanyId).Returns((Company?)null);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        companyRepository.GetById(nonExistentCompanyId).Returns((Company?)null);
 
-        var result = await _service.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: nonExistentCompanyId));
+        var result = await testsAuthService.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: nonExistentCompanyId));
 
         Assert.Null(result);
     }
@@ -233,11 +233,11 @@ public class TestsAuthServiceTests
         const int companyId = 10;
         var user = new User { Id = 1, Email = "recruiter@example.com", FirstName = "Recruiter", LastName = "User" };
         var company = new Company { CompanyId = companyId, Name = "Acme Corp" };
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _companyRepository.GetById(companyId).Returns(company);
-        _recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        companyRepository.GetById(companyId).Returns(company);
+        recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
 
-        var result = await _service.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: companyId));
+        var result = await testsAuthService.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: companyId));
 
         Assert.NotNull(result);
         Assert.Equal("Recruiter", result!.Role);
@@ -250,13 +250,13 @@ public class TestsAuthServiceTests
         const int companyId = 10;
         var user = new User { Id = 1, Email = "recruiter@example.com", FirstName = "Recruiter", LastName = "User" };
         var company = new Company { CompanyId = companyId, Name = "Acme Corp" };
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _companyRepository.GetById(companyId).Returns(company);
-        _recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        companyRepository.GetById(companyId).Returns(company);
+        recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns((int?)null);
 
-        await _service.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: companyId));
+        await testsAuthService.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: companyId));
 
-        await _recruiterRepository.Received(1).AddAsync(Arg.Is<Recruiter>(recruiter =>
+        await recruiterRepository.Received(1).AddAsync(Arg.Is<Recruiter>(recruiter =>
             recruiter.UserId == user.Id && recruiter.CompanyId == companyId));
     }
 
@@ -266,22 +266,22 @@ public class TestsAuthServiceTests
         const int companyId = 10;
         var user = new User { Id = 1, Email = "recruiter@example.com", FirstName = "Recruiter", LastName = "User" };
         var company = new Company { CompanyId = companyId, Name = "Acme Corp" };
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
-        _companyRepository.GetById(companyId).Returns(company);
-        _recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns(companyId);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
+        companyRepository.GetById(companyId).Returns(company);
+        recruiterRepository.GetCompanyIdForUserAsync(user.Id).Returns(companyId);
 
-        await _service.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: companyId));
+        await testsAuthService.RegisterAsync(RegisterWith(user.Email, role: "Recruiter", companyId: companyId));
 
-        await _recruiterRepository.DidNotReceive().AddAsync(Arg.Any<Recruiter>());
+        await recruiterRepository.DidNotReceive().AddAsync(Arg.Any<Recruiter>());
     }
 
     [Fact]
     public async Task RegisterAsync_AnyValidRegistration_ReturnsNonEmptyToken()
     {
         var user = new User { Id = 1, Email = "candidate@example.com", FirstName = "Candidate", LastName = "User" };
-        _userRepository.GetByEmailAsync(user.Email).Returns(user);
+        userRepository.GetByEmailAsync(user.Email).Returns(user);
 
-        var result = await _service.RegisterAsync(RegisterWith(user.Email, role: "Candidate"));
+        var result = await testsAuthService.RegisterAsync(RegisterWith(user.Email, role: "Candidate"));
 
         Assert.NotNull(result);
         Assert.False(string.IsNullOrWhiteSpace(result!.Token));

@@ -11,7 +11,7 @@ namespace UBB_SE_2026_Jobs.Tests.Integration;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<PartialProgram>
 {
-    private readonly string _inMemoryDatabaseName = $"IntegrationTestsDb_{Guid.NewGuid():N}";
+    private readonly string inMemoryDatabaseName = $"IntegrationTestsDb_{Guid.NewGuid():N}";
 
     protected override void ConfigureWebHost(IWebHostBuilder webHostBuilder)
     {
@@ -33,7 +33,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<PartialProgram>
 
             services.AddDbContext<JobsDbContext>(options =>
             {
-                options.UseInMemoryDatabase(_inMemoryDatabaseName);
+                options.UseInMemoryDatabase(inMemoryDatabaseName);
             });
 
             var temporaryProvider = services.BuildServiceProvider();

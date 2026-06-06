@@ -6,22 +6,22 @@ namespace UBB_SE_2026_Jobs.Tests.Fakes;
 
 public class FakeInterviewSessionRepository : IInterviewSessionRepository
 {
-    private readonly List<InterviewSession> _store = new();
-    private int _nextId = 1;
+    private readonly List<InterviewSession> interviewSessions = new();
+    private int nextId = 1;
 
     public void Seed(params InterviewSession[] sessions)
     {
-        foreach (var s in sessions)
+        foreach (var session in sessions)
         {
-            _store.Add(s);
-            if (s.Id >= _nextId)
-                _nextId = s.Id + 1;
+            interviewSessions.Add(session);
+            if (session.Id >= nextId)
+                nextId = session.Id + 1;
         }
     }
 
     public Task<List<InterviewSession>> GetScheduledSessionsAsync()
     {
-        var results = _store
+        var results = interviewSessions
             .Where(interviewSession => interviewSession.Status == InterviewStatus.Scheduled.ToString())
             .ToList();
         return Task.FromResult(results);
@@ -29,7 +29,7 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
 
     public Task<List<InterviewSession>> GetSessionsByStatusAsync(string status)
     {
-        var results = _store
+        var results = interviewSessions
             .Where(interviewSession => interviewSession.Status == status)
             .ToList();
         return Task.FromResult(results);
@@ -37,32 +37,32 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
 
     public Task<InterviewSession?> GetInterviewSessionByIdAsync(int id)
     {
-        var session = _store.FirstOrDefault(interviewSession => interviewSession.Id == id);
+        var session = interviewSessions.FirstOrDefault(interviewSession => interviewSession.Id == id);
         return Task.FromResult(session);
     }
 
     public InterviewSession GetInterviewSessionById(int id) {
-        var session = _store.FirstOrDefault(interviewSession => interviewSession.Id == id);
+        var session = interviewSessions.FirstOrDefault(interviewSession => interviewSession.Id == id);
         return session;
     }
 
     public void Add(InterviewSession session)
     {
         if (session.Id == 0)
-            session.Id = _nextId++;
-        _store.Add(session);
+            session.Id = nextId++;
+        interviewSessions.Add(session);
     }
 
     public Task UpdateInterviewSessionAsync(InterviewSession session)
     {
-        var index = _store.FindIndex(interviewSession => interviewSession.Id == session.Id);
+        var index = interviewSessions.FindIndex(interviewSession => interviewSession.Id == session.Id);
         if (index >= 0)
-            _store[index] = session;
+            interviewSessions[index] = session;
         return Task.CompletedTask;
     }
 
     public void Delete(InterviewSession session)
     {
-        _store.RemoveAll(interviewSession => interviewSession.Id == session.Id);
+        interviewSessions.RemoveAll(interviewSession => interviewSession.Id == session.Id);
     }
 }

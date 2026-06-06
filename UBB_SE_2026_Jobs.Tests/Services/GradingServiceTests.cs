@@ -6,7 +6,7 @@ namespace UBB_SE_2026_Jobs.Tests.Services;
 
 public class GradingServiceTests
 {
-    private readonly GradingService _service = new();
+    private readonly GradingService gradingService = new();
 
     // Helpers
 
@@ -24,7 +24,7 @@ public class GradingServiceTests
         var question = MakeQuestion(correctAnswere, score: 5f);
         var answer = MakeAnswer(correctAnswere);
 
-        _service.GradeSingleChoice(question, answer);
+        gradingService.GradeSingleChoice(question, answer);
 
         Assert.Equal("CORRECT:5", answer.Value);
     }
@@ -35,7 +35,7 @@ public class GradingServiceTests
         var question = MakeQuestion("  B  ", score: 5f);
         var answer = MakeAnswer(" B ");
 
-        _service.GradeSingleChoice(question, answer);
+        gradingService.GradeSingleChoice(question, answer);
 
         Assert.Equal("CORRECT:5", answer.Value);
     }
@@ -47,7 +47,7 @@ public class GradingServiceTests
         var question = MakeQuestion(wrongAnswer);
         var answer = MakeAnswer(correctAnswer);
 
-        _service.GradeSingleChoice(question, answer);
+        gradingService.GradeSingleChoice(question, answer);
 
         Assert.Equal(correctAnswer, answer.Value);
     }
@@ -59,7 +59,7 @@ public class GradingServiceTests
         var question = MakeQuestion(null);
         var answer = MakeAnswer(correctAnswer);
 
-        _service.GradeSingleChoice(question, answer);
+        gradingService.GradeSingleChoice(question, answer);
 
         Assert.Equal(correctAnswer, answer.Value);
     }
@@ -73,7 +73,7 @@ public class GradingServiceTests
         var question = MakeQuestion(correctAnswer, score: 10f);
         var answer = MakeAnswer(correctAnswer);
 
-        _service.GradeText(question, answer);
+        gradingService.GradeText(question, answer);
 
         Assert.Equal("CORRECT:10", answer.Value);
     }
@@ -84,7 +84,7 @@ public class GradingServiceTests
         var question = MakeQuestion("paris");
         var answer = MakeAnswer("PARIS");
 
-        _service.GradeText(question, answer);
+        gradingService.GradeText(question, answer);
 
         Assert.StartsWith("CORRECT:", answer.Value);
     }
@@ -95,7 +95,7 @@ public class GradingServiceTests
         var question = MakeQuestion("  Paris  ");
         var answer = MakeAnswer(" paris ");
 
-        _service.GradeText(question, answer);
+        gradingService.GradeText(question, answer);
 
         Assert.StartsWith("CORRECT:", answer.Value);
     }
@@ -106,7 +106,7 @@ public class GradingServiceTests
         var question = MakeQuestion("Paris");
         var answer = MakeAnswer("London");
 
-        _service.GradeText(question, answer);
+        gradingService.GradeText(question, answer);
 
         Assert.Equal("London", answer.Value);
     }
@@ -117,7 +117,7 @@ public class GradingServiceTests
         var question = MakeQuestion(null);
         var answer = MakeAnswer("Paris");
 
-        _service.GradeText(question, answer);
+        gradingService.GradeText(question, answer);
 
         Assert.Equal("Paris", answer.Value);
     }
@@ -130,7 +130,7 @@ public class GradingServiceTests
         var question = MakeQuestion("true", score: 4f);
         var answer = MakeAnswer("true");
 
-        _service.GradeTrueFalse(question, answer);
+        gradingService.GradeTrueFalse(question, answer);
 
         Assert.Equal("CORRECT:4", answer.Value);
     }
@@ -141,7 +141,7 @@ public class GradingServiceTests
         var question = MakeQuestion("true");
         var answer = MakeAnswer("TRUE");
 
-        _service.GradeTrueFalse(question, answer);
+        gradingService.GradeTrueFalse(question, answer);
 
         Assert.StartsWith("CORRECT:", answer.Value);
     }
@@ -152,7 +152,7 @@ public class GradingServiceTests
         var question = MakeQuestion("true");
         var answer = MakeAnswer("false");
 
-        _service.GradeTrueFalse(question, answer);
+        gradingService.GradeTrueFalse(question, answer);
 
         Assert.Equal("false", answer.Value);
     }
@@ -163,7 +163,7 @@ public class GradingServiceTests
         var question = MakeQuestion(null);
         var answer = MakeAnswer("true");
 
-        _service.GradeTrueFalse(question, answer);
+        gradingService.GradeTrueFalse(question, answer);
 
         Assert.Equal("true", answer.Value);
     }
@@ -177,7 +177,7 @@ public class GradingServiceTests
         var question = MakeQuestion("[0, 1]", score: 10f);
         var answer = MakeAnswer("[0, 1]");
 
-        _service.GradeMultipleChoice(question, answer);
+        gradingService.GradeMultipleChoice(question, answer);
 
         Assert.Equal("PARTIAL:10", answer.Value);
     }
@@ -192,7 +192,7 @@ public class GradingServiceTests
         var question = MakeQuestion("[0, 1]", score: 10f);
         var answer = MakeAnswer("[0, 2]");
 
-        _service.GradeMultipleChoice(question, answer);
+        gradingService.GradeMultipleChoice(question, answer);
 
         var value = answer.Value;
         Assert.StartsWith("PARTIAL:", value);
@@ -206,7 +206,7 @@ public class GradingServiceTests
         var question = MakeQuestion("[0, 1]", score: 10f);
         var answer = MakeAnswer("[2, 3]");
 
-        _service.GradeMultipleChoice(question, answer);
+        gradingService.GradeMultipleChoice(question, answer);
 
         Assert.Equal("PARTIAL:0", answer.Value);
     }
@@ -217,7 +217,7 @@ public class GradingServiceTests
         var question = MakeQuestion("[0, 1]", score: 10f);
         var answer = MakeAnswer("[]");
 
-        _service.GradeMultipleChoice(question, answer);
+        gradingService.GradeMultipleChoice(question, answer);
 
         Assert.Equal("PARTIAL:0", answer.Value);
     }
@@ -228,7 +228,7 @@ public class GradingServiceTests
         var question = MakeQuestion(null);
         var answer = MakeAnswer("[0, 1]");
 
-        _service.GradeMultipleChoice(question, answer);
+        gradingService.GradeMultipleChoice(question, answer);
 
         Assert.Equal("[0, 1]", answer.Value);
     }
@@ -239,7 +239,7 @@ public class GradingServiceTests
         var question = MakeQuestion("[0]", score: 10f);
         var answer = MakeAnswer("[0]");
 
-        _service.GradeMultipleChoice(question, answer);
+        gradingService.GradeMultipleChoice(question, answer);
 
         Assert.StartsWith("PARTIAL:", answer.Value);
     }
@@ -251,7 +251,7 @@ public class GradingServiceTests
         var question = MakeQuestion("[0]", score: 10f);
         var answer = MakeAnswer("[1, 2, 3]");
 
-        _service.GradeMultipleChoice(question, answer);
+        gradingService.GradeMultipleChoice(question, answer);
 
         var score = float.Parse(answer.Value["PARTIAL:".Length..], CultureInfo.InvariantCulture);
         Assert.True(score >= 0f);
@@ -271,7 +271,7 @@ public class GradingServiceTests
             }
         };
 
-        var result = _service.CalculateFinalScore(attempt);
+        var result = gradingService.CalculateFinalScore(attempt);
 
         Assert.Equal(15f, result);
         Assert.Equal(15m, attempt.Score);
@@ -289,7 +289,7 @@ public class GradingServiceTests
             }
         };
 
-        var result = _service.CalculateFinalScore(attempt);
+        var result = gradingService.CalculateFinalScore(attempt);
 
         Assert.Equal(10f, result, precision: 4);
         Assert.Equal(10m, attempt.Score);
@@ -308,7 +308,7 @@ public class GradingServiceTests
             }
         };
 
-        var result = _service.CalculateFinalScore(attempt);
+        var result = gradingService.CalculateFinalScore(attempt);
 
         Assert.Equal(14f, result, precision: 4);
     }
@@ -325,7 +325,7 @@ public class GradingServiceTests
             }
         };
 
-        var result = _service.CalculateFinalScore(attempt);
+        var result = gradingService.CalculateFinalScore(attempt);
 
         Assert.Equal(0f, result);
         Assert.Equal(0m, attempt.Score);
@@ -336,7 +336,7 @@ public class GradingServiceTests
     {
         var attempt = new TestAttempt { Answers = new List<Answer>() };
 
-        var result = _service.CalculateFinalScore(attempt);
+        var result = gradingService.CalculateFinalScore(attempt);
 
         Assert.Equal(0f, result);
     }
@@ -349,7 +349,7 @@ public class GradingServiceTests
             Answers = new List<Answer> { MakeAnswer("correct:8") }
         };
 
-        var result = _service.CalculateFinalScore(attempt);
+        var result = gradingService.CalculateFinalScore(attempt);
 
         Assert.Equal(8f, result);
     }
@@ -362,7 +362,7 @@ public class GradingServiceTests
             Answers = new List<Answer> { MakeAnswer("CORRECT:7.5") }
         };
 
-        _service.CalculateFinalScore(attempt);
+        gradingService.CalculateFinalScore(attempt);
 
         Assert.Equal(7.5m, attempt.Score);
     }

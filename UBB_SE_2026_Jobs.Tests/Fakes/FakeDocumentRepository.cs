@@ -17,8 +17,8 @@ public class FakeDocumentRepository : IDocumentRepository
 
     public Task<IReadOnlyList<Document>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<Document> all = documentsById.Values.ToList();
-        return Task.FromResult(all);
+        IReadOnlyList<Document> allDocuments = documentsById.Values.ToList();
+        return Task.FromResult(allDocuments);
     }
 
     public Task<Document?> GetByIdAsync(int documentId, CancellationToken cancellationToken = default)

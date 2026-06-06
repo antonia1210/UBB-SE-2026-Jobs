@@ -95,7 +95,7 @@ public class JobServiceTests
         var result = await service.GetByCompanyIdAsync(targetCompanyId);
 
         Assert.Equal(2, result.Count);
-        Assert.All(result, j => Assert.Equal(targetCompanyId, j.Company.CompanyId));
+        Assert.All(result, job => Assert.Equal(targetCompanyId, job.Company.CompanyId));
     }
 
     [Fact]
