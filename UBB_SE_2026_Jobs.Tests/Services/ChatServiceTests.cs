@@ -27,6 +27,73 @@ public class ChatServiceTests
         chatService = new(chatRepository, messageRepository, userService, companyService, fileStorage, recruiterRepository);
     }
 
+    [Fact]
+    public async Task FindOrCreateUserCompanyChatAsync_ChatExists_RestoresAndUpdatesChat()
+    {
+        var company = new Company { CompanyId = 1 };
+        var job = new Job { JobId = 100 };
+        var existingChat = new Chat
+        {
+            DeletedAtByUser = DateTime.UtcNow,
+            DeletedAtBySecondParty = DateTime.UtcNow
+        };
+
+        chatRepository.FindUserCompanyChatAsync(1, company, 100, Arg.Any<CancellationToken>())
+            .Returns(existingChat);
+
+        var result = await chatService.FindOrCreateUserCompanyChatAsync(1, company, job);
+
+        Assert.NotNull(result);
+        Assert.Null(result.DeletedAtByUser);
+        Assert.Null(result.DeletedAtBySecondParty);
+        await chatRepository.Received(1).UpdateAsync(existingChat, Arg.Any<CancellationToken>());
+        await chatRepository.DidNotReceiveWithAnyArgs().AddAsync(Arg.Any<Chat>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task FindOrCreateUserCompanyChatAsync_ChatDoesNotExist_CreatesAndReturnsNewChat()
+    {
+        var company = new Company { CompanyId = 1 };
+        var job = new Job { JobId = 100 };
+        var newChat = new Chat { Company = company, Job = job };
+        User user = new User { UserId = 1};
+
+        chatRepository.FindUserCompanyChatAsync(user.UserId, company, 100, Arg.Any<CancellationToken>())
+            .Returns((Chat?)null);
+        chatRepository.AddAsync(Arg.Any<Chat>(), Arg.Any<CancellationToken>())
+            .Returns(newChat);
+        userService.GetAllAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<User>>(new List<User>() {user}));
+
+        var result = await chatService.FindOrCreateUserCompanyChatAsync(1, company, job);
+
+        Assert.NotNull(result);
+        Assert.Same(newChat, result);
+        await chatRepository.Received(1).AddAsync(Arg.Is<Chat>(c => c.Company == company && c.Job == job), Arg.Any<CancellationToken>());
+        await chatRepository.DidNotReceiveWithAnyArgs().UpdateAsync(Arg.Any<Chat>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task FindOrCreateUserCompanyChatAsync_JobIsNull_QueriesAndCreatesWithNullJob()
+    {
+        var company = new Company { CompanyId = 1 };
+        var newChat = new Chat { Company = company, Job = null };
+        User user = new User { UserId = 1 };
+
+        chatRepository.FindUserCompanyChatAsync(1, company, null, Arg.Any<CancellationToken>())
+            .Returns((Chat?)null);
+        chatRepository.AddAsync(Arg.Any<Chat>(), Arg.Any<CancellationToken>())
+            .Returns(newChat);
+        userService.GetAllAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<User>>(new List<User>() { user }));
+
+        var result = await chatService.FindOrCreateUserCompanyChatAsync(1, company, null);
+
+        Assert.NotNull(result);
+        Assert.Same(newChat,result);
+        await chatRepository.Received(1).FindUserCompanyChatAsync(1, company, null, Arg.Any<CancellationToken>());
+        await chatRepository.Received(1).AddAsync(Arg.Is<Chat>(c => c.Job == null), Arg.Any<CancellationToken>());
+    }
 
     [Fact]
     public async Task FindOrCreateUserChatAsync_CandidateTriesToChatWithRecruiter_Throws()
@@ -516,6 +583,30 @@ public class ChatServiceTests
             chatService.SendStoredAttachmentAsync(chatId: 1, storedPath: "p", originalFileName: "o", senderId: 3, MessageType.File));
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(null)]
+    public async Task OpenMessageAttachmentAsync_AttachmentPathIsNullOrEmptyOrWhitespace_ThrowsArgumentException(string invalidPath)
+    {
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            chatService.OpenMessageAttachmentAsync(invalidPath, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task OpenMessageAttachmentAsync_ValidPath_ReturnsExpectedStream()
+    {
+        var expectedPath = "uploads/resume.pdf";
+        using var expectedStream = new MemoryStream();
+        fileStorage.OpenReadAsync(expectedPath, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<Stream>(expectedStream));
+
+        var result = await chatService.OpenMessageAttachmentAsync(expectedPath, CancellationToken.None);
+
+        Assert.Same(expectedStream, result);
+        await fileStorage.Received(1).OpenReadAsync(expectedPath, Arg.Any<CancellationToken>());
+    }
+
     [Fact]
     public async Task BlockChatAsync_CallerIsParticipant_BlocksChat()
     {
@@ -578,6 +669,41 @@ public class ChatServiceTests
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
             chatService.BlockChatAsync(chatId: 1, blockerId: 3));
+    }
+
+    [Fact]
+    public async Task SearchRecruitersByCompanyAsync_QueryIsNullOrEmptyOrWhitespace_ReturnsEmptyList()
+    {
+        var result = await chatService.SearchRecruitersByCompanyAsync(1, " ", CancellationToken.None);
+
+        Assert.Empty(result);
+        await recruiterRepository.DidNotReceiveWithAnyArgs().GetUserIdsByCompanyAsync(Arg.Any<int>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SearchRecruitersByCompanyAsync_ValidQuery_ReturnsFilteredRecruitors()
+    {
+        var companyId = 1;
+        var query = "Alex";
+        var recruiterUserIds = new List<int> { 10, 20, 30 };
+        var users = new List<User>
+        {
+            new User { UserId = 10, FirstName = "Alex", LastName = "Smith" },
+            new User { UserId = 20, FirstName = "John", LastName = "Alexander" },
+            new User { UserId = 30, FirstName = "Ben", LastName = "Jones" },
+            new User { UserId = 40, FirstName = "Alex", LastName = "NonRecruiter" }
+        };
+
+        recruiterRepository.GetUserIdsByCompanyAsync(companyId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<int>>(recruiterUserIds));
+        userService.GetAllAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<User>>(users));
+
+        var result = await chatService.SearchRecruitersByCompanyAsync(companyId, query, CancellationToken.None);
+
+        Assert.Equal(2, result.Count);
+        Assert.Contains(result, u => u.UserId == 10);
+        Assert.Contains(result, u => u.UserId == 20);
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
