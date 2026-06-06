@@ -24,3 +24,11 @@ Open **`appsettings.json`** and **`appsettings.Development.json`** inside the **
 "ConnectionStrings": {
   "JobsDb": "Server=YOUR_SERVER;Database=Jobs_ISS_Final;Trusted_Connection=True;MultipleActiveResultSets=true;Encrypt=False;TrustServerCertificate=True"
 },
+```
+
+### 2. Deploy configuration
+
+Make sure to have WireGuard activated!
+
+Replace urls of api `https://localhost:7168/`, `http://localhost:5179/` with 
+	`http://172.30.242.79/` or `http://172.30.242.19/` (backup server) in App and Web projects.
