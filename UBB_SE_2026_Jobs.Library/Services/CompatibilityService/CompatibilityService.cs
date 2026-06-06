@@ -18,6 +18,7 @@ public class CompatibilityService : ICompatibilityService
     private const double TargetGroupScore = 0.8;
     private const int MaxSuggestions = 3;
     private const int InvalidScore = -1;
+    private const double TestScoreThreshold = 10.0;
 
     private readonly IUserSkillRepository userSkillRepository;
     private readonly ISkillGroupRepository skillGroupRepository;
@@ -162,13 +163,21 @@ public class CompatibilityService : ICompatibilityService
             var source = $"Best test attempt: {bestAttempt.Attempt.Test?.Title ?? skill.Name}";
             if (existing is null)
             {
-                skills.Add(new CompatibilitySkill(skill.SkillId, skill.Name, score, source));
+                // Only add test score if it's greater than the threshold
+                if (score > TestScoreThreshold)
+                {
+                    skills.Add(new CompatibilitySkill(skill.SkillId, skill.Name, score, source));
+                }
                 continue;
             }
 
-            existing.SkillId ??= skill.SkillId;
-            existing.Score = score;
-            existing.Source = source;
+            // Only update score if test score is greater than the threshold
+            if (score > TestScoreThreshold)
+            {
+                existing.SkillId ??= skill.SkillId;
+                existing.Score = score;
+                existing.Source = source;
+            }
         }
     }
 
@@ -186,15 +195,29 @@ public class CompatibilityService : ICompatibilityService
 
     private static double ComputeGroupScore(SkillGroup group, List<CompatibilitySkill> userSkills)
     {
-        double max = 0;
+        if (group.Skills.Count == 0)
+            return 0;
+
+        int totalSkillsInGroup = group.Skills.Count;
+        double totalContribution = 0;
+
+        // Each skill can contribute: (1 / totalSkillsInGroup) * (skillScore / 100)
         foreach (var skill in group.Skills)
         {
             var match = userSkills.FirstOrDefault(userSkill => SkillMatches(userSkill, skill));
-            if (match is null) continue;
-            double score = match.Score / ScoreNormalizationFactor;
-            if (score > max) max = score;
+            if (match is null)
+            {
+                // Skill not found, contributes 0
+                continue;
+            }
+
+            // Each skill contributes: (skillScore / 100) / numberOfSkillsInGroup
+            // Example: 20% baseline / 3 skills = 6.67% per skill
+            double skillContribution = (match.Score / ScoreNormalizationFactor) / totalSkillsInGroup;
+            totalContribution += skillContribution;
         }
-        return max;
+
+        return totalContribution;
     }
 
     private static double ComputeMatchScore(IReadOnlyList<SkillGroup> groups, List<double> groupScores)
