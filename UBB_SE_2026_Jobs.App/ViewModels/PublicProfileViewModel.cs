@@ -1,5 +1,5 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-using UBB_SE_2026_Jobs.App.Services.TI;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
 

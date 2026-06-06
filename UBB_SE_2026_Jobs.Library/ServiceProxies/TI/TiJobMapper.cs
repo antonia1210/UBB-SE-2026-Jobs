@@ -1,14 +1,8 @@
-using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.Library.Domain;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
 
-namespace UBB_SE_2026_Jobs.App.Services.TI;
+namespace UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 
-/// <summary>
-/// Adapts PussyCats domain entities (returned by the library service proxies) into the
-/// <c>Ti*Dto</c> shapes the TI WinUI views bind to. This is the only seam left after the
-/// redundant <c>TiJobsService</c> was removed in favour of <see cref="Library.Services.Jobs.IJobService"/>
-/// and <see cref="Library.Services.Skills.ISkillService"/>.
-/// </summary>
 public static class TiJobMapper
 {
     public static TiJobPostingDto ToDto(Job job) => new()

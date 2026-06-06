@@ -1,9 +1,9 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
 
-namespace UBB_SE_2026_Jobs.App.Services.TI;
+namespace UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 
 public interface ITiInterviewSessionService
 {

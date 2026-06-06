@@ -1,9 +1,8 @@
 using System.Net.Http.Json;
-using UBB_SE_2026_Jobs.App.Configuration;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.Library.DTOs;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
 
-namespace UBB_SE_2026_Jobs.App.Services.TI;
+namespace UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 
 public interface ITiSlotsService
 {
@@ -16,7 +15,7 @@ public interface ITiSlotsService
     Task<List<TiInterviewSessionDto>> GetSessionsByStatusAsync(string status);
     Task<List<TiInterviewSessionDto>> GetBookedInterviewsByCandidate(int candidateId);
     Task<int?> GetCompanyIdByJobAsync(int jobId);
-    Task<List<TiSlotDto>> GetAllSlotsAsync();
+    Task<List<TiSlotDto>> GetAllSlotsAsync(int recruiterId);
     Task<bool> CreateSlotAsync(TiSlotDto slot);
     Task<bool> UpdateSlotAsync(TiSlotDto slot);
     Task<bool> DeleteSlotAsync(int slotId);
@@ -26,12 +25,10 @@ public interface ITiSlotsService
 public class TiSlotsService : ITiSlotsService
 {
     private readonly HttpClient http;
-    private readonly SessionContext session;
 
-    public TiSlotsService(HttpClient http, SessionContext session)
+    public TiSlotsService(HttpClient http)
     {
         this.http = http;
-        this.session = session;
     }
 
     public async Task<List<TiApplicationDto>> GetApplicationsAsync(int candidateId)
@@ -106,9 +103,9 @@ public class TiSlotsService : ITiSlotsService
         return job?.CompanyId;
     }
 
-    public async Task<List<TiSlotDto>> GetAllSlotsAsync()
+    public async Task<List<TiSlotDto>> GetAllSlotsAsync(int recruiterId)
     {
-        var response = await http.GetAsync($"api/slots/recruiter/{session.UserId}");
+        var response = await http.GetAsync($"api/slots/recruiter/{recruiterId}");
         if (!response.IsSuccessStatusCode) return new();
         return await response.Content.ReadFromJsonAsync<List<TiSlotDto>>() ?? new();
     }

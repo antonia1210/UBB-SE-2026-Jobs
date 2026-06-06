@@ -1,6 +1,6 @@
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using UBB_SE_2026_Jobs.App.Configuration;
-using UBB_SE_2026_Jobs.App.Services.TI;
+using UBB_SE_2026_Jobs.Library.ServiceProxies.TI;
 using UBB_SE_2026_Jobs.Library.Services.Auth;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels.Auth;

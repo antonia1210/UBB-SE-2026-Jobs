@@ -1,5 +1,5 @@
-using System;
-using UBB_SE_2026_Jobs.App.Dtos.TI;
+﻿using System;
+using UBB_SE_2026_Jobs.Library.DTOs.TI;
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Services;
 

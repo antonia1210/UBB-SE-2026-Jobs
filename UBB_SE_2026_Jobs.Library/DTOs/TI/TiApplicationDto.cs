@@ -1,9 +1,5 @@
-namespace UBB_SE_2026_Jobs.App.Dtos.TI;
+namespace UBB_SE_2026_Jobs.Library.DTOs.TI;
 
-/// <summary>
-/// DTO for deserializing applications from the API.
-/// Uses string for Status to handle flexible JSON deserialization.
-/// </summary>
 public class TiApplicationDto
 {
     public int MatchId { get; set; }
