@@ -126,8 +126,8 @@ public class PreferenceServiceTests
             WorkMode.Remote,
             AnyLocation);
 
-        var ex = await Record.ExceptionAsync(act);
-        Assert.Null(ex);
+        var exception = await Record.ExceptionAsync(act);
+        Assert.Null(exception);
     }
 
     [Fact]

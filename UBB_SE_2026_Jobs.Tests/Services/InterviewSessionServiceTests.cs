@@ -156,8 +156,8 @@ public class InterviewSessionServiceTests
     {
         Func<Task> act = () => interviewSessionService.GetInterviewByIdAsync(404);
 
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(act);
-        Assert.Contains("not found", ex.Message, StringComparison.OrdinalIgnoreCase);
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(act);
+        Assert.Contains("not found", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -205,8 +205,8 @@ public class InterviewSessionServiceTests
 
         Func<Task> act = () => interviewSessionService.UpdateInterviewAsync(nonExistentInterviewSessionId, updated);
 
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(act);
-        Assert.Contains("not found", ex.Message, StringComparison.OrdinalIgnoreCase);
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(act);
+        Assert.Contains("not found", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -226,8 +226,8 @@ public class InterviewSessionServiceTests
     {
         Func<Task> act = () => interviewSessionService.DeleteInterviewAsync(404);
 
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(act);
-        Assert.Contains("not found", ex.Message, StringComparison.OrdinalIgnoreCase);
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(act);
+        Assert.Contains("not found", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
