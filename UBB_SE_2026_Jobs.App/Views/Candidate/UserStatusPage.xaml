@@ -42,24 +42,10 @@
             </Border>
         </DataTemplate>
 
-        <DataTemplate x:Key="UnderscoredSkillTemplate">
-            <Grid Margin="0,0,0,2" ColumnDefinitions="80,*,30">
-                <TextBlock Grid.Column="0" Text="{Binding SkillName}" FontSize="12"
-                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Foreground="Black"/>
-                <ProgressBar Grid.Column="1" Value="{Binding UserScore}" Maximum="100"
-                             Foreground="Black" VerticalAlignment="Center" Margin="4,0"/>
-                <TextBlock Grid.Column="2" Text="{Binding UserScore}" FontSize="12"
-                           VerticalAlignment="Center" HorizontalAlignment="Right" Foreground="Black"/>
-            </Grid>
-        </DataTemplate>
-
-        <DataTemplate x:Key="MissingSkillSidebarTemplate">
-            <TextBlock Text="{Binding SkillName}" FontSize="12" Foreground="#D32F2F" TextWrapping="Wrap"/>
-        </DataTemplate>
     </Page.Resources>
 
-    <Grid ColumnDefinitions="*,290" Padding="28,20,16,20">
-        <Grid Grid.Column="0" Padding="0,0,16,0" RowDefinitions="Auto,Auto,*">
+    <Grid Padding="28,20,28,20">
+        <Grid RowDefinitions="Auto,Auto,*">
             <Grid Grid.Row="0" Margin="0,0,0,12">
                 <TextBlock Text="My Application Status" FontSize="22" FontWeight="Bold"
                            VerticalAlignment="Center" Foreground="Black"/>
@@ -106,32 +92,5 @@
                 </ScrollViewer>
             </Grid>
         </Grid>
-
-        <Border Grid.Column="1" Background="White" CornerRadius="8"
-                Padding="16" VerticalAlignment="Top"
-                BorderBrush="Black" BorderThickness="0,3,0,0">
-            <StackPanel Spacing="10">
-                <TextBlock Text="Skill Gap Analysis" FontWeight="Bold" FontSize="15" Foreground="Black"/>
-                <TextBlock Text="{Binding SkillGapMessage}" Foreground="Black" FontSize="12"
-                           TextWrapping="Wrap"
-                           Visibility="{Binding HasSkillGapMessage, Converter={StaticResource BoolToVisibility}}"/>
-                <StackPanel Spacing="8"
-                            Visibility="{Binding ShowSkillData, Converter={StaticResource BoolToVisibility}}">
-                    <TextBlock Text="{Binding SkillGapSummaryText}" FontSize="12" Foreground="Black" Margin="0,0,0,4"/>
-                    <StackPanel Spacing="4"
-                                Visibility="{Binding HasUnderscoredSkills, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="Skills to Improve:" FontWeight="SemiBold" FontSize="12" Foreground="Black"/>
-                        <ItemsControl ItemsSource="{Binding UnderscoredSkills}"
-                                      ItemTemplate="{StaticResource UnderscoredSkillTemplate}"/>
-                    </StackPanel>
-                    <StackPanel Spacing="4" Margin="0,8,0,0"
-                                Visibility="{Binding HasSidebarMissingSkills, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="Missing Skills:" FontWeight="SemiBold" FontSize="12" Foreground="Black"/>
-                        <ItemsControl ItemsSource="{Binding SkillGapMissingSkills}"
-                                      ItemTemplate="{StaticResource MissingSkillSidebarTemplate}"/>
-                    </StackPanel>
-                </StackPanel>
-            </StackPanel>
-        </Border>
     </Grid>
 </Page>

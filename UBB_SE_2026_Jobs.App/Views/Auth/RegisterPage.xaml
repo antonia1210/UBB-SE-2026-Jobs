@@ -8,7 +8,8 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid Padding="40">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <Grid Padding="40" MinHeight="{Binding ActualHeight, RelativeSource={RelativeSource Mode=Self}}">
         <StackPanel Width="360" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
             <TextBlock Text="Create account" Style="{StaticResource HeaderTextBlockStyle}" HorizontalAlignment="Center"/>
 
@@ -52,4 +53,5 @@
                 Click="NavigateToLogin_Click"/>
         </StackPanel>
     </Grid>
+    </ScrollViewer>
 </Page>

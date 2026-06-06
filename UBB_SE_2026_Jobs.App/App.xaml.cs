@@ -23,7 +23,6 @@ using UBB_SE_2026_Jobs.Library.Services.Matches;
 using UBB_SE_2026_Jobs.Library.Services.PersonalityTestService;
 using UBB_SE_2026_Jobs.Library.Services.Preferences;
 using UBB_SE_2026_Jobs.Library.Services.Recommendations;
-using UBB_SE_2026_Jobs.Library.Services.SkillGapService;
 using UBB_SE_2026_Jobs.Library.Services.Skills;
 using UBB_SE_2026_Jobs.Library.Services.SkillTests;
 using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
@@ -100,7 +99,6 @@ public partial class App : Application
         RegisterServiceProxy<IPersonalityTestService, PersonalityTestServiceProxy>(services, apiConfiguration);
         RegisterServiceProxy<IPreferenceService, PreferenceServiceProxy>(services, apiConfiguration);
         RegisterServiceProxy<IRecommendationService, RecommendationServiceProxy>(services, apiConfiguration);
-        RegisterServiceProxy<ISkillGapService, SkillGapServiceProxy>(services, apiConfiguration);
         RegisterServiceProxy<ISkillService, SkillServiceProxy>(services, apiConfiguration);
         RegisterServiceProxy<ISkillTestService, SkillTestServiceProxy>(services, apiConfiguration);
         RegisterServiceProxy<IUserProfileService, UserProfileServiceProxy>(services, apiConfiguration);
