@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
+using UBB_SE_2026_Jobs.App.Views;
 using UBB_SE_2026_Jobs.App.Views.Auth;
 using UBB_SE_2026_Jobs.App.Views.Candidate;
 using UBB_SE_2026_Jobs.App.Views.TestsAndInterviews;
@@ -79,7 +80,8 @@ public sealed partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-var session = App.Services.GetRequiredService<SessionContext>();
+        Closed += OnClosed;
+        var session = App.Services.GetRequiredService<SessionContext>();
         if (session.IsAuthenticated)
         {
             ShowAuthenticatedShell();
@@ -87,6 +89,20 @@ var session = App.Services.GetRequiredService<SessionContext>();
         else
         {
             ShowLogin();
+        }
+    }
+
+    private void OnClosed(object sender, WindowEventArgs eventArguments)
+    {
+        App.MarkShuttingDown();
+
+        if (contentFrame.Content is ChatPage chatPage)
+        {
+            chatPage.Shutdown();
+        }
+        else if (contentFrame.Content is TiTestPage testPage)
+        {
+            testPage.Shutdown();
         }
     }
 

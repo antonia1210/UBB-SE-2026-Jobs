@@ -27,7 +27,8 @@ public class TestsApiClient
 
     public async Task<List<TestDto>> GetByCategory(string category)
     {
-        return await this.http.GetFromJsonAsync<List<TestDto>>($"{ApiPath}/bycategory/{category}") ?? new List<TestDto>();
+        string encodedCategory = Uri.EscapeDataString(category);
+        return await this.http.GetFromJsonAsync<List<TestDto>>($"{ApiPath}/bycategory/{encodedCategory}") ?? new List<TestDto>();
     }
 
     public async Task<TestDto?> GetById(int id)

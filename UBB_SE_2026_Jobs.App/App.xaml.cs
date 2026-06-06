@@ -39,17 +39,33 @@ public partial class App : Application
     private Window? _window;
     private IServiceProvider serviceProvider = null!;
 
+    public static bool IsShuttingDown { get; private set; }
     public static Window? MainAppWindow { get; private set; }
     public static IServiceProvider Services => ((App)Current).serviceProvider;
 
     public App()
     {
         InitializeComponent();
+        UnhandledException += OnUnhandledException;
         UIDispatcher.Queue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
         var services = new ServiceCollection();
         ConfigureServices(services);
         serviceProvider = services.BuildServiceProvider();
+    }
+
+    public static void MarkShuttingDown()
+    {
+        IsShuttingDown = true;
+    }
+
+    private static void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        if (IsShuttingDown)
+        {
+            System.Diagnostics.Debug.WriteLine($"Ignored shutdown exception: {e.Exception}");
+            e.Handled = true;
+        }
     }
 
     protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)

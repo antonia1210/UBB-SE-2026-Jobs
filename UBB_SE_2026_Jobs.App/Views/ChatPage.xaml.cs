@@ -18,6 +18,7 @@ public sealed partial class ChatPage : Page
     private const double RefreshIntervalSeconds = 3;
     private readonly DispatcherTimer refreshTimer;
     private bool isScrollToLatestQueued;
+    private bool isActive;
 
     public ChatPage()
     {
@@ -37,7 +38,14 @@ public sealed partial class ChatPage : Page
     protected override async void OnNavigatedTo(NavigationEventArgs eventArguments)
     {
         base.OnNavigatedTo(eventArguments);
+        isActive = true;
         await ViewModel.LoadAsync();
+
+        if (!isActive || App.IsShuttingDown)
+        {
+            return;
+        }
+
         ViewModel.ProfileNavigationRequested += OnProfileNavigationRequested;
         ViewModel.CompanyNavigationRequested += OnCompanyNavigationRequested;
         ViewModel.JobNavigationRequested += OnJobNavigationRequested;
@@ -48,12 +56,18 @@ public sealed partial class ChatPage : Page
 
     protected override void OnNavigatedFrom(NavigationEventArgs eventArguments)
     {
+        Shutdown();
+        base.OnNavigatedFrom(eventArguments);
+    }
+
+    public void Shutdown()
+    {
+        isActive = false;
         refreshTimer.Stop();
         ViewModel.ProfileNavigationRequested -= OnProfileNavigationRequested;
         ViewModel.CompanyNavigationRequested -= OnCompanyNavigationRequested;
         ViewModel.JobNavigationRequested -= OnJobNavigationRequested;
         ViewModel.Messages.CollectionChanged -= Messages_CollectionChanged;
-        base.OnNavigatedFrom(eventArguments);
     }
 
     private void ConversationList_SelectionChanged(object sender, SelectionChangedEventArgs eventArguments)
@@ -188,6 +202,12 @@ public sealed partial class ChatPage : Page
 
     private void RefreshTimer_Tick(object? sender, object eventArguments)
     {
+        if (!isActive || App.IsShuttingDown)
+        {
+            refreshTimer.Stop();
+            return;
+        }
+
         _ = ViewModel.RefreshInboxAndSelectedChatAsync();
     }
 
@@ -299,6 +319,12 @@ public sealed partial class ChatPage : Page
 
     private void HandleQueuedScrollToLatestMessage()
     {
+        if (!isActive || App.IsShuttingDown)
+        {
+            isScrollToLatestQueued = false;
+            return;
+        }
+
         isScrollToLatestQueued = false;
         ScrollToLatestMessage();
     }
