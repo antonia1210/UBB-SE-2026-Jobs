@@ -94,14 +94,17 @@ else if (Model.MatchScore >= 0)
 
 @if (Model.Suggestions.Any())
 {
-    <h5 class="mb-2">Top skills to improve your score</h5>
-    <p class="text-muted small mb-3">Completing the corresponding tests for these skills will have the biggest impact on your match score.</p>
-    <div class="table-responsive mb-4" style="max-width: 600px;">
+    <h5 class="mb-2">Top skill groups to improve your score</h5>
+    <p class="text-muted small mb-3">
+        Each row is a skill group with a corresponding test. Completing that test boosts <em>every</em> skill
+        in the group simultaneously. The score gain is the improvement to your overall match if the group reaches 80% coverage.
+    </p>
+    <div class="table-responsive mb-4" style="max-width: 640px;">
         <table class="table table-sm table-bordered align-middle">
             <thead class="table-light">
                 <tr>
-                    <th>Skill</th>
-                    <th>Skill group</th>
+                    <th>Representative skill</th>
+                    <th>Skill group (take its test)</th>
                     <th>Score gain</th>
                 </tr>
             </thead>

@@ -5,7 +5,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using UBB_SE_2026_Jobs.App.ViewModels;
-using UBB_SE_2026_Jobs.Library.DTOs;
 using Windows.UI;
 
 namespace UBB_SE_2026_Jobs.App.Views.Candidate;
@@ -64,12 +63,6 @@ public sealed partial class UserStatusPage : Page
                 btn.BorderBrush = InactiveBdr;
             }
         }
-    }
-
-    private void ViewJobDetails_Click(object sender, RoutedEventArgs eventArguments)
-    {
-        if (sender is Button { Tag: ApplicationCardModel model })
-            Frame.Navigate(typeof(UserStatusJobDetailPage), model);
     }
 
     private void RefreshButton_Click(object sender, RoutedEventArgs eventArguments)

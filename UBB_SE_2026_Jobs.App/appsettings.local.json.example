@@ -1,5 +1,5 @@
 {
   "Api": {
-    "BaseUrl": "https://localhost:7134"
+    "BaseUrl": "http://172.30.242.79"
   }
 }

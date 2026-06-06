@@ -15,30 +15,31 @@
     .chat-wrapper {
         max-width: 780px;
         margin: 24px auto;
-        border-radius: 16px;
+        border-radius: 14px;
         overflow: hidden;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+        box-shadow: 0 2px 16px rgba(15,23,42,0.10);
+        border: 1px solid rgba(15,23,42,0.08);
         display: flex;
         flex-direction: column;
     }
     .chat-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #1e293b;
         padding: 14px 20px;
         display: flex;
         align-items: center;
         gap: 12px;
     }
     .chat-avatar {
-        width: 42px; height: 42px;
+        width: 40px; height: 40px;
         border-radius: 50%;
-        background: rgba(255,255,255,0.25);
+        background: rgba(255,255,255,0.15);
         color: white;
         display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: 1.1rem;
+        font-weight: 600; font-size: 1rem;
         flex-shrink: 0;
     }
     .chat-messages {
-        background: #f0f2f5;
+        background: #f4f6f8;
         padding: 20px 16px;
         min-height: 420px;
         max-height: 520px;
@@ -48,12 +49,12 @@
     .bubble {
         max-width: 68%;
         padding: 10px 14px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         font-size: 0.93rem;
-        line-height: 1.4;
+        line-height: 1.45;
     }
     .bubble-mine {
-        background: #667eea;
+        background: #1e40af;
         color: white;
         border-radius: 18px 18px 4px 18px;
     }
@@ -61,18 +62,18 @@
         background: white;
         color: #212529;
         border-radius: 18px 18px 18px 4px;
-        border: 1px solid #e9ecef;
+        border: 1px solid #e2e8f0;
     }
     .bubble-time {
         font-size: 0.7rem;
         margin-top: 4px;
         text-align: right;
-        opacity: 0.7;
+        opacity: 0.65;
     }
     .sender-avatar {
         width: 28px; height: 28px;
         border-radius: 50%;
-        background: #764ba2;
+        background: #475569;
         color: white;
         display: flex; align-items: center; justify-content: center;
         font-size: 0.7rem; font-weight: 600;
@@ -86,45 +87,46 @@
         border-top: 1px solid #e9ecef;
     }
     .chat-input {
-        background: #f0f2f5 !important;
-        border: none !important;
-        border-radius: 24px !important;
-        padding: 10px 18px !important;
+        background: #f4f6f8 !important;
+        border: 1px solid rgba(15,23,42,0.08) !important;
+        border-radius: 8px !important;
+        padding: 10px 16px !important;
         resize: none;
+        font-size: 0.93rem;
     }
     .chat-input:focus {
         box-shadow: none !important;
-        background: #e8eaed !important;
+        background: #eaecef !important;
     }
     .send-btn {
-        width: 42px; height: 42px;
+        width: 40px; height: 40px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea, #764ba2);
+        background: #1e40af;
         border: none;
         color: white;
         display: flex; align-items: center; justify-content: center;
         flex-shrink: 0;
         font-size: 1rem;
         cursor: pointer;
-        transition: opacity 0.15s;
+        transition: background 0.15s;
     }
-    .send-btn:hover { opacity: 0.88; }
+    .send-btn:hover { background: #1e3a8a; }
     .header-action-btn {
-        background: rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.12);
         color: white;
-        border: 1px solid rgba(255,255,255,0.3);
-        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 6px;
         padding: 4px 12px;
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         cursor: pointer;
         transition: background 0.15s;
     }
-    .header-action-btn:hover { background: rgba(255,255,255,0.28); }
+    .header-action-btn:hover { background: rgba(255,255,255,0.22); }
     .header-delete-btn {
-        background: rgba(220,53,69,0.65);
+        background: rgba(220,53,69,0.55);
         border-color: transparent;
     }
-    .header-delete-btn:hover { background: rgba(220,53,69,0.85); }
+    .header-delete-btn:hover { background: rgba(220,53,69,0.80); }
 </style>
 
 <div class="chat-wrapper">

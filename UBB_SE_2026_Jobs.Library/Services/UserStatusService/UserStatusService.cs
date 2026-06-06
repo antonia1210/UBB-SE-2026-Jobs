@@ -1,42 +1,47 @@
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.DTOs;
 using UBB_SE_2026_Jobs.Library.Repositories.Matches;
-using UBB_SE_2026_Jobs.Library.Services.CompanyService;
+using UBB_SE_2026_Jobs.Library.Repositories.Users;
 using UBB_SE_2026_Jobs.Library.Services.Jobs;
 using UBB_SE_2026_Jobs.Library.Services.JobSkills;
 using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
+using UBB_SE_2026_Jobs.Library.Services.RecommendationAlgorithm;
 using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 
 namespace UBB_SE_2026_Jobs.Library.Services.UserStatusService;
 
 public class UserStatusService : IUserStatusService
 {
-    private const int FullCompatibilityScore = 100;
-    private const int PercentageMultiplier = 100;
-
     private readonly IMatchRepository matchRepository;
     private readonly IPussyCatsJobService jobService;
     private readonly IPussyCatsCompanyService companyService;
     private readonly IUserSkillService userSkillService;
     private readonly IJobSkillService jobSkillService;
+    private readonly IUserRepository userRepository;
+    private readonly IRecommendationAlgorithm algorithm;
 
     public UserStatusService(
         IMatchRepository matchRepository,
         IPussyCatsJobService jobService,
         IPussyCatsCompanyService companyService,
         IUserSkillService userSkillService,
-        IJobSkillService jobSkillService)
+        IJobSkillService jobSkillService,
+        IUserRepository userRepository,
+        IRecommendationAlgorithm algorithm)
     {
         this.matchRepository = matchRepository;
         this.jobService = jobService;
         this.companyService = companyService;
         this.userSkillService = userSkillService;
         this.jobSkillService = jobSkillService;
+        this.userRepository = userRepository;
+        this.algorithm = algorithm;
     }
 
     public async Task<IReadOnlyList<ApplicationCardModel>> GetApplicationsForUserAsync(int userId, CancellationToken cancellationToken = default)
     {
         var matches = await matchRepository.GetByUserIdAsync(userId, cancellationToken).ConfigureAwait(false);
+        var user = await userRepository.GetByIdAsync(userId, cancellationToken).ConfigureAwait(false);
         var userSkills = await userSkillService.GetByUserIdAsync(userId, cancellationToken).ConfigureAwait(false);
 
         var jobsById = (await jobService.GetAllAsync(cancellationToken).ConfigureAwait(false))
@@ -55,7 +60,10 @@ public class UserStatusService : IUserStatusService
 
             companiesById.TryGetValue(job.Company.CompanyId, out var company);
             var jobSkills = jobSkillsByJobId.GetValueOrDefault(match.Job.JobId) ?? [];
-            var compatibilityScore = CalculateCompatibilityScore(userSkills, jobSkills);
+
+            var compatibilityScore = user is not null
+                ? (int)algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills)
+                : 0;
 
             result.Add(new ApplicationCardModel
             {
@@ -71,22 +79,5 @@ public class UserStatusService : IUserStatusService
         }
 
         return result;
-    }
-
-    private static int CalculateCompatibilityScore(IReadOnlyList<UserSkill> userSkills, IReadOnlyList<JobSkill> jobSkills)
-    {
-        if (jobSkills.Count == 0)
-            return FullCompatibilityScore;
-
-        var userSkillScoreBySkillId = userSkills.ToDictionary(userSkill => userSkill.Skill.SkillId, userSkill => userSkill.Score);
-
-        double totalScore = 0;
-        foreach (var requiredJobSkill in jobSkills)
-        {
-            if (userSkillScoreBySkillId.TryGetValue(requiredJobSkill.Skill.SkillId, out var userScore))
-                totalScore += Math.Min(userScore, requiredJobSkill.RequiredLevel) / (double)requiredJobSkill.RequiredLevel;
-        }
-
-        return (int)(totalScore / jobSkills.Count * PercentageMultiplier);
     }
 }
