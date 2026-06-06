@@ -328,8 +328,30 @@ public class ProfileFormViewModel : DispatchableObservableObject
 
         var suggestions = new[]
         {
-            "C#", ".NET", "SQL", "JavaScript", "TypeScript", "React", "Angular", "Azure",
-            "Docker", "Git", "Python", "UI/UX", "Machine Learning", "Cybersecurity",
+            "C#", "React", "SQL", "Testing", "Selenium", "Docker", "Kubernetes", "Python",
+            "Pandas", "Machine Learning", "NLP", "Figma", "UI Design", "Architecture",
+            "Leadership", "Cloud", "Flutter", "Kotlin", "Penetration Testing", "SIEM",
+            "Java", "Spring Boot", "Agile", "Spark", "Go", "PostgreSQL", "Computer Vision",
+            "PyTorch", "Angular", "Vue.js", "TypeScript", "AWS", "HTML", "CSS", "SCSS",
+            "Tailwind", "JavaScript", "Svelte", "Git", "GitHub", "Jest", "Cypress",
+            "Webpack", "Vite", "Parcel", "Adobe XD", "Zeplin", "Node.js", "ASP.NET",
+            "Django", "MySQL", "MongoDB", "Redis", "REST", "GraphQL", "gRPC", "JUnit",
+            "NUnit", "pytest", "Postman", "Sketch", "InVision", "Figma Prototyping",
+            "Marvel", "Axure", "Interviews", "Surveys", "Usability Testing", "Typography",
+            "Color Theory", "Grid Systems", "Storybook", "Google Analytics", "Hotjar",
+            "Mixpanel", "Podman", "Docker Swarm", "OpenShift", "Jenkins", "GitHub Actions",
+            "GitLab CI", "CircleCI", "Azure", "Google Cloud", "Terraform", "Ansible",
+            "Pulumi", "Prometheus", "Grafana", "Datadog", "Scrum", "Kanban", "Waterfall",
+            "Jira", "Trello", "Asana", "Risk Assessment", "Mitigation Planning",
+            "Stakeholder Management", "Reporting", "Presentations", "Cost Estimation",
+            "Budget Tracking", "MS Project", "BigQuery", "Power BI", "Tableau", "Looker",
+            "R", "Descriptive Statistics", "Regression", "Hypothesis Testing", "Excel",
+            "Google Sheets", "OpenRefine", "Firewalls", "VPN", "IDS/IPS", "TCP/IP",
+            "Metasploit", "Burp Suite", "Nmap", "Splunk", "IBM QRadar", "Microsoft Sentinel",
+            "AES", "RSA", "PKI", "TLS/SSL", "ISO 27001", "GDPR", "NIST", "SOC 2",
+            "Forensics", "Malware Analysis", "DFIR", "TensorFlow", "scikit-learn", "Keras",
+            "Julia", "Linear Algebra", "Calculus", "Probability", "Statistics", "NumPy",
+            "Apache Spark", "FastAPI", "MLflow", "Hugging Face", "OpenCV", "NLTK", "spaCy",
         };
 
         return suggestions
