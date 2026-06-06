@@ -10,7 +10,7 @@ public class ChatInitialsConverter : IValueConverter
     {
         string? name = value switch
         {
-            ContactSearchResultViewModel vm => vm.DisplayName,
+            ContactSearchResultViewModel viewModel => viewModel.DisplayName,
             Chat chat => ChatDisplayResolver.ResolveChatName(chat),
             User user => user.Name,
             Company company => company.Name,

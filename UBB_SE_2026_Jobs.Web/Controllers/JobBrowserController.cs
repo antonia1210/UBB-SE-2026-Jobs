@@ -70,17 +70,17 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         public IActionResult ApplyFilters(IFormCollection form)
         {
             var empTypes = form["EmploymentTypes"]
-                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Where(value => !string.IsNullOrWhiteSpace(value))
                 .ToList();
             HttpContext.Session.SetString(SessionKeyEmploymentTypes, string.Join(",", empTypes));
 
             var expLevels = form["ExperienceLevels"]
-                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Where(value => !string.IsNullOrWhiteSpace(value))
                 .ToList();
             HttpContext.Session.SetString(SessionKeyExperienceLevels, string.Join(",", expLevels));
 
             var workModes = form["WorkModes"]
-                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Where(value => !string.IsNullOrWhiteSpace(value))
                 .ToList();
             HttpContext.Session.SetString(SessionKeyWorkModes, string.Join(",", workModes));
 
@@ -95,18 +95,18 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
             var empTypes = HttpContext.Session.GetString(SessionKeyEmploymentTypes);
             if (!string.IsNullOrEmpty(empTypes))
-                foreach (var t in empTypes.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                    filters.EmploymentTypes.Add(t);
+                foreach (var employmentType in empTypes.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    filters.EmploymentTypes.Add(employmentType);
 
             var expLevels = HttpContext.Session.GetString(SessionKeyExperienceLevels);
             if (!string.IsNullOrEmpty(expLevels))
-                foreach (var l in expLevels.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                    filters.ExperienceLevels.Add(l);
+                foreach (var experienceLevel in expLevels.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    filters.ExperienceLevels.Add(experienceLevel);
 
             var workModes = HttpContext.Session.GetString(SessionKeyWorkModes);
             if (!string.IsNullOrEmpty(workModes))
-                foreach (var w in workModes.Split(',', StringSplitOptions.RemoveEmptyEntries))
-                    filters.WorkModes.Add(w);
+                foreach (var workMode in workModes.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    filters.WorkModes.Add(workMode);
 
             filters.LocationSubstring = HttpContext.Session.GetString(SessionKeyLocation) ?? string.Empty;
 

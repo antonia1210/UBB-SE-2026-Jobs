@@ -16,19 +16,19 @@
         </div>
     } else {
         <div class="row g-4">
-            @foreach (var s in Model) {
+            @foreach (var interviewSession in Model) {
                 <div class="col-md-6 col-lg-4">
                     <div class="card shadow-sm p-3" style="border-radius:10px;">
                         <div class="fw-semibold mb-1">
-                            Interview for Position #@s.PositionId
+                            Interview for Position #@interviewSession.PositionId
                         </div>
 
                         <div class="text-muted small mb-2">
-                            @s.DateStart.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                            @interviewSession.DateStart.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
                         </div>
 
                         <div class="mb-3">
-                            <span class="badge bg-primary">@s.Status</span>
+                            <span class="badge bg-primary">@interviewSession.Status</span>
                         </div>
                     </div>
                 </div>

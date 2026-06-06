@@ -67,11 +67,11 @@ public static class SimpleModelOperations
 
     public static int CalculateLevelNumber(int experiencePoints)
     {
-        for (int i = LevelThresholds.Length - 1; i >= 0; i--)
+        for (int thresholdIndex = LevelThresholds.Length - 1; thresholdIndex >= 0; thresholdIndex--)
         {
-            if (experiencePoints >= LevelThresholds[i])
+            if (experiencePoints >= LevelThresholds[thresholdIndex])
             {
-                return i + 1;
+                return thresholdIndex + 1;
             }
         }
         return 1;

@@ -11,11 +11,11 @@ public class QuestionConfiguration : IEntityTypeConfiguration<TestQuestion>
 {
     public void Configure(EntityTypeBuilder<TestQuestion> builder)
     {
-        builder.HasKey(q => q.Id);
+        builder.HasKey(question => question.Id);
 
-        builder.HasOne(q => q.Test)
-            .WithMany(t => t.Questions)
-            .HasForeignKey(q => q.TestId)
+        builder.HasOne(question => question.Test)
+            .WithMany(test => test.Questions)
+            .HasForeignKey(question => question.TestId)
             .OnDelete(DeleteBehavior.SetNull);
 
         // Seed five mixed-type questions for each static compatibility skill-group test.

@@ -11,16 +11,16 @@ public class TestAttemptConfiguration : IEntityTypeConfiguration<TestAttempt>
     {
         public void Configure(EntityTypeBuilder<TestAttempt> builder)
         {
-            builder.HasKey(ta => ta.Id);
+            builder.HasKey(testAttempt => testAttempt.Id);
 
-        builder.HasOne(ta => ta.User)
+        builder.HasOne(testAttempt => testAttempt.User)
             .WithMany()
-            .HasForeignKey(ta => ta.ExternalUserId)
+            .HasForeignKey(testAttempt => testAttempt.ExternalUserId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasMany(ta => ta.Answers)
-            .WithOne(a => a.TestAttempt)
-            .HasForeignKey(a => a.AttemptId)
+        builder.HasMany(testAttempt => testAttempt.Answers)
+            .WithOne(answer => answer.TestAttempt)
+            .HasForeignKey(answer => answer.AttemptId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -42,31 +42,31 @@
                                 {
                                     case "TRUE_FALSE":
                                         options = new List<string> { "true", "false" };
-                                        for (int i = 0; i < options.Count; i++)
+                                        for (int optionIndex = 0; optionIndex < options.Count; optionIndex++)
                                         {
                                             <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="Answers[@question.Id]" value="@options[i]" id="q_@(question.Id)_@i">
-                                                <label class="form-check-label" for="q_@(question.Id)_@i">@(char.ToUpper(options[i][0]) + options[i].Substring(1))</label>
+                                                <input class="form-check-input" type="radio" name="Answers[@question.Id]" value="@options[optionIndex]" id="q_@(question.Id)_@optionIndex">
+                                                <label class="form-check-label" for="q_@(question.Id)_@optionIndex">@(char.ToUpper(options[optionIndex][0]) + options[optionIndex].Substring(1))</label>
                                             </div>
                                         }
                                         break;
 
                                     case "SINGLE_CHOICE":
-                                        for (int i = 0; i < options.Count; i++)
+                                        for (int optionIndex = 0; optionIndex < options.Count; optionIndex++)
                                         {
                                             <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="Answers[@question.Id]" value="@i" id="q_@(question.Id)_@i">
-                                                <label class="form-check-label" for="q_@(question.Id)_@i">@options[i]</label>
+                                                <input class="form-check-input" type="radio" name="Answers[@question.Id]" value="@optionIndex" id="q_@(question.Id)_@optionIndex">
+                                                <label class="form-check-label" for="q_@(question.Id)_@optionIndex">@options[optionIndex]</label>
                                             </div>
                                         }
                                         break;
 
                                     case "MULTIPLE_CHOICE":
-                                        for (int i = 0; i < options.Count; i++)
+                                        for (int optionIndex = 0; optionIndex < options.Count; optionIndex++)
                                         {
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="Answers[@question.Id]" value="@i" id="q_@(question.Id)_@i">
-                                                <label class="form-check-label" for="q_@(question.Id)_@i">@options[i]</label>
+                                                <input class="form-check-input" type="checkbox" name="Answers[@question.Id]" value="@optionIndex" id="q_@(question.Id)_@optionIndex">
+                                                <label class="form-check-label" for="q_@(question.Id)_@optionIndex">@options[optionIndex]</label>
                                             </div>
                                         }
                                         break;

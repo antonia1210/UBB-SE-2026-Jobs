@@ -11,16 +11,16 @@ public class CollaboratorConfiguration : IEntityTypeConfiguration<Collaborator>
 {
     public void Configure(EntityTypeBuilder<Collaborator> builder)
     {
-        builder.HasKey(c => new { c.EventId, c.CompanyId });
+        builder.HasKey(collaborator => new { collaborator.EventId, collaborator.CompanyId });
 
-        builder.HasOne(c => c.Event)
-            .WithMany(e => e.Collaborators)
-            .HasForeignKey(c => c.EventId)
+        builder.HasOne(collaborator => collaborator.Event)
+            .WithMany(eventEntity => eventEntity.Collaborators)
+            .HasForeignKey(collaborator => collaborator.EventId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(c => c.Company)
-            .WithMany(co => co.Collaborators)
-            .HasForeignKey(c => c.CompanyId)
+        builder.HasOne(collaborator => collaborator.Company)
+            .WithMany(company => company.Collaborators)
+            .HasForeignKey(collaborator => collaborator.CompanyId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

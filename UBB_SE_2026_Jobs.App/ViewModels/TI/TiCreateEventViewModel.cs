@@ -39,14 +39,14 @@ public partial class TiCreateEventViewModel : DispatchableObservableObject
     private async Task LoadCompaniesAsync()
     {
         var companies = await companyService.GetAllAsync();
-        foreach (var c in companies)
+        foreach (var company in companies)
         {
             // Do not include the host company as a collaborator
-            if (c.CompanyId != session.CompanyId)
+            if (company.CompanyId != session.CompanyId)
             {
                 AvailableCompanies.Add(new TiCompanyPickItem 
                 { 
-                    Company = new UBB_SE_2026_Jobs.Library.DTOs.CompanyDto { CompanyId = c.CompanyId, Name = c.Name }, 
+                    Company = new UBB_SE_2026_Jobs.Library.DTOs.CompanyDto { CompanyId = company.CompanyId, Name = company.Name }, 
                     IsSelected = false 
                 });
             }
@@ -68,7 +68,7 @@ public partial class TiCreateEventViewModel : DispatchableObservableObject
             EndDate = EndDate!.Value.DateTime,
             HostCompanyId = session.CompanyId ?? 1,
             PostedAt = DateTime.UtcNow,
-            CollaboratorCompanyIds = AvailableCompanies.Where(c => c.IsSelected).Select(c => c.Company.CompanyId).ToList()
+            CollaboratorCompanyIds = AvailableCompanies.Where(companyItem => companyItem.IsSelected).Select(companyItem => companyItem.Company.CompanyId).ToList()
         };
 
         await eventsService.CreateAsync(dto);
@@ -78,19 +78,19 @@ public partial class TiCreateEventViewModel : DispatchableObservableObject
 
     private bool Validate()
     {
-        bool ok = true;
+        bool isValid = true;
         TitleError = string.Empty;
         DescriptionError = string.Empty;
         LocationError = string.Empty;
         DateError = string.Empty;
 
-        if (string.IsNullOrWhiteSpace(Title)) { TitleError = "Title is required."; ok = false; }
-        if (string.IsNullOrWhiteSpace(Description)) { DescriptionError = "Description is required."; ok = false; }
-        if (string.IsNullOrWhiteSpace(Location)) { LocationError = "Location is required."; ok = false; }
-        if (StartDate == null) { DateError = "Start date is required."; ok = false; }
-        if (EndDate == null) { DateError = "End date is required."; ok = false; }
+        if (string.IsNullOrWhiteSpace(Title)) { TitleError = "Title is required."; isValid = false; }
+        if (string.IsNullOrWhiteSpace(Description)) { DescriptionError = "Description is required."; isValid = false; }
+        if (string.IsNullOrWhiteSpace(Location)) { LocationError = "Location is required."; isValid = false; }
+        if (StartDate == null) { DateError = "Start date is required."; isValid = false; }
+        if (EndDate == null) { DateError = "End date is required."; isValid = false; }
         if (StartDate != null && EndDate != null && EndDate < StartDate)
-        { DateError = "End date must be after start date."; ok = false; }
-        return ok;
+        { DateError = "End date must be after start date."; isValid = false; }
+        return isValid;
     }
 }

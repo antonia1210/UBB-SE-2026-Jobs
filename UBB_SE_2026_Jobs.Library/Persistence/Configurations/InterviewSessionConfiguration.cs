@@ -12,11 +12,11 @@ public class InterviewSessionConfiguration : IEntityTypeConfiguration<InterviewS
     public void Configure(EntityTypeBuilder<InterviewSession> builder)
         {
             builder.ToTable("interview_sessions");
-            builder.HasKey(i => i.Id);
+            builder.HasKey(interviewSession => interviewSession.Id);
 
-        builder.HasOne(i => i.User)
+        builder.HasOne(interviewSession => interviewSession.User)
             .WithMany()
-            .HasForeignKey(i => i.ExternalUserId)
+            .HasForeignKey(interviewSession => interviewSession.ExternalUserId)
             .OnDelete(DeleteBehavior.SetNull);
     }
 }

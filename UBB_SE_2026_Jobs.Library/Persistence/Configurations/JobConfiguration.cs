@@ -35,8 +35,8 @@ public class JobConfiguration : IEntityTypeConfiguration<Job>
         builder.Ignore(job => job.EmploymentType);
 
         builder.HasOne(job => job.Company)
-            .WithMany(c => c.Jobs)
-            .HasForeignKey(j => j.CompanyId)
+            .WithMany(company => company.Jobs)
+            .HasForeignKey(job => job.CompanyId)
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(job => job.CompanyId);

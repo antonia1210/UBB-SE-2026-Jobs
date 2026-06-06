@@ -39,9 +39,9 @@ public partial class TiLeaderboardViewModel : DispatchableObservableObject
         allEntries = await leaderboardService.GetByTestIdAsync(testId);
         CurrentUserEntry = await leaderboardService.GetUserEntryAsync(testId, session.UserId);
 
-        var top = allEntries.OrderBy(e => e.RankPosition).Take(3).ToList();
+        var topEntries = allEntries.OrderBy(entry => entry.RankPosition).Take(3).ToList();
         TopEntries.Clear();
-        foreach (var e in top) TopEntries.Add(e);
+        foreach (var leaderboardEntry in topEntries) TopEntries.Add(leaderboardEntry);
 
         TotalPages = Math.Max(1, (int)Math.Ceiling(allEntries.Count / (double)PageSize));
         currentPage = 1;
@@ -61,9 +61,9 @@ public partial class TiLeaderboardViewModel : DispatchableObservableObject
 
     private void UpdatePage()
     {
-        var slice = allEntries.OrderBy(e => e.RankPosition).Skip((currentPage - 1) * PageSize).Take(PageSize).ToList();
+        var pageEntries = allEntries.OrderBy(entry => entry.RankPosition).Skip((currentPage - 1) * PageSize).Take(PageSize).ToList();
         PageEntries.Clear();
-        foreach (var e in slice) PageEntries.Add(e);
+        foreach (var leaderboardEntry in pageEntries) PageEntries.Add(leaderboardEntry);
         CanGoPrev = currentPage > 1;
         CanGoNext = currentPage < TotalPages;
         PageInfo = $"{currentPage} / {TotalPages}";

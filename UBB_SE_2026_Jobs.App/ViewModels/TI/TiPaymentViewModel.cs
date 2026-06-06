@@ -34,7 +34,7 @@ public partial class TiPaymentViewModel : DispatchableObservableObject
     {
         var data = await paymentService.GetPaidJobsInfoAsync(SelectedJobType, SelectedExperienceLevel);
         PaymentData.Clear();
-        foreach (var d in data) PaymentData.Add(d);
+        foreach (var paymentInfo in data) PaymentData.Add(paymentInfo);
     }
 
     [RelayCommand]

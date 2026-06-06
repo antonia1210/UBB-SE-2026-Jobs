@@ -31,7 +31,7 @@ public partial class TiSubmittedAnswersViewModel : DispatchableObservableObject
 
         var answers = await testService.GetAnswersByAttemptAsync(attemptId);
         var questions = await testService.GetQuestionsByTestIdAsync(testId);
-        var questionMap = questions.ToDictionary(q => q.Id);
+        var questionMap = questions.ToDictionary(question => question.Id);
 
         foreach (var answer in answers)
         {
@@ -60,13 +60,13 @@ public partial class TiSubmittedAnswersViewModel : DispatchableObservableObject
     {
         if (value.StartsWith("CORRECT:", StringComparison.OrdinalIgnoreCase))
         {
-            float.TryParse(value["CORRECT:".Length..], NumberStyles.Float, CultureInfo.InvariantCulture, out float s);
-            return ("Correct", s);
+            float.TryParse(value["CORRECT:".Length..], NumberStyles.Float, CultureInfo.InvariantCulture, out float score);
+            return ("Correct", score);
         }
         if (value.StartsWith("PARTIAL:", StringComparison.OrdinalIgnoreCase))
         {
-            float.TryParse(value["PARTIAL:".Length..], NumberStyles.Float, CultureInfo.InvariantCulture, out float s);
-            return ("Partial", s);
+            float.TryParse(value["PARTIAL:".Length..], NumberStyles.Float, CultureInfo.InvariantCulture, out float score);
+            return ("Partial", score);
         }
         return ("Incorrect", 0f);
     }
@@ -92,32 +92,32 @@ public partial class TiSubmittedAnswersViewModel : DispatchableObservableObject
         };
     }
 
-    private static string? ResolveOptionText(string indexStr, string? optionsJson)
+    private static string? ResolveOptionText(string indexText, string? optionsJson)
     {
         if (string.IsNullOrEmpty(optionsJson)) return null;
         try
         {
-            var opts = JsonSerializer.Deserialize<List<string>>(optionsJson);
-            if (opts != null && int.TryParse(indexStr, out int idx) && idx >= 0 && idx < opts.Count)
-                return opts[idx];
+            var options = JsonSerializer.Deserialize<List<string>>(optionsJson);
+            if (options != null && int.TryParse(indexText, out int optionIndex) && optionIndex >= 0 && optionIndex < options.Count)
+                return options[optionIndex];
         }
         catch { }
         return null;
     }
 
-    private static string ResolveMultipleOptionText(string indicesStr, string? optionsJson)
+    private static string ResolveMultipleOptionText(string indicesText, string? optionsJson)
     {
-        if (string.IsNullOrEmpty(optionsJson)) return indicesStr;
+        if (string.IsNullOrEmpty(optionsJson)) return indicesText;
         try
         {
-            var opts = JsonSerializer.Deserialize<List<string>>(optionsJson) ?? [];
-            var labels = indicesStr.Trim().TrimStart('[').TrimEnd(']')
+            var options = JsonSerializer.Deserialize<List<string>>(optionsJson) ?? [];
+            var labels = indicesText.Trim().TrimStart('[').TrimEnd(']')
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(p => int.TryParse(p.Trim(), out int i) && i >= 0 && i < opts.Count ? opts[i] : p.Trim())
-                .Where(s => !string.IsNullOrEmpty(s));
+                .Select(part => int.TryParse(part.Trim(), out int optionIndex) && optionIndex >= 0 && optionIndex < options.Count ? options[optionIndex] : part.Trim())
+                .Where(label => !string.IsNullOrEmpty(label));
             return string.Join(", ", labels);
         }
         catch { }
-        return indicesStr;
+        return indicesText;
     }
 }

@@ -125,14 +125,14 @@ public class ChatController : Controller
             var companyId = GetCompanyId();
             var recruiters = await chat.SearchRecruitersByCompanyAsync(companyId, q, cancellationToken);
             return Json(recruiters
-                .Where(u => u.UserId != currentUserId)
-                .Select(u => new { id = u.UserId, name = $"{u.FirstName} {u.LastName}".Trim() }));
+                .Where(user => user.UserId != currentUserId)
+                .Select(user => new { id = user.UserId, name = $"{user.FirstName} {user.LastName}".Trim() }));
         }
 
         var users = await chat.SearchUsersAsync(q, cancellationToken);
         return Json(users
-            .Where(u => u.UserId != currentUserId)
-            .Select(u => new { id = u.UserId, name = $"{u.FirstName} {u.LastName}".Trim() }));
+            .Where(user => user.UserId != currentUserId)
+            .Select(user => new { id = user.UserId, name = $"{user.FirstName} {user.LastName}".Trim() }));
     }
 
     [HttpPost, ValidateAntiForgeryToken]

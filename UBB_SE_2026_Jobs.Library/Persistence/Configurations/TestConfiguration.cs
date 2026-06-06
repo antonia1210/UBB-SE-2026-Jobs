@@ -11,16 +11,16 @@ public class TestConfiguration : IEntityTypeConfiguration<Test>
 {
     public void Configure(EntityTypeBuilder<Test> builder)
     {
-        builder.HasKey(t => t.Id);
+        builder.HasKey(test => test.Id);
 
-        builder.HasMany(t => t.Questions)
-            .WithOne(q => q.Test)
-            .HasForeignKey(q => q.TestId)
+        builder.HasMany(test => test.Questions)
+            .WithOne(question => question.Test)
+            .HasForeignKey(question => question.TestId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasOne(t => t.Skill)
+        builder.HasOne(test => test.Skill)
             .WithMany()
-            .HasForeignKey(t => t.SkillId)
+            .HasForeignKey(test => test.SkillId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // Seed one test per compatibility skill group. Questions are seeded in

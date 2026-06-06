@@ -65,9 +65,9 @@ public class TiTestPageViewModel : INotifyPropertyChanged
 
         var questions = await testService.GetQuestionsByTestIdAsync(testId);
         int index = 1;
-        foreach (var q in questions)
+        foreach (var question in questions)
         {
-            var type = q.QuestionType switch
+            var type = question.QuestionType switch
             {
                 "SINGLE_CHOICE" => TiQuestionType.SINGLE_CHOICE,
                 "MULTIPLE_CHOICE" => TiQuestionType.MULTIPLE_CHOICE,
@@ -78,37 +78,37 @@ public class TiTestPageViewModel : INotifyPropertyChanged
 
             if (type == TiQuestionType.INTERVIEW) continue;
 
-            var qvm = new TiQuestionViewModel
+            var questionViewModel = new TiQuestionViewModel
             {
-                QuestionId = q.Id,
+                QuestionId = question.Id,
                 DisplayNumber = index++,
-                QuestionText = q.QuestionText,
+                QuestionText = question.QuestionText,
                 Type = type,
             };
 
             if (type == TiQuestionType.SINGLE_CHOICE || type == TiQuestionType.MULTIPLE_CHOICE)
             {
                 var options = new List<string>();
-                if (!string.IsNullOrEmpty(q.OptionsJson))
+                if (!string.IsNullOrEmpty(question.OptionsJson))
                 {
-                    try { options = JsonSerializer.Deserialize<List<string>>(q.OptionsJson) ?? new(); }
+                    try { options = JsonSerializer.Deserialize<List<string>>(question.OptionsJson) ?? new(); }
                     catch { }
                 }
 
-                for (int i = 0; i < options.Count; i++)
+                for (int optionIndex = 0; optionIndex < options.Count; optionIndex++)
                 {
-                    qvm.Options.Add(new TiOptionViewModel
+                    questionViewModel.Options.Add(new TiOptionViewModel
                     {
-                        Text = options[i],
-                        Index = i,
-                        GroupName = $"q_{q.Id}",
+                        Text = options[optionIndex],
+                        Index = optionIndex,
+                        GroupName = $"q_{question.Id}",
                         OnSelectionChanged = UpdateAnsweredCount,
                     });
                 }
             }
 
-            qvm.OnAnswerChanged = UpdateAnsweredCount;
-            Questions.Add(qvm);
+            questionViewModel.OnAnswerChanged = UpdateAnsweredCount;
+            Questions.Add(questionViewModel);
         }
 
         Notify(nameof(TotalCount));
@@ -121,8 +121,8 @@ public class TiTestPageViewModel : INotifyPropertyChanged
     {
         StopTimer();
         var answers = Questions
-            .Select(q => new TiAnswerDto { QuestionId = q.QuestionId, Value = q.GetAnswerValue() })
-            .Where(a => !string.IsNullOrEmpty(a.Value))
+            .Select(question => new TiAnswerDto { QuestionId = question.QuestionId, Value = question.GetAnswerValue() })
+            .Where(answer => !string.IsNullOrEmpty(answer.Value))
             .ToList();
 
         return await testService.SubmitAttemptAsync(UserId, TestId, answers);
@@ -145,7 +145,7 @@ public class TiTestPageViewModel : INotifyPropertyChanged
     }
 
     private void UpdateAnsweredCount() =>
-        AnsweredCount = Questions.Count(q => q.IsAnswered());
+        AnsweredCount = Questions.Count(question => question.IsAnswered());
 
     private void Notify([CallerMemberName] string name = "") =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

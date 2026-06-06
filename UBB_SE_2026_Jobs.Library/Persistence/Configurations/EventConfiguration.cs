@@ -11,11 +11,11 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
     {
         public void Configure(EntityTypeBuilder<Event> builder)
         {
-            builder.HasKey(e => e.Id);
+            builder.HasKey(eventEntity => eventEntity.Id);
 
-        builder.HasMany(e => e.Collaborators)
-            .WithOne(c => c.Event)
-            .HasForeignKey(c => c.EventId)
+        builder.HasMany(eventEntity => eventEntity.Collaborators)
+            .WithOne(collaborator => collaborator.Event)
+            .HasForeignKey(collaborator => collaborator.EventId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

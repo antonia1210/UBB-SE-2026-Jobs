@@ -80,11 +80,11 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             var answerList = answers ?? new List<AnswerDto>();
             if ((answerList == null || !answerList.Any()) && questions.Any())
             {
-                answerList = questions.Select(q => new AnswerDto
+                answerList = questions.Select(question => new AnswerDto
                 {
                     AttemptId = attempt.Id,
-                    QuestionId = q.Id,
-                    Question = new QuestionDto { Id = q.Id, QuestionText = q.QuestionText }
+                    QuestionId = question.Id,
+                    Question = new QuestionDto { Id = question.Id, QuestionText = question.QuestionText }
                 }).ToList();
             }
 
@@ -102,11 +102,11 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
             try
             {
-                foreach (var a in answers)
+                foreach (var answer in answers)
                 {
                     // ensure AttemptId is set
-                    a.AttemptId = attemptId;
-                    await _answersApi.SaveAnswer(a);
+                    answer.AttemptId = attemptId;
+                    await _answersApi.SaveAnswer(answer);
                 }
             }
             catch (HttpRequestException ex)

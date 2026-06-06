@@ -25,7 +25,7 @@ public partial class TiApplicantsViewModel : DispatchableObservableObject
         IsLoading = true;
         var list = await applicantService.GetByJobAsync(job.JobId);
         Applicants.Clear();
-        foreach (var a in list) Applicants.Add(a);
+        foreach (var applicant in list) Applicants.Add(applicant);
         IsLoading = false;
     }
 }

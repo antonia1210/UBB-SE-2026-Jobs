@@ -120,43 +120,43 @@ public class UserProfileController : Controller
     {
         if (model.WorkExperiences != null)
         {
-            for (int i = 0; i < model.WorkExperiences.Count; i++)
+            for (int workExperienceIndex = 0; workExperienceIndex < model.WorkExperiences.Count; workExperienceIndex++)
             {
-                var we = model.WorkExperiences[i];
-                if (string.IsNullOrWhiteSpace(we.Company))
-                    ModelState.AddModelError($"WorkExperiences[{i}].Company", "Company is required.");
-                if (string.IsNullOrWhiteSpace(we.JobTitle))
-                    ModelState.AddModelError($"WorkExperiences[{i}].JobTitle", "Job title is required.");
-                if (we.StartDate == default)
-                    ModelState.AddModelError($"WorkExperiences[{i}].StartDate", "Start date is required.");
+                var workExperience = model.WorkExperiences[workExperienceIndex];
+                if (string.IsNullOrWhiteSpace(workExperience.Company))
+                    ModelState.AddModelError($"WorkExperiences[{workExperienceIndex}].Company", "Company is required.");
+                if (string.IsNullOrWhiteSpace(workExperience.JobTitle))
+                    ModelState.AddModelError($"WorkExperiences[{workExperienceIndex}].JobTitle", "Job title is required.");
+                if (workExperience.StartDate == default)
+                    ModelState.AddModelError($"WorkExperiences[{workExperienceIndex}].StartDate", "Start date is required.");
             }
         }
 
         if (model.Projects != null)
         {
-            for (int i = 0; i < model.Projects.Count; i++)
+            for (int projectIndex = 0; projectIndex < model.Projects.Count; projectIndex++)
             {
-                var p = model.Projects[i];
-                if (string.IsNullOrWhiteSpace(p.Name))
-                    ModelState.AddModelError($"Projects[{i}].Name", "Project name is required.");
-                if (string.IsNullOrWhiteSpace(p.Description))
-                    ModelState.AddModelError($"Projects[{i}].Description", "Description is required.");
+                var project = model.Projects[projectIndex];
+                if (string.IsNullOrWhiteSpace(project.Name))
+                    ModelState.AddModelError($"Projects[{projectIndex}].Name", "Project name is required.");
+                if (string.IsNullOrWhiteSpace(project.Description))
+                    ModelState.AddModelError($"Projects[{projectIndex}].Description", "Description is required.");
             }
         }
 
         if (model.ExtraCurricularActivities != null)
         {
-            for (int i = 0; i < model.ExtraCurricularActivities.Count; i++)
+            for (int activityIndex = 0; activityIndex < model.ExtraCurricularActivities.Count; activityIndex++)
             {
-                var a = model.ExtraCurricularActivities[i];
-                if (string.IsNullOrWhiteSpace(a.ActivityName))
-                    ModelState.AddModelError($"ExtraCurricularActivities[{i}].ActivityName", "Activity name is required.");
-                if (string.IsNullOrWhiteSpace(a.Organization))
-                    ModelState.AddModelError($"ExtraCurricularActivities[{i}].Organization", "Organization is required.");
-                if (string.IsNullOrWhiteSpace(a.Role))
-                    ModelState.AddModelError($"ExtraCurricularActivities[{i}].Role", "Role is required.");
-                if (string.IsNullOrWhiteSpace(a.Period))
-                    ModelState.AddModelError($"ExtraCurricularActivities[{i}].Period", "Period is required.");
+                var activity = model.ExtraCurricularActivities[activityIndex];
+                if (string.IsNullOrWhiteSpace(activity.ActivityName))
+                    ModelState.AddModelError($"ExtraCurricularActivities[{activityIndex}].ActivityName", "Activity name is required.");
+                if (string.IsNullOrWhiteSpace(activity.Organization))
+                    ModelState.AddModelError($"ExtraCurricularActivities[{activityIndex}].Organization", "Organization is required.");
+                if (string.IsNullOrWhiteSpace(activity.Role))
+                    ModelState.AddModelError($"ExtraCurricularActivities[{activityIndex}].Role", "Role is required.");
+                if (string.IsNullOrWhiteSpace(activity.Period))
+                    ModelState.AddModelError($"ExtraCurricularActivities[{activityIndex}].Period", "Period is required.");
             }
         }
 

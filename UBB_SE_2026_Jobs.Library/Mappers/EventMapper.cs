@@ -27,7 +27,7 @@ namespace UBB_SE_2026_Jobs.Library.Mappers
                 Location = entity.Location,
                 HostCompanyId = entity.HostCompanyId,
                 PostedAt = entity.PostedAt,
-                CollaboratorCompanyIds = entity.Collaborators?.Select(c => c.CompanyId).ToList() ?? new System.Collections.Generic.List<int>(),
+                CollaboratorCompanyIds = entity.Collaborators?.Select(collaborator => collaborator.CompanyId).ToList() ?? new System.Collections.Generic.List<int>(),
             };
         }
 
@@ -48,7 +48,7 @@ namespace UBB_SE_2026_Jobs.Library.Mappers
                 Location = dto.Location,
                 HostCompanyId = dto.HostCompanyId,
                 PostedAt = dto.PostedAt,
-                Collaborators = dto.CollaboratorCompanyIds?.Select(id => new Collaborator { CompanyId = id }).ToList() ?? new System.Collections.Generic.List<Collaborator>(),
+                Collaborators = dto.CollaboratorCompanyIds?.Select(companyId => new Collaborator { CompanyId = companyId }).ToList() ?? new System.Collections.Generic.List<Collaborator>(),
             };
         }
     }

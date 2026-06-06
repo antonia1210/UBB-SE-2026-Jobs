@@ -62,7 +62,7 @@ public class TestDashboardViewModel : DispatchableObservableObject
                 if (!questionCountCache.TryGetValue(attempt.TestId, out float maxScore))
                 {
                     var questions = await tiTestService.GetQuestionsByTestIdAsync(test.Id);
-                    maxScore = questions.Sum(q => q.QuestionScore);
+                    maxScore = questions.Sum(question => question.QuestionScore);
                     questionCountCache[attempt.TestId] = maxScore;
                 }
 

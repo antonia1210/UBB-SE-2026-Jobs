@@ -11,23 +11,23 @@ public class SlotConfiguration : IEntityTypeConfiguration<Slot>
     {
         public void Configure(EntityTypeBuilder<Slot> builder)
         {
-            builder.HasKey(s => s.Id);
+            builder.HasKey(slot => slot.Id);
 
-        builder.HasOne(s => s.Candidate)
+        builder.HasOne(slot => slot.Candidate)
             .WithMany()
-            .HasForeignKey(s => s.CandidateId)
+            .HasForeignKey(slot => slot.CandidateId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        builder.HasOne(s => s.Recruiter)
+        builder.HasOne(slot => slot.Recruiter)
             .WithMany()
-            .HasForeignKey(s => s.RecruiterId)
+            .HasForeignKey(slot => slot.RecruiterId)
             .OnDelete(DeleteBehavior.NoAction);
 
         // Complex relationship: Slot to Recruiter using composite key
-        builder.HasOne(s => s.Recruiter)
+        builder.HasOne(slot => slot.Recruiter)
             .WithMany()
-            .HasForeignKey(s => new { s.RecruiterId, s.RecruiterCompanyId })
-            .HasPrincipalKey(r => new { r.UserId, r.CompanyId });
+            .HasForeignKey(slot => new { slot.RecruiterId, slot.RecruiterCompanyId })
+            .HasPrincipalKey(recruiter => new { recruiter.UserId, recruiter.CompanyId });
     }
 }
 

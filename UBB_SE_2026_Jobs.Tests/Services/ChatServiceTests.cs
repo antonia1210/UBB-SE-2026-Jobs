@@ -69,7 +69,7 @@ public class ChatServiceTests
 
         Assert.NotNull(result);
         Assert.Same(newChat, result);
-        await chatRepository.Received(1).AddAsync(Arg.Is<Chat>(c => c.Company == company && c.Job == job), Arg.Any<CancellationToken>());
+        await chatRepository.Received(1).AddAsync(Arg.Is<Chat>(chat => chat.Company == company && chat.Job == job), Arg.Any<CancellationToken>());
         await chatRepository.DidNotReceiveWithAnyArgs().UpdateAsync(Arg.Any<Chat>(), Arg.Any<CancellationToken>());
     }
 
@@ -92,7 +92,7 @@ public class ChatServiceTests
         Assert.NotNull(result);
         Assert.Same(newChat,result);
         await chatRepository.Received(1).FindUserCompanyChatAsync(1, company, null, Arg.Any<CancellationToken>());
-        await chatRepository.Received(1).AddAsync(Arg.Is<Chat>(c => c.Job == null), Arg.Any<CancellationToken>());
+        await chatRepository.Received(1).AddAsync(Arg.Is<Chat>(chat => chat.Job == null), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -702,8 +702,8 @@ public class ChatServiceTests
         var result = await chatService.SearchRecruitersByCompanyAsync(companyId, query, CancellationToken.None);
 
         Assert.Equal(2, result.Count);
-        Assert.Contains(result, u => u.UserId == 10);
-        Assert.Contains(result, u => u.UserId == 20);
+        Assert.Contains(result, user => user.UserId == 10);
+        Assert.Contains(result, user => user.UserId == 20);
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

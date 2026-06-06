@@ -45,10 +45,10 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             if (userId != -1 && User.IsInRole("Candidate"))
             {
                 var userAttempts = await this._api.GetAttemptsByUserAsync(userId);
-                foreach (var a in userAttempts)
+                foreach (var attempt in userAttempts)
                 {
-                    if (string.Equals(a.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
-                        completedTestIds.Add(a.TestId);
+                    if (string.Equals(attempt.Status, "COMPLETED", StringComparison.OrdinalIgnoreCase))
+                        completedTestIds.Add(attempt.TestId);
                 }
             }
 
@@ -138,7 +138,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             {
                 foreach (var kvp in model.Answers)
                 {
-                    if (kvp.Value != null && kvp.Value.Any(v => !string.IsNullOrWhiteSpace(v)))
+                    if (kvp.Value != null && kvp.Value.Any(value => !string.IsNullOrWhiteSpace(value)))
                     {
                         validAnswerCount++;
                     }
@@ -163,44 +163,44 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
             foreach (var kvp in model.Answers ?? new Dictionary<int, List<string>>())
             {
-                var q = questions.FirstOrDefault(x => x.Id == kvp.Key);
-                if (q == null) continue;
+                var question = questions.FirstOrDefault(candidateQuestion => candidateQuestion.Id == kvp.Key);
+                if (question == null) continue;
 
-                string joinedAnswer = string.Join(",", kvp.Value.Where(v => !string.IsNullOrWhiteSpace(v)));
+                string joinedAnswer = string.Join(",", kvp.Value.Where(value => !string.IsNullOrWhiteSpace(value)));
                 if (string.IsNullOrEmpty(joinedAnswer)) continue;
 
                 var gradeRequest = new
                 {
                     TestQuestion = new
                     {
-                        Id = q.Id,
-                        QuestionText = q.QuestionText,
-                        QuestionTypeString = q.QuestionType,
-                        QuestionScore = q.QuestionScore,
-                        QuestionAnswer = q.QuestionAnswer
+                        Id = question.Id,
+                        QuestionText = question.QuestionText,
+                        QuestionTypeString = question.QuestionType,
+                        QuestionScore = question.QuestionScore,
+                        QuestionAnswer = question.QuestionAnswer
                     },
                     Answer = new
                     {
-                        QuestionId = q.Id,
+                        QuestionId = question.Id,
                         AttemptId = attempt.Id,
                         Value = joinedAnswer
                     }
                 };
 
-                AnswerDto gradedAnswer = await this._api.GradeAnswerAsync(q.QuestionType, gradeRequest);
+                AnswerDto gradedAnswer = await this._api.GradeAnswerAsync(question.QuestionType, gradeRequest);
                 await this._api.SaveAnswerAsync(gradedAnswer);
                 gradedAnswers.Add(gradedAnswer);
             }
 
-            foreach (var q in questions)
+            foreach (var question in questions)
             {
-                maxPossibleScore += q.QuestionScore;
+                maxPossibleScore += question.QuestionScore;
             }
 
             var scorePayload = new
             {
                 Id = attempt.Id,
-                Answers = gradedAnswers.Select(a => new { Value = a.Value }).ToList()
+                Answers = gradedAnswers.Select(answer => new { Value = answer.Value }).ToList()
             };
 
             float rawScore = await this._api.CalculateFinalScoreAsync(scorePayload);

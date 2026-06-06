@@ -74,7 +74,7 @@ public class TiTestService : ITiTestService
         {
             UserId = userId,
             TestId = testId,
-            Answers = answers.Select(a => new { a.QuestionId, a.Value }).ToList(),
+            Answers = answers.Select(answer => new { answer.QuestionId, answer.Value }).ToList(),
         };
 
         var response = await http.PostAsJsonAsync("api/tests/submit-attempt", payload);

@@ -11,11 +11,11 @@ public class ApplicantConfiguration : IEntityTypeConfiguration<Applicant>
 {
     public void Configure(EntityTypeBuilder<Applicant> builder)
     {
-        builder.HasKey(a => a.ApplicantId);
+        builder.HasKey(applicant => applicant.ApplicantId);
 
-        builder.HasOne(a => a.RecommendedFromCompany)
+        builder.HasOne(applicant => applicant.RecommendedFromCompany)
             .WithMany()
-            .HasForeignKey(a => a.RecommendedFromCompanyId)
+            .HasForeignKey(applicant => applicant.RecommendedFromCompanyId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

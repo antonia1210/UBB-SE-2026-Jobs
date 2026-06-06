@@ -85,7 +85,7 @@
         /// </remarks>
         public async Task<List<TestAttempt>> FindValidAttemptsByTestIdAsync(int testId)
         {
-            var all = await databaseContext.TestAttempts
+            var allAttempts = await databaseContext.TestAttempts
                 .Include(testAttempt => testAttempt.User)
                 .Where(testAttempt => testAttempt.TestId == testId
                          && testAttempt.Status == "COMPLETED"
@@ -94,14 +94,14 @@
                          && testAttempt.CompletedAt != null)
                 .ToListAsync();
 
-            return all
-                .GroupBy(a => a.ExternalUserId)
-                .Select(g => g
-                    .OrderByDescending(a => a.PercentageScore)
-                    .ThenBy(a => a.CompletedAt)
+            return allAttempts
+                .GroupBy(attempt => attempt.ExternalUserId)
+                .Select(attemptGroup => attemptGroup
+                    .OrderByDescending(attempt => attempt.PercentageScore)
+                    .ThenBy(attempt => attempt.CompletedAt)
                     .First())
-                .OrderByDescending(a => a.PercentageScore)
-                .ThenBy(a => a.CompletedAt)
+                .OrderByDescending(attempt => attempt.PercentageScore)
+                .ThenBy(attempt => attempt.CompletedAt)
                 .ToList();
         }
 

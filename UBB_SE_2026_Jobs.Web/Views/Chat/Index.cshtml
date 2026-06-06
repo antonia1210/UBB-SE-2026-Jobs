@@ -155,7 +155,7 @@
 
     <!-- Chat list -->
     @{
-        var visible = Model.Where(c => c.SecondUser != null).ToList();
+        var visible = Model.Where(chat => chat.SecondUser != null).ToList();
     }
 
     <div id="chatList">
@@ -171,36 +171,36 @@
         }
         else
         {
-            @foreach (var c in visible)
+            @foreach (var chat in visible)
             {
-                var other = c.SecondUser is not null
-                    ? (c.User.UserId == currentUserId
-                        ? $"{c.SecondUser.FirstName} {c.SecondUser.LastName}".Trim()
-                        : $"{c.User.FirstName} {c.User.LastName}".Trim())
-                    : c.Company?.Name ?? "Unknown";
+                var other = chat.SecondUser is not null
+                    ? (chat.User.UserId == currentUserId
+                        ? $"{chat.SecondUser.FirstName} {chat.SecondUser.LastName}".Trim()
+                        : $"{chat.User.FirstName} {chat.User.LastName}".Trim())
+                    : chat.Company?.Name ?? "Unknown";
                 var initial = other.Length > 0 ? other[0].ToString().ToUpperInvariant() : "?";
 
-                <a asp-action="Show" asp-route-id="@c.ChatId"
-                   class="chat-item @(c.IsBlocked ? "blocked-item" : "")"
+                <a asp-action="Show" asp-route-id="@chat.ChatId"
+                   class="chat-item @(chat.IsBlocked ? "blocked-item" : "")"
                    data-name="@other.ToLowerInvariant()">
                     <div class="chat-avatar-circle">@initial</div>
                     <div class="flex-grow-1 overflow-hidden">
                         <div class="chat-item-name">
                             @other
-                            @if (c.IsBlocked)
+                            @if (chat.IsBlocked)
                             {
                                 <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem; font-weight:500;">Blocked</span>
                             }
                         </div>
-                        <div class="chat-item-snippet">@c.LastMessageSnippet</div>
+                        <div class="chat-item-snippet">@chat.LastMessageSnippet</div>
                     </div>
                     <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
-                        <span class="chat-item-time">@c.LastMessageTime</span>
-                        @if (c.UnreadCount > 0)
+                        <span class="chat-item-time">@chat.LastMessageTime</span>
+                        @if (chat.UnreadCount > 0)
                         {
                             <span class="badge rounded-pill"
                                   style="background: linear-gradient(135deg,#667eea,#764ba2); font-size:0.72rem;">
-                                @c.UnreadCount
+                                @chat.UnreadCount
                             </span>
                         }
                     </div>
@@ -255,7 +255,7 @@
                     fetch('/Chat/SearchUsers?q=' + encodeURIComponent(query), {
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     })
-                    .then(function (r) { return r.json(); })
+                    .then(function (response) { return response.json(); })
                     .then(function (users) {
                         if (!users.length) {
                             userResults.style.display = 'none';
@@ -263,12 +263,12 @@
                             return;
                         }
                         var token = tokenInput.value;
-                        userResults.innerHTML = users.map(function (u) {
-                            var initLetter = u.name.charAt(0).toUpperCase();
+                        userResults.innerHTML = users.map(function (user) {
+                            var initLetter = user.name.charAt(0).toUpperCase();
                             return '<button type="button" class="search-hit"'
-                                + ' onclick="startUserChat(' + u.id + ')">'
+                                + ' onclick="startUserChat(' + user.id + ')">'
                                 + '<div class="search-hit-avatar">' + escapeHtml(initLetter) + '</div>'
-                                + '<span style="font-weight:500;">' + escapeHtml(u.name) + '</span>'
+                                + '<span style="font-weight:500;">' + escapeHtml(user.name) + '</span>'
                                 + '<small class="text-muted ms-auto">Start chat &rarr;</small>'
                                 + '</button>';
                         }).join('');
@@ -281,8 +281,8 @@
                 }, 300);
             });
 
-            document.addEventListener('click', function (e) {
-                if (userResults && !userResults.contains(e.target) && e.target !== input) {
+            document.addEventListener('click', function (event) {
+                if (userResults && !userResults.contains(event.target) && event.target !== input) {
                     userResults.style.display = 'none';
                 }
             });
@@ -291,16 +291,16 @@
                 var form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '/Chat/StartChat';
-                var t = document.createElement('input');
-                t.type = 'hidden';
-                t.name = '__RequestVerificationToken';
-                t.value = window.__chatCsrfToken || '';
-                var id = document.createElement('input');
-                id.type = 'hidden';
-                id.name = 'targetUserId';
-                id.value = userId;
-                form.appendChild(t);
-                form.appendChild(id);
+                var tokenField = document.createElement('input');
+                tokenField.type = 'hidden';
+                tokenField.name = '__RequestVerificationToken';
+                tokenField.value = window.__chatCsrfToken || '';
+                var userIdField = document.createElement('input');
+                userIdField.type = 'hidden';
+                userIdField.name = 'targetUserId';
+                userIdField.value = userId;
+                form.appendChild(tokenField);
+                form.appendChild(userIdField);
                 document.body.appendChild(form);
                 form.submit();
             };

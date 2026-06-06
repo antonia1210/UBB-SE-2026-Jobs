@@ -69,8 +69,8 @@ public class TiQuestionViewModel : INotifyPropertyChanged
 
     public string GetAnswerValue() => Type switch
     {
-        TiQuestionType.SINGLE_CHOICE => Options.FirstOrDefault(o => o.IsSelected)?.Index.ToString() ?? string.Empty,
-        TiQuestionType.MULTIPLE_CHOICE => "[" + string.Join(",", Options.Where(o => o.IsSelected).Select(o => o.Index)) + "]",
+        TiQuestionType.SINGLE_CHOICE => Options.FirstOrDefault(option => option.IsSelected)?.Index.ToString() ?? string.Empty,
+        TiQuestionType.MULTIPLE_CHOICE => "[" + string.Join(",", Options.Where(option => option.IsSelected).Select(option => option.Index)) + "]",
         TiQuestionType.TRUE_FALSE => TrueSelected ? "true" : FalseSelected ? "false" : string.Empty,
         TiQuestionType.TEXT => TextAnswer.Trim(),
         _ => string.Empty
@@ -78,8 +78,8 @@ public class TiQuestionViewModel : INotifyPropertyChanged
 
     public bool IsAnswered() => Type switch
     {
-        TiQuestionType.SINGLE_CHOICE => Options.Any(o => o.IsSelected),
-        TiQuestionType.MULTIPLE_CHOICE => Options.Any(o => o.IsSelected),
+        TiQuestionType.SINGLE_CHOICE => Options.Any(option => option.IsSelected),
+        TiQuestionType.MULTIPLE_CHOICE => Options.Any(option => option.IsSelected),
         TiQuestionType.TRUE_FALSE => TrueSelected || FalseSelected,
         TiQuestionType.TEXT => !string.IsNullOrWhiteSpace(TextAnswer),
         _ => false

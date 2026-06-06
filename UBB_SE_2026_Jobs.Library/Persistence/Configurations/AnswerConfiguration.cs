@@ -11,11 +11,11 @@ public class AnswerConfiguration : IEntityTypeConfiguration<Answer>
     {
         public void Configure(EntityTypeBuilder<Answer> builder)
         {
-            builder.HasKey(a => a.Id);
+            builder.HasKey(answer => answer.Id);
 
-        builder.HasOne(a => a.TestAttempt)
-            .WithMany(ta => ta.Answers)
-            .HasForeignKey(a => a.AttemptId)
+        builder.HasOne(answer => answer.TestAttempt)
+            .WithMany(testAttempt => testAttempt.Answers)
+            .HasForeignKey(answer => answer.AttemptId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

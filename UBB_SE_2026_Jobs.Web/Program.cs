@@ -67,12 +67,12 @@ builder.Services
     });
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("CandidateOnly",   p => p.RequireRole("Candidate"));
-    options.AddPolicy("RecruiterOnly",   p => p.RequireRole("Recruiter"));
-    options.AddPolicy("AdminOnly",       p => p.RequireRole("Admin"));
-    options.AddPolicy("RecruiterOrAdmin",p => p.RequireRole("Recruiter", "Admin"));
-    options.AddPolicy("CandidateOrAdmin",p => p.RequireRole("Candidate", "Admin"));
-    options.AddPolicy("AuthenticatedUser",p => p.RequireAuthenticatedUser());
+    options.AddPolicy("CandidateOnly", policy => policy.RequireRole("Candidate"));
+    options.AddPolicy("RecruiterOnly", policy => policy.RequireRole("Recruiter"));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("RecruiterOrAdmin", policy => policy.RequireRole("Recruiter", "Admin"));
+    options.AddPolicy("CandidateOrAdmin", policy => policy.RequireRole("Candidate", "Admin"));
+    options.AddPolicy("AuthenticatedUser", policy => policy.RequireAuthenticatedUser());
 });
 
 builder.Services.AddDistributedMemoryCache();
@@ -114,7 +114,7 @@ builder.Services.AddHttpClient<IUserSkillService, UserSkillServiceProxy>(client 
 }).AddHttpMessageHandler<JwtForwardingHandler>();
 
 // Tests & Interviews API clients
-builder.Services.AddHttpClient<ITiAuthService, TiAuthService>(c => c.BaseAddress = new Uri(apiConfig.BaseUrl));
+builder.Services.AddHttpClient<ITiAuthService, TiAuthService>(client => client.BaseAddress = new Uri(apiConfig.BaseUrl));
 RegisterApiClient<TestsApiClient>(builder.Services, apiConfig);
 RegisterApiClient<JobsApiClient>(builder.Services, apiConfig);
 RegisterApiClient<ApplicantsApiClient>(builder.Services, apiConfig);

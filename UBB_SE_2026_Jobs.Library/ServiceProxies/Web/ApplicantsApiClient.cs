@@ -100,6 +100,6 @@ public class ApplicantsApiClient
     public async Task<bool> HasUserAppliedAsync(int jobId, int userId)
     {
         List<ApplicantDto> applicants = await this.GetApplicantsByJobAsync(jobId);
-        return applicants.Any(a => a.UserId == userId);
+        return applicants.Any(applicant => applicant.UserId == userId);
     }
 }

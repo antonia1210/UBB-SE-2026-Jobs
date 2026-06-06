@@ -33,8 +33,8 @@ namespace UBB_SE_2026_Jobs.Library.Helpers
         /// <param name="canExecute">An optional function that determines whether the command can execute.</param>
         public RelayCommand(Action execute, Func<bool>? canExecute = null)
             : this(
-                execute: obj => execute(),
-                canExecute: canExecute == null ? null : obj => canExecute())
+                execute: parameter => execute(),
+                canExecute: canExecute == null ? null : parameter => canExecute())
         {
         }
 

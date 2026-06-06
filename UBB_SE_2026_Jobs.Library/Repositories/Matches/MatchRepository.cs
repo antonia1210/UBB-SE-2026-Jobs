@@ -72,10 +72,10 @@ public class MatchRepository : IMatchRepository
     {
         return await databaseContext.Matches
             .AsNoTracking()
-            .Include(m => m.User)
-            .Include(m => m.Job).ThenInclude(j => j.Company)
-            .Where(m => m.Job.JobId == jobId)
-            .OrderByDescending(m => m.Timestamp)
+            .Include(match => match.User)
+            .Include(match => match.Job).ThenInclude(job => job.Company)
+            .Where(match => match.Job.JobId == jobId)
+            .OrderByDescending(match => match.Timestamp)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }

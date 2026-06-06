@@ -29,15 +29,17 @@ public class TiApplicantService : ITiApplicantService
         var response = await http.GetAsync($"api/matches?jobId={jobId}");
         if (!response.IsSuccessStatusCode) return new();
         var matches = await response.Content.ReadFromJsonAsync<List<MatchApiResponse>>(JsonOptions) ?? new();
-        return matches.Select(m => new TiMatchSummaryDto
+        return matches.Select(match => new TiMatchSummaryDto
         {
-            MatchId = m.MatchId,
-            UserId = m.User?.UserId ?? 0,
-            CandidateName = $"{m.User?.FirstName} {m.User?.LastName}".Trim() is { Length: > 0 } n ? n : $"User {m.User?.UserId}",
-            Email = m.User?.Email ?? string.Empty,
-            Status = m.Status,
-            AppliedAt = m.Timestamp,
-            FeedbackMessage = m.FeedbackMessage ?? string.Empty,
+            MatchId = match.MatchId,
+            UserId = match.User?.UserId ?? 0,
+            CandidateName = $"{match.User?.FirstName} {match.User?.LastName}".Trim() is { Length: > 0 } candidateName
+                ? candidateName
+                : $"User {match.User?.UserId}",
+            Email = match.User?.Email ?? string.Empty,
+            Status = match.Status,
+            AppliedAt = match.Timestamp,
+            FeedbackMessage = match.FeedbackMessage ?? string.Empty,
         }).ToList();
     }
 
@@ -51,7 +53,7 @@ public class TiApplicantService : ITiApplicantService
     public async Task<bool> HasUserAppliedAsync(int jobId, int userId)
     {
         var matches = await GetByJobAsync(jobId);
-        return matches.Any(m => m.UserId == userId);
+        return matches.Any(match => match.UserId == userId);
     }
 
     private sealed class MatchApiResponse

@@ -11,7 +11,7 @@ public class LeaderboardEntryConfiguration : IEntityTypeConfiguration<Leaderboar
 {
     public void Configure(EntityTypeBuilder<LeaderboardEntry> builder)
     {
-        builder.HasKey(le => le.Id);
+        builder.HasKey(leaderboardEntry => leaderboardEntry.Id);
     }
 }
 

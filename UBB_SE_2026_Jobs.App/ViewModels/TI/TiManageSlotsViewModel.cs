@@ -80,13 +80,13 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
         {
             var slots = await slotsService.GetAllSlotsAsync(session.UserId);
             var weekSlots = slots
-                .Where(s => s.StartTime >= WeekStart && s.StartTime < WeekStart.AddDays(7))
+                .Where(slot => slot.StartTime >= WeekStart && slot.StartTime < WeekStart.AddDays(7))
                 .ToList();
 
             await UIDispatcher.EnqueueAsync(() =>
             {
                 Slots.Clear();
-                foreach (var slot in weekSlots.OrderBy(s => s.StartTime))
+                foreach (var slot in weekSlots.OrderBy(slot => slot.StartTime))
                     Slots.Add(slot);
                 NoSlots = Slots.Count == 0;
                 RebuildCalendarRows();
@@ -107,24 +107,24 @@ public partial class TiManageSlotsViewModel : DispatchableObservableObject
     private void RebuildCalendarRows()
     {
         CalendarRows.Clear();
-        for (int h = 8; h < 18; h++)
+        for (int hour = 8; hour < 18; hour++)
         {
-            for (int m = 0; m < 60; m += 30)
+            for (int minute = 0; minute < 60; minute += 30)
             {
-                var row = new CalendarRow { TimeLabel = $"{h:D2}:{m:D2}" };
-                for (int day = 0; day < 7; day++)
+                var row = new CalendarRow { TimeLabel = $"{hour:D2}:{minute:D2}" };
+                for (int dayIndex = 0; dayIndex < 7; dayIndex++)
                 {
-                    var cellDate = WeekStart.AddDays(day).Date;
-                    var slot = Slots.FirstOrDefault(s =>
-                        s.StartTime.Date == cellDate &&
-                        s.StartTime.Hour == h &&
-                        s.StartTime.Minute == m);
+                    var cellDate = WeekStart.AddDays(dayIndex).Date;
+                    var slot = Slots.FirstOrDefault(slot =>
+                        slot.StartTime.Date == cellDate &&
+                        slot.StartTime.Hour == hour &&
+                        slot.StartTime.Minute == minute);
                     row.Cells.Add(new CalendarCell
                     {
                         Slot = slot,
-                        DayIndex = day,
-                        Hour = h,
-                        Minute = m
+                        DayIndex = dayIndex,
+                        Hour = hour,
+                        Minute = minute
                     });
                 }
                 CalendarRows.Add(row);

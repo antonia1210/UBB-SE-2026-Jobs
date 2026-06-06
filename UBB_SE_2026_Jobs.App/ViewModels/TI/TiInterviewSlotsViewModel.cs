@@ -69,10 +69,10 @@ public partial class TiInterviewSlotsViewModel : DispatchableObservableObject
 
                 MyBookings.Clear();
                 BookedDates.Clear();
-                foreach (var s in bookings)
+                foreach (var booking in bookings)
                 {
-                    MyBookings.Add(s);
-                    BookedDates.Add(s.StartTime.Date);
+                    MyBookings.Add(booking);
+                    BookedDates.Add(booking.StartTime.Date);
                 }
                 NoBookings = MyBookings.Count == 0;
 
@@ -107,8 +107,8 @@ public partial class TiInterviewSlotsViewModel : DispatchableObservableObject
             await UIDispatcher.EnqueueAsync(() =>
             {
                 AvailableSlots.Clear();
-                foreach (var s in slots.Where(s => s.Status == 0))
-                    AvailableSlots.Add(s);
+                foreach (var availableSlot in slots.Where(slot => slot.Status == 0))
+                    AvailableSlots.Add(availableSlot);
                 NoAvailableSlots = AvailableSlots.Count == 0;
             });
         }

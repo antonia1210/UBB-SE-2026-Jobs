@@ -33,8 +33,8 @@ public partial class TiRecruiterInterviewsViewModel : DispatchableObservableObje
         await UIDispatcher.EnqueueAsync(() =>
         {
             BookedSessions.Clear();
-            foreach (var s in sessions)
-                BookedSessions.Add(s);
+            foreach (var interviewSession in sessions)
+                BookedSessions.Add(interviewSession);
 
             IsEmpty = BookedSessions.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             HasSessions = BookedSessions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;

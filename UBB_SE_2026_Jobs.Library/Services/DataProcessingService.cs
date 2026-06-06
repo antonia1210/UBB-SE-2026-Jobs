@@ -66,7 +66,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
             }
 
             float maxPossibleScore = attempt.Answers
-                .Sum(a => a.Question?.QuestionScore ?? 0f);
+                .Sum(answer => answer.Question?.QuestionScore ?? 0f);
 
             attempt.IsValidated = true;
             attempt.PercentageScore = maxPossibleScore > 0f
@@ -96,7 +96,7 @@ namespace UBB_SE_2026_Jobs.Library.Services
             if (skill == null)
             {
                 var skills = await this.skillRepository.GetAllAsync();
-                skill = skills.FirstOrDefault(s => s.SkillId == test.SkillId.Value);
+                skill = skills.FirstOrDefault(candidateSkill => candidateSkill.SkillId == test.SkillId.Value);
             }
 
             if (skill == null) return;

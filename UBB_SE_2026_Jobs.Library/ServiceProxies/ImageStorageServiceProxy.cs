@@ -41,8 +41,8 @@ public class ImageStorageServiceProxy : IImageStorageService
     {
         if (fileStream.Length > MaxFileSize)
         {
-            var mb = fileStream.Length / (1024.0 * 1024.0);
-            throw new InvalidOperationException($"File size {mb:0.##} MB exceeds the {MaxFileSizeInMb} MB limit.");
+            var megabytes = fileStream.Length / (1024.0 * 1024.0);
+            throw new InvalidOperationException($"File size {megabytes:0.##} MB exceeds the {MaxFileSizeInMb} MB limit.");
         }
     }
 

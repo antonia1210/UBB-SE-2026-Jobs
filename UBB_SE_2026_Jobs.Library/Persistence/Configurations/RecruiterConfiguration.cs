@@ -11,16 +11,16 @@ public class RecruiterConfiguration : IEntityTypeConfiguration<Recruiter>
 {
     public void Configure(EntityTypeBuilder<Recruiter> builder)
     {
-        builder.HasKey(r => new { r.CompanyId, r.UserId });
+        builder.HasKey(recruiter => new { recruiter.CompanyId, recruiter.UserId });
 
-        builder.HasOne(r => r.Company)
+        builder.HasOne(recruiter => recruiter.Company)
             .WithMany()
-            .HasForeignKey(r => r.CompanyId)
+            .HasForeignKey(recruiter => recruiter.CompanyId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(r => r.User)
+        builder.HasOne(recruiter => recruiter.User)
             .WithMany()
-            .HasForeignKey(r => r.UserId)
+            .HasForeignKey(recruiter => recruiter.UserId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

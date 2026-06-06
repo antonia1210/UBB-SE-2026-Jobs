@@ -17,13 +17,13 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
         private int GetCurrentUserId()
         {
-            var claim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            var claim = User.Claims.FirstOrDefault(claimItem => claimItem.Type == ClaimTypes.NameIdentifier);
             return claim != null ? int.Parse(claim.Value) : 0;
         }
 
         private int GetCurrentCompanyId()
         {
-            var claim = User.Claims.FirstOrDefault(c => c.Type == "CompanyId");
+            var claim = User.Claims.FirstOrDefault(claimItem => claimItem.Type == "CompanyId");
             return claim != null ? int.Parse(claim.Value) : 0;
         }
 
@@ -69,7 +69,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
 
             EventDto? ev = currentEvents
                 .Concat(pastEvents)
-                .FirstOrDefault(e => e.Id == id);
+                .FirstOrDefault(eventDto => eventDto.Id == id);
 
             if (ev == null)
             {
@@ -87,7 +87,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         {
             var companies = await this._client.GetAllCompanies();
             int currentCompanyId = GetCurrentCompanyId();
-            ViewBag.Companies = companies.Where(c => c.CompanyId != currentCompanyId).ToList();
+            ViewBag.Companies = companies.Where(company => company.CompanyId != currentCompanyId).ToList();
             return View();
         }
 
@@ -108,13 +108,13 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             List<EventDto> currentEvents = await this._client.GetCurrentEvents(companyId);
             List<EventDto> pastEvents = await this._client.GetPastEvents(companyId);
 
-            EventDto? ev = currentEvents.Concat(pastEvents).FirstOrDefault(e => e.Id == id);
+            EventDto? ev = currentEvents.Concat(pastEvents).FirstOrDefault(eventDto => eventDto.Id == id);
 
             if (ev == null)
                 return NotFound();
 
             var companies = await this._client.GetAllCompanies();
-            ViewBag.Companies = companies.Where(c => c.CompanyId != companyId).ToList();
+            ViewBag.Companies = companies.Where(company => company.CompanyId != companyId).ToList();
 
             return View(ev);
         }
@@ -134,7 +134,7 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
             List<EventDto> currentEvents = await this._client.GetCurrentEvents(companyId);
             List<EventDto> pastEvents = await this._client.GetPastEvents(companyId);
 
-            EventDto? ev = currentEvents.Concat(pastEvents).FirstOrDefault(e => e.Id == id);
+            EventDto? ev = currentEvents.Concat(pastEvents).FirstOrDefault(eventDto => eventDto.Id == id);
 
             if (ev == null)
                 return NotFound();

@@ -33,10 +33,10 @@ public partial class TiEventsViewModel : DispatchableObservableObject
         var past = await eventsService.GetPastEventsAsync(companyId);
 
         CurrentEvents.Clear();
-        foreach (var e in current) CurrentEvents.Add(e);
+        foreach (var currentEvent in current) CurrentEvents.Add(currentEvent);
 
         PastEvents.Clear();
-        foreach (var e in past) PastEvents.Add(e);
+        foreach (var pastEvent in past) PastEvents.Add(pastEvent);
 
         IsLoading = false;
     }

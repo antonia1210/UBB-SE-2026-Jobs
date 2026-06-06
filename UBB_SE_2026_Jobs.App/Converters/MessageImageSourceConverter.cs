@@ -15,14 +15,14 @@ public class MessageImageSourceConverter : IValueConverter
             return null;
         }
 
-        if (!Uri.TryCreate(message.Content, UriKind.Absolute, out var uri))
+        if (!Uri.TryCreate(message.Content, UriKind.Absolute, out var messageUri))
         {
             var baseUrl = ApiConfigurationLoader.Load().BaseUrl.TrimEnd('/');
             var fileName = Uri.EscapeDataString(Path.GetFileName(message.Content));
-            uri = new Uri($"{baseUrl}/api/files/{fileName}");
+            messageUri = new Uri($"{baseUrl}/api/files/{fileName}");
         }
 
-        return new BitmapImage(uri);
+        return new BitmapImage(messageUri);
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, string language)

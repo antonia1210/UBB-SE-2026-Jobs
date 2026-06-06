@@ -36,8 +36,8 @@ public class PdfExportService : IPdfExportService
             ? string.Join(", ", user.Skills.Select(userSkill => HttpUtility.HtmlEncode(userSkill.Skill?.Name ?? string.Empty)))
             : "No skills listed";
 
-        var workExperience = BuildSection(user.WorkExperiences, we =>
-            $"<div class=\"entry\"><strong>{HttpUtility.HtmlEncode(we.Company)}</strong> — {HttpUtility.HtmlEncode(we.JobTitle)}<br/><em>{we.StartDate:yyyy-MM} – {(we.EndDate.HasValue ? we.EndDate.Value.ToString("yyyy-MM") : "Present")}</em><project>{HttpUtility.HtmlEncode(we.Description)}</project></div>");
+        var workExperience = BuildSection(user.WorkExperiences, experience =>
+            $"<div class=\"entry\"><strong>{HttpUtility.HtmlEncode(experience.Company)}</strong> — {HttpUtility.HtmlEncode(experience.JobTitle)}<br/><em>{experience.StartDate:yyyy-MM} – {(experience.EndDate.HasValue ? experience.EndDate.Value.ToString("yyyy-MM") : "Present")}</em><project>{HttpUtility.HtmlEncode(experience.Description)}</project></div>");
 
         var projects = BuildSection(user.Projects, project =>
             $"<div class=\"entry\"><strong>{HttpUtility.HtmlEncode(project.Name)}</strong><project>{HttpUtility.HtmlEncode(project.Description)}</project></div>");
@@ -66,9 +66,9 @@ public class PdfExportService : IPdfExportService
     {
         if (items is null || items.Count == 0)
             return "<project><em>None listed.</em></project>";
-        var sb = new StringBuilder();
+        var htmlBuilder = new StringBuilder();
         foreach (var item in items)
-            sb.Append(render(item));
-        return sb.ToString();
+            htmlBuilder.Append(render(item));
+        return htmlBuilder.ToString();
     }
 }

@@ -179,7 +179,7 @@
         public int GetApplicantCount(int jobId)
         {
             return this.databaseContext.Matches
-                .Count(m => EF.Property<int>(m, "JobId") == jobId);
+                .Count(match => EF.Property<int>(match, "JobId") == jobId);
         }
 
         /// <inheritdoc />
@@ -199,24 +199,24 @@
                 }
 
                 var applicantCount = this.databaseContext.Matches
-                    .Count(m => EF.Property<int>(m, "JobId") == jobId);
+                    .Count(match => EF.Property<int>(match, "JobId") == jobId);
                 if (applicantCount > 0 && !force)
                 {
                     return JobDeleteResult.HasApplicants;
                 }
 
                 var recommendations = this.databaseContext.Recommendations
-                    .Where(r => EF.Property<int>(r, "JobId") == jobId);
+                    .Where(recommendation => EF.Property<int>(recommendation, "JobId") == jobId);
                 this.databaseContext.Recommendations.RemoveRange(recommendations);
 
                 if (applicantCount > 0)
                 {
                     var matches = this.databaseContext.Matches
-                        .Where(m => EF.Property<int>(m, "JobId") == jobId);
+                        .Where(match => EF.Property<int>(match, "JobId") == jobId);
                     this.databaseContext.Matches.RemoveRange(matches);
 
                     var applicants = this.databaseContext.Applicants
-                        .Where(a => a.JobId == jobId);
+                        .Where(applicant => applicant.JobId == jobId);
                     this.databaseContext.Applicants.RemoveRange(applicants);
                 }
 

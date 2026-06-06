@@ -38,7 +38,7 @@ public class JobsApiClient
     public async Task<JobPostingDto?> GetJobByIdAsync(int jobId)
     {
         List<JobPostingDto> jobs = await this.GetAllJobsAsync();
-        return jobs.Find(j => j.JobId == jobId);
+        return jobs.Find(job => job.JobId == jobId);
     }
 
     public async Task<List<SkillDto>> GetAllSkillsAsync()

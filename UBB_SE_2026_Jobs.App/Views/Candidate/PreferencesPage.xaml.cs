@@ -48,8 +48,8 @@ public sealed partial class PreferencesPage : Page
         {
             if (RoleDisplayNames.TryGetValue(role, out var name))
             {
-                var idx = RolesListView.Items.Cast<string>().ToList().IndexOf(name);
-                if (idx >= 0) RolesListView.SelectedItems.Add(RolesListView.Items[idx]);
+                var roleIndex = RolesListView.Items.Cast<string>().ToList().IndexOf(name);
+                if (roleIndex >= 0) RolesListView.SelectedItems.Add(RolesListView.Items[roleIndex]);
             }
         }
         RolesListView.SelectionChanged += RolesListView_SelectionChanged;
@@ -57,9 +57,9 @@ public sealed partial class PreferencesPage : Page
         var workMode = viewModel.GetSelectedWorkMode().ToString();
         foreach (var item in WorkModeComboBox.Items)
         {
-            if (item is ComboBoxItem cbi && cbi.Tag?.ToString() == workMode)
+            if (item is ComboBoxItem comboBoxItem && comboBoxItem.Tag?.ToString() == workMode)
             {
-                WorkModeComboBox.SelectedItem = cbi;
+                WorkModeComboBox.SelectedItem = comboBoxItem;
                 break;
             }
         }
@@ -103,8 +103,8 @@ public sealed partial class PreferencesPage : Page
     private async void SaveButton_Click(object sender, RoutedEventArgs eventArguments)
     {
         var workMode = (WorkModeComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString();
-        if (!string.IsNullOrEmpty(workMode) && Enum.TryParse<WorkMode>(workMode, out var parsed))
-            viewModel.SetWorkMode(parsed);
+        if (!string.IsNullOrEmpty(workMode) && Enum.TryParse<WorkMode>(workMode, out var parsedWorkMode))
+            viewModel.SetWorkMode(parsedWorkMode);
 
         viewModel.SetLocation(LocationAutoSuggestBox.Text);
         await viewModel.SavePreferencesAsync();

@@ -88,7 +88,7 @@ public sealed partial class ProfileFormPage : Page
         viewModel.Address     = AddressTextBox.Text;
         viewModel.Motivation  = MotivationTextBox.Text;
         viewModel.ExpectedGraduationYear = int.TryParse(
-            GraduationYearComboBox.SelectedItem?.ToString(), out var yr) ? yr : 0;
+            GraduationYearComboBox.SelectedItem?.ToString(), out var graduationYear) ? graduationYear : 0;
     }
 
     private static void SelectComboBoxItem(ComboBox comboBox, string value)

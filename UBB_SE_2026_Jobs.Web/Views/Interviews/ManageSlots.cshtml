@@ -78,9 +78,9 @@
                         <option value="">Select company</option>
                         @if (ViewData["Companies"] is List<UBB_SE_2026_Jobs.Library.DTOs.Web.CompanyDto> companies)
                         {
-                            foreach (var c in companies)
+                            foreach (var company in companies)
                             {
-                                <option value="@c.CompanyId">@c.Name</option>
+                                <option value="@company.CompanyId">@company.Name</option>
                             }
                         }
                     </select>
@@ -100,7 +100,10 @@
     let slots = [], weekStart = getMonday(new Date()), editSlot = null;
 
     const TIME_ROWS = [];
-    for (let h = 8; h < 18; h++) { TIME_ROWS.push({ h, m: 0 }); TIME_ROWS.push({ h, m: 30 }); }
+    for (let hour = 8; hour < 18; hour++) {
+        TIME_ROWS.push({ hour, minute: 0 });
+        TIME_ROWS.push({ hour, minute: 30 });
+    }
 
     document.getElementById('prevWeek').onclick  = () => { weekStart = addDays(weekStart, -7); render(); };
     document.getElementById('nextWeek').onclick  = () => { weekStart = addDays(weekStart,  7); render(); };
@@ -120,11 +123,11 @@
     function renderHead() {
         const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
         let html = '<tr><th style="width:60px;"></th>';
-        for (let i = 0; i < 7; i++) {
-            const d = addDays(weekStart, i);
-            const today = sameDay(d, new Date());
+        for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+            const date = addDays(weekStart, dayIndex);
+            const today = sameDay(date, new Date());
             html += `<th class="text-center small${today ? ' fw-bold' : ''}" style="${today ? 'background:#DDD6FE;' : ''}">
-                ${days[i]} ${d.getDate()}
+                ${days[dayIndex]} ${date.getDate()}
             </th>`;
         }
         html += '</tr>';
@@ -133,25 +136,25 @@
 
     function renderBody() {
         let html = '';
-        for (const { h, m } of TIME_ROWS) {
+        for (const { hour, minute } of TIME_ROWS) {
             html += '<tr>';
-            html += `<td class="text-end text-muted small pe-2" style="background:#FAFAFA;white-space:nowrap;">${pad(h)}:${pad(m)}</td>`;
-            for (let i = 0; i < 7; i++) {
-                const d = addDays(weekStart, i);
-                const cell = slots.filter(s => {
-                    const sd = new Date(s.startTime);
-                    return sameDay(sd, d) && sd.getHours() === h && sd.getMinutes() === m;
+            html += `<td class="text-end text-muted small pe-2" style="background:#FAFAFA;white-space:nowrap;">${pad(hour)}:${pad(minute)}</td>`;
+            for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+                const date = addDays(weekStart, dayIndex);
+                const matchingSlots = slots.filter(slot => {
+                    const slotStart = new Date(slot.startTime);
+                    return sameDay(slotStart, date) && slotStart.getHours() === hour && slotStart.getMinutes() === minute;
                 });
-                const empty = cell.length === 0;
-                let chips = cell.map(s =>
-                    `<span class="slot-chip ${s.status ? 'booked' : 'free'}"
-                        onclick="slotClick(event,${s.id})"
-                        title="${s.status ? 'Booked' : 'Click to edit/delete'}">
-                        ${pad(h)}:${pad(m)} � ${s.duration ?? 60}m
+                const empty = matchingSlots.length === 0;
+                let slotChips = matchingSlots.map(slot =>
+                    `<span class="slot-chip ${slot.status ? 'booked' : 'free'}"
+                        onclick="slotClick(event,${slot.id})"
+                        title="${slot.status ? 'Booked' : 'Click to edit/delete'}">
+                        ${pad(hour)}:${pad(minute)} � ${slot.duration ?? 60}m
                     </span>`
                 ).join('');
                 html += `<td class="day-cell${empty ? ' empty' : ''}"
-                    ${empty ? `onclick="cellClick(event,'${toIso(d)}',${h},${m})"` : ''}>${chips}</td>`;
+                    ${empty ? `onclick="cellClick(event,'${toIso(date)}',${hour},${minute})"` : ''}>${slotChips}</td>`;
             }
             html += '</tr>';
         }
@@ -166,8 +169,8 @@
 
     async function loadSlots() {
         try {
-            const res = await fetch('/Interviews/GetRecruiterSlots');
-            if (res.ok) slots = await res.json();
+            const response = await fetch('/Interviews/GetRecruiterSlots');
+            if (response.ok) slots = await response.json();
         } catch {}
     }
 
@@ -179,9 +182,9 @@
         if (!date || !time) return;
         const startTime = date + 'T' + time + ':00';
         try {
-            let res;
+            let response;
             if (editSlot) {
-                res = await fetch('/Interviews/UpdateRecruiterSlot', { method: 'POST', body: new URLSearchParams({
+                response = await fetch('/Interviews/UpdateRecruiterSlot', { method: 'POST', body: new URLSearchParams({
                     'initialSlot.id': editSlot.id,
                     'initialSlot.startTime': editSlot.startTime,
                     'initialSlot.duration': editSlot.duration ?? 60,
@@ -189,7 +192,7 @@
                     startTime, duration
                 })});
             } else {
-                res = await fetch('/Interviews/CreateRecruiterSlot', { method: 'POST', body: new URLSearchParams({
+                response = await fetch('/Interviews/CreateRecruiterSlot', { method: 'POST', body: new URLSearchParams({
                     'baseSlot.startTime': startTime,
                     'baseSlot.duration': duration,
                     'baseSlot.companyId': companyId,
@@ -197,31 +200,31 @@
                 })});
             }
 
-            if (!res.ok) {
+            if (!response.ok) {
                 let msg = 'Failed to save slot.';
-                try { const body = await res.json(); if (body.error) msg = body.error; } catch {}
+                try { const body = await response.json(); if (body.error) msg = body.error; } catch {}
                 showError(msg);
                 return;
             }
 
             closeModal();
             await render();
-        } catch (e) {
+        } catch (error) {
             showError('An unexpected error occurred.');
         }
     }
 
     function showError(msg) {
-        let el = document.getElementById('slotError');
-        if (!el) {
-            el = document.createElement('div');
-            el.id = 'slotError';
-            el.className = 'alert alert-danger alert-dismissible mt-3';
-            el.innerHTML = '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button><span id="slotErrorMsg"></span>';
-            document.querySelector('.container.py-4').prepend(el);
+        let element = document.getElementById('slotError');
+        if (!element) {
+            element = document.createElement('div');
+            element.id = 'slotError';
+            element.className = 'alert alert-danger alert-dismissible mt-3';
+            element.innerHTML = '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button><span id="slotErrorMsg"></span>';
+            document.querySelector('.container.py-4').prepend(element);
         }
         document.getElementById('slotErrorMsg').textContent = msg;
-        el.style.display = '';
+        element.style.display = '';
     }
 
     async function deleteSlot() {
@@ -232,12 +235,12 @@
         await render();
     }
 
-    window.cellClick = function (e, isoDate, h, m) {
-        e.stopPropagation();
+    window.cellClick = function (event, isoDate, hour, minute) {
+        event.stopPropagation();
         editSlot = null;
         document.getElementById('modalTitle').textContent = 'Add Slot';
         document.getElementById('slotDate').value         = isoDate;
-        document.getElementById('slotTime').value         = `${pad(h)}:${pad(m)}`;
+        document.getElementById('slotTime').value         = `${pad(hour)}:${pad(minute)}`;
         document.getElementById('slotDuration').value     = '60';
         document.getElementById('modalDelete').style.display = 'none';
         document.getElementById('modalSave').textContent  = 'Add Slot';
@@ -249,15 +252,15 @@
         if (firstOption) document.getElementById('CompanyId').value = firstOption.value;
     };
 
-    window.slotClick = function (e, slotId) {
-        e.stopPropagation();
-        const slot = slots.find(s => s.id === slotId);
+    window.slotClick = function (event, slotId) {
+        event.stopPropagation();
+        const slot = slots.find(currentSlot => currentSlot.id === slotId);
         if (!slot || slot.status) return;
         editSlot = slot;
-        const sd = new Date(slot.startTime);
+        const slotStart = new Date(slot.startTime);
         document.getElementById('modalTitle').textContent = 'Edit Slot';
-        document.getElementById('slotDate').value         = toIso(sd);
-        document.getElementById('slotTime').value         = `${pad(sd.getHours())}:${pad(sd.getMinutes())}`;
+        document.getElementById('slotDate').value         = toIso(slotStart);
+        document.getElementById('slotTime').value         = `${pad(slotStart.getHours())}:${pad(slotStart.getMinutes())}`;
         document.getElementById('slotDuration').value     = slot.duration ?? 60;
         document.getElementById('modalDelete').style.display = '';
         document.getElementById('modalSave').textContent  = 'Update';
@@ -268,14 +271,14 @@
         document.getElementById('CompanyId').value = slot.companyId ?? '';
     };
 
-    function getMonday(d) {
-        const diff = d.getDay() === 0 ? -6 : 1 - d.getDay();
-        return new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
+    function getMonday(date) {
+        const diff = date.getDay() === 0 ? -6 : 1 - date.getDay();
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate() + diff);
     }
-    function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
-    function sameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
-    function pad(n)         { return String(n).padStart(2, '0'); }
-    function toIso(d)       { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
-    function fmtShort(d)    { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
+    function addDays(date, numberOfDays) { return new Date(date.getFullYear(), date.getMonth(), date.getDate() + numberOfDays); }
+    function sameDay(firstDate, secondDate) { return firstDate.getFullYear()===secondDate.getFullYear() && firstDate.getMonth()===secondDate.getMonth() && firstDate.getDate()===secondDate.getDate(); }
+    function pad(value)         { return String(value).padStart(2, '0'); }
+    function toIso(date)       { return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`; }
+    function fmtShort(date)    { return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
 })();
 </script>

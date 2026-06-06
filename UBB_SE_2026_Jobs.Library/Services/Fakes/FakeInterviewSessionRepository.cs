@@ -11,18 +11,18 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
 
     public void Seed(params InterviewSession[] sessions)
     {
-        foreach (var s in sessions)
+        foreach (var session in sessions)
         {
-            _store.Add(s);
-            if (s.Id >= _nextId)
-                _nextId = s.Id + 1;
+            _store.Add(session);
+            if (session.Id >= _nextId)
+                _nextId = session.Id + 1;
         }
     }
 
     public Task<List<InterviewSession>> GetScheduledSessionsAsync()
     {
         var results = _store
-            .Where(s => s.Status == InterviewStatus.Scheduled.ToString())
+            .Where(session => session.Status == InterviewStatus.Scheduled.ToString())
             .ToList();
         return Task.FromResult(results);
     }
@@ -30,19 +30,19 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
     public Task<List<InterviewSession>> GetSessionsByStatusAsync(string status)
     {
         var results = _store
-            .Where(s => s.Status == status)
+            .Where(session => session.Status == status)
             .ToList();
         return Task.FromResult(results);
     }
 
     public Task<InterviewSession?> GetInterviewSessionByIdAsync(int id)
     {
-        var session = _store.FirstOrDefault(s => s.Id == id);
+        var session = _store.FirstOrDefault(storedSession => storedSession.Id == id);
         return Task.FromResult(session);
     }
 
     public InterviewSession GetInterviewSessionById(int id) {
-        var session = _store.FirstOrDefault(s => s.Id == id);
+        var session = _store.FirstOrDefault(storedSession => storedSession.Id == id);
         return session;
     }
 
@@ -55,7 +55,7 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
 
     public Task UpdateInterviewSessionAsync(InterviewSession session)
     {
-        var index = _store.FindIndex(s => s.Id == session.Id);
+        var index = _store.FindIndex(storedSession => storedSession.Id == session.Id);
         if (index >= 0)
             _store[index] = session;
         return Task.CompletedTask;
@@ -63,6 +63,6 @@ public class FakeInterviewSessionRepository : IInterviewSessionRepository
 
     public void Delete(InterviewSession session)
     {
-        _store.RemoveAll(s => s.Id == session.Id);
+        _store.RemoveAll(storedSession => storedSession.Id == session.Id);
     }
 }

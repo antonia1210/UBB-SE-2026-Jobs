@@ -17,21 +17,21 @@
             @if (Model.Answers != null && Model.Answers.Any())
             {
                 <div class="list-group">
-                    @for (int i = 0; i < Model.Answers.Count; i++)
+                    @for (int answerIndex = 0; answerIndex < Model.Answers.Count; answerIndex++)
                     {
-                        var a = Model.Answers[i];
+                        var answer = Model.Answers[answerIndex];
                         <div class="list-group-item">
-                            <input type="hidden" name="answers[@i].QuestionId" value="@a.QuestionId" />
-                            <input type="hidden" name="answers[@i].AttemptId" value="@a.AttemptId" />
+                            <input type="hidden" name="answers[@answerIndex].QuestionId" value="@answer.QuestionId" />
+                            <input type="hidden" name="answers[@answerIndex].AttemptId" value="@answer.AttemptId" />
 
                             <div class="mb-2">
                                 <label class="form-label">Question</label>
-                                <div class="text-muted">@((a.Question != null && !string.IsNullOrEmpty(a.Question.QuestionText)) ? a.Question.QuestionText : $"Question #{a.QuestionId}")</div>
+                                <div class="text-muted">@((answer.Question != null && !string.IsNullOrEmpty(answer.Question.QuestionText)) ? answer.Question.QuestionText : $"Question #{answer.QuestionId}")</div>
                             </div>
 
                             <div class="mb-2">
-                                <label asp-for="Answers[@i].Value" class="form-label">Your answer</label>
-                                <input class="form-control" name="answers[@i].Value" value="@a.Value" />
+                                <label asp-for="Answers[@answerIndex].Value" class="form-label">Your answer</label>
+                                <input class="form-control" name="answers[@answerIndex].Value" value="@answer.Value" />
                             </div>
                         </div>
                     }

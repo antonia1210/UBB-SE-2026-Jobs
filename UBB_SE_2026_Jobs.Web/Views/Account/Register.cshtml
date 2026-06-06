@@ -46,9 +46,9 @@
                     <option value="">-- Select company --</option>
                     @if (ViewData["Companies"] is List<UBB_SE_2026_Jobs.Library.DTOs.Web.CompanyDto> companies)
                     {
-                        foreach (var c in companies)
+                        foreach (var company in companies)
                         {
-                            <option value="@c.CompanyId">@c.Name</option>
+                            <option value="@company.CompanyId">@company.Name</option>
                         }
                     }
                 </select>

@@ -21,21 +21,21 @@ public sealed partial class TiManageSlotsPage : Page
         InitializeComponent();
     }
 
-    protected override async void OnNavigatedTo(NavigationEventArgs e)
+    protected override async void OnNavigatedTo(NavigationEventArgs eventArguments)
     {
-        base.OnNavigatedTo(e);
+        base.OnNavigatedTo(eventArguments);
         await ViewModel.InitializeAsync();
         RenderCalendar();
-        ViewModel.PropertyChanged += (s, args) =>
+        ViewModel.PropertyChanged += (sender, args) =>
         {
             if (args.PropertyName == nameof(ViewModel.CalendarRows))
                 RenderCalendar();
         };
     }
 
-    private void PreviousWeek_Click(object sender, RoutedEventArgs e) => ViewModel.PreviousWeekCommand.Execute(null);
-    private void NextWeek_Click(object sender, RoutedEventArgs e) => ViewModel.NextWeekCommand.Execute(null);
-    private void Today_Click(object sender, RoutedEventArgs e) => ViewModel.TodayCommand.Execute(null);
+    private void PreviousWeek_Click(object sender, RoutedEventArgs eventArguments) => ViewModel.PreviousWeekCommand.Execute(null);
+    private void NextWeek_Click(object sender, RoutedEventArgs eventArguments) => ViewModel.NextWeekCommand.Execute(null);
+    private void Today_Click(object sender, RoutedEventArgs eventArguments) => ViewModel.TodayCommand.Execute(null);
 
     private void RenderCalendar()
     {
@@ -44,7 +44,7 @@ public sealed partial class TiManageSlotsPage : Page
         CalendarGrid.ColumnDefinitions.Clear();
 
         CalendarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
-        for (int i = 0; i < 7; i++)
+        for (int dayIndex = 0; dayIndex < 7; dayIndex++)
             CalendarGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
         CalendarGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -52,9 +52,9 @@ public sealed partial class TiManageSlotsPage : Page
             CalendarGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         var days = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
-        for (int i = 0; i < 7; i++)
+        for (int dayIndex = 0; dayIndex < 7; dayIndex++)
         {
-            var date = ViewModel.WeekStart.AddDays(i);
+            var date = ViewModel.WeekStart.AddDays(dayIndex);
             var isToday = date.Date == DateTime.Now.Date;
             var header = new Border
             {
@@ -64,13 +64,13 @@ public sealed partial class TiManageSlotsPage : Page
                 Padding = new Thickness(4),
                 Child = new TextBlock
                 {
-                    Text = $"{days[i]} {date.Day}",
+                    Text = $"{days[dayIndex]} {date.Day}",
                     TextAlignment = TextAlignment.Center,
                     FontWeight = FontWeights.SemiBold,
                     FontSize = 13
                 }
             };
-            Grid.SetColumn(header, i + 1);
+            Grid.SetColumn(header, dayIndex + 1);
             Grid.SetRow(header, 0);
             CalendarGrid.Children.Add(header);
         }
@@ -91,31 +91,31 @@ public sealed partial class TiManageSlotsPage : Page
             Grid.SetRow(timeLabel, rowIndex);
             CalendarGrid.Children.Add(timeLabel);
 
-            for (int col = 0; col < row.Cells.Count; col++)
+            for (int columnIndex = 0; columnIndex < row.Cells.Count; columnIndex++)
             {
-                var cell = row.Cells[col];
+                var cell = row.Cells[columnIndex];
                 FrameworkElement cellElement;
 
                 if (cell.Slot != null)
                 {
                     var isBooked = cell.Slot.Status != 0;
-                    var bg = isBooked
+                    var slotBackground = isBooked
                         ? Color.FromArgb(255, 165, 214, 167)
                         : Color.FromArgb(255, 221, 214, 254);
-                    var fg = isBooked
+                    var slotForeground = isBooked
                         ? Colors.DarkGreen
                         : Color.FromArgb(255, 80, 56, 200);
                     var capturedSlot = cell.Slot;
-                    var btn = new Button
+                    var slotButton = new Button
                     {
                         Content = new TextBlock
                         {
                             Text = $"{capturedSlot.StartTime:HH:mm} · {capturedSlot.Duration}m",
                             FontSize = 11,
-                            Foreground = new SolidColorBrush(fg),
+                            Foreground = new SolidColorBrush(slotForeground),
                             TextAlignment = TextAlignment.Center
                         },
-                        Background = new SolidColorBrush(bg),
+                        Background = new SolidColorBrush(slotBackground),
                         HorizontalAlignment = HorizontalAlignment.Stretch,
                         VerticalAlignment = VerticalAlignment.Stretch,
                         MinHeight = 50,
@@ -123,8 +123,8 @@ public sealed partial class TiManageSlotsPage : Page
                         IsEnabled = !isBooked
                     };
                     if (!isBooked)
-                        btn.Click += async (s, e) => await OnSlotClick(capturedSlot);
-                    cellElement = btn;
+                        slotButton.Click += async (sender, eventArguments) => await OnSlotClick(capturedSlot);
+                    cellElement = slotButton;
                 }
                 else
                 {
@@ -136,11 +136,11 @@ public sealed partial class TiManageSlotsPage : Page
                         MinHeight = 50,
                         Background = new SolidColorBrush(Colors.Transparent)
                     };
-                    border.Tapped += async (s, e) => await OnEmptyCellClick(capturedCell.DayIndex, capturedCell.Hour, capturedCell.Minute);
+                    border.Tapped += async (sender, eventArguments) => await OnEmptyCellClick(capturedCell.DayIndex, capturedCell.Hour, capturedCell.Minute);
                     cellElement = border;
                 }
 
-                Grid.SetColumn(cellElement, col + 1);
+                Grid.SetColumn(cellElement, columnIndex + 1);
                 Grid.SetRow(cellElement, rowIndex);
                 CalendarGrid.Children.Add(cellElement);
             }
@@ -194,7 +194,7 @@ public sealed partial class TiManageSlotsPage : Page
 
         var companyCombo = new ComboBox { ItemsSource = ViewModel.Companies.ToList() };
         companyCombo.DisplayMemberPath = "Name";
-        companyCombo.SelectedItem = ViewModel.Companies.FirstOrDefault(c => c.CompanyId == ViewModel.EditingSlot.CompanyId)
+        companyCombo.SelectedItem = ViewModel.Companies.FirstOrDefault(company => company.CompanyId == ViewModel.EditingSlot.CompanyId)
                                     ?? ViewModel.Companies.FirstOrDefault();
         stackPanel.Children.Add(new TextBlock { Text = "Company", FontWeight = FontWeights.SemiBold, FontSize = 12 });
         stackPanel.Children.Add(companyCombo);
@@ -208,7 +208,7 @@ public sealed partial class TiManageSlotsPage : Page
                 Background = new SolidColorBrush(Color.FromArgb(255, 247, 99, 12)),
                 Foreground = new SolidColorBrush(Colors.White)
             };
-            deleteBtn.Click += async (s, e) =>
+            deleteBtn.Click += async (sender, eventArguments) =>
             {
                 dialog.Hide();
                 await DeleteSlot_Click(capturedSlot);

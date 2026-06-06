@@ -49,14 +49,14 @@ public partial class TiEditEventViewModel : DispatchableObservableObject
     private async Task LoadCompaniesAsync(List<int> existingCollaboratorIds)
     {
         var companies = await companyService.GetAllAsync();
-        foreach (var c in companies)
+        foreach (var company in companies)
         {
-            if (c.CompanyId != session.CompanyId)
+            if (company.CompanyId != session.CompanyId)
             {
                 AvailableCompanies.Add(new TiCompanyPickItem 
                 { 
-                    Company = new UBB_SE_2026_Jobs.Library.DTOs.CompanyDto { CompanyId = c.CompanyId, Name = c.Name }, 
-                    IsSelected = existingCollaboratorIds?.Contains(c.CompanyId) ?? false 
+                    Company = new UBB_SE_2026_Jobs.Library.DTOs.CompanyDto { CompanyId = company.CompanyId, Name = company.Name }, 
+                    IsSelected = existingCollaboratorIds?.Contains(company.CompanyId) ?? false 
                 });
             }
         }
@@ -77,7 +77,7 @@ public partial class TiEditEventViewModel : DispatchableObservableObject
             Location = Location.Trim(),
             StartDate = StartDate?.DateTime ?? DateTime.UtcNow,
             EndDate = EndDate?.DateTime ?? DateTime.UtcNow,
-            CollaboratorCompanyIds = AvailableCompanies.Where(c => c.IsSelected).Select(c => c.Company.CompanyId).ToList()
+            CollaboratorCompanyIds = AvailableCompanies.Where(companyItem => companyItem.IsSelected).Select(companyItem => companyItem.Company.CompanyId).ToList()
         };
 
         await eventsService.UpdateAsync(eventId, dto);

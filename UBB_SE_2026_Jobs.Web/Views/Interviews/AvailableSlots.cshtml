@@ -105,7 +105,7 @@
     let selectedJobId = null;
 
     window.selectJob = function (el) {
-        document.querySelectorAll('.job-card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.job-card').forEach(card => card.classList.remove('selected'));
         el.classList.add('selected');
         selectedJobId = el.dataset.jobId;
         document.getElementById('selectedJobLabel').textContent = el.dataset.companyName;
@@ -121,9 +121,9 @@
         document.getElementById('slotsContainer').innerHTML =
             '<div class="text-muted small py-3">Loading slots...</div>';
         try {
-            const res = await fetch(`/Interviews/GetSlotsByJob?jobId=${selectedJobId}&date=${date}`);
-            if (!res.ok) throw new Error();
-            const slots = await res.json();
+            const response = await fetch(`/Interviews/GetSlotsByJob?jobId=${selectedJobId}&date=${date}`);
+            if (!response.ok) throw new Error();
+            const slots = await response.json();
             renderSlots(slots);
         } catch {
             document.getElementById('slotsContainer').innerHTML =
@@ -132,7 +132,7 @@
     };
 
     function renderSlots(slots) {
-        const available = slots.filter(s => s.status === 0);
+        const available = slots.filter(slot => slot.status === 0);
         if (!available.length) {
             document.getElementById('slotsContainer').innerHTML =
                 `<div class="p-4 rounded text-center" style="background:#F0EEFF;">
@@ -176,9 +176,9 @@
         form.submit();
     };
 
-    function formatDate(iso) {
-        const d = new Date(iso);
-        return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    function formatDate(isoDate) {
+        const date = new Date(isoDate);
+        return date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     }
 })();
 </script>
