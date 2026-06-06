@@ -44,7 +44,7 @@
                 <label asp-for="CompanyId" class="form-label">Company</label>
                 <select asp-for="CompanyId" class="form-select">
                     <option value="">-- Select company --</option>
-                    @if (ViewData["Companies"] is List<UBB_SE_2026_Jobs.Web.Dtos.CompanyDto> companies)
+                    @if (ViewData["Companies"] is List<UBB_SE_2026_Jobs.Library.DTOs.Web.CompanyDto> companies)
                     {
                         foreach (var c in companies)
                         {

@@ -1,7 +1,7 @@
 @{
     ViewData["Title"] = "Events";
-    var currentEvents = ViewBag.CurrentEvents as List<UBB_SE_2026_Jobs.Web.Dtos.EventDto> ?? new List<UBB_SE_2026_Jobs.Web.Dtos.EventDto>();
-    var pastEvents = ViewBag.PastEvents as List<UBB_SE_2026_Jobs.Web.Dtos.EventDto> ?? new List<UBB_SE_2026_Jobs.Web.Dtos.EventDto>();
+    var currentEvents = ViewBag.CurrentEvents as List<UBB_SE_2026_Jobs.Library.DTOs.Web.EventDto> ?? new List<UBB_SE_2026_Jobs.Library.DTOs.Web.EventDto>();
+    var pastEvents = ViewBag.PastEvents as List<UBB_SE_2026_Jobs.Library.DTOs.Web.EventDto> ?? new List<UBB_SE_2026_Jobs.Library.DTOs.Web.EventDto>();
 }
 
 @if (User.IsInRole("Recruiter") || User.IsInRole("Admin"))
