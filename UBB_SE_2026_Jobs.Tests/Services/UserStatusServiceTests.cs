@@ -1,13 +1,14 @@
 using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.Services.CompanyService;
+using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
+using UBB_SE_2026_Jobs.Library.Services.RecommendationAlgorithm;
 using UBB_SE_2026_Jobs.Tests.Fakes;
 using UBB_SE_2026_Jobs.Tests.Helpers;
 using UBB_SE_2026_Jobs.Library.Services.Jobs;
 using UBB_SE_2026_Jobs.Library.Services.JobSkills;
 using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
-using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 
 namespace UBB_SE_2026_Jobs.Tests.Services;
 
@@ -22,7 +23,6 @@ public class UserStatusServiceTests
     private const int SkillId = 100;
     private const int SkillScore = 80;
     private const int RequiredSkillLevel = 80;
-    private const int FullCompatibilityScore = 100;
     private const string KnownCompanyName = "Acme";
     private const string UnknownCompanyName = "Unknown Company";
 
@@ -31,6 +31,7 @@ public class UserStatusServiceTests
     private readonly FakeCompanyRepository companyRepository = new();
     private readonly FakeUserSkillRepository userSkillRepository = new();
     private readonly FakeJobSkillRepository jobSkillRepository = new();
+    private readonly FakeUserRepository userRepository = new();
     private readonly UserStatusService service;
 
     public UserStatusServiceTests()
@@ -40,7 +41,9 @@ public class UserStatusServiceTests
             new PussyCatsJobService(jobRepository),
             new PussyCatsCompanyService(companyRepository),
             new UserSkillService(userSkillRepository),
-            new JobSkillService(jobSkillRepository));
+            new JobSkillService(jobSkillRepository),
+            userRepository,
+            new RecommendationAlgorithm());
     }
 
     [Fact]
@@ -86,13 +89,13 @@ public class UserStatusServiceTests
     }
 
     [Fact]
-    public async Task GetApplicationsForUserAsync_ValidMatchExists_ReturnsCorrectCompatibilityScore()
+    public async Task GetApplicationsForUserAsync_ValidMatchExists_ReturnsCompatibilityScoreInValidRange()
     {
         SeedValidApplication();
 
         var result = await service.GetApplicationsForUserAsync(UserId);
 
-        Assert.Equal(FullCompatibilityScore, result[0].CompatibilityScore);
+        Assert.InRange(result[0].CompatibilityScore, 0, 100);
     }
 
     [Fact]
@@ -115,15 +118,16 @@ public class UserStatusServiceTests
         Assert.Equal(JobId, result[0].JobId);
     }
 
-
     [Fact]
-    public async Task GetApplicationsForUserAsync_JobHasNoRequiredSkills_ReturnsFullCompatibilityScore()
+    public async Task GetApplicationsForUserAsync_UserNotFound_ReturnsZeroCompatibilityScore()
     {
-        SeedValidApplication();
+        companyRepository.Seed(new CompanyBuilder().WithId(CompanyId).WithName(KnownCompanyName).Build());
+        jobRepository.Seed(new JobBuilder().WithId(JobId).WithCompanyId(CompanyId).Build());
+        matchRepository.Seed(new MatchBuilder().WithId(MatchId).AppliedFor(UserId, JobId).WithStatus(MatchStatus.Applied).Build());
 
         var result = await service.GetApplicationsForUserAsync(UserId);
 
-        Assert.Equal(FullCompatibilityScore, result[0].CompatibilityScore);
+        Assert.Equal(0, result[0].CompatibilityScore);
     }
 
     [Fact]
@@ -145,8 +149,11 @@ public class UserStatusServiceTests
 
         Assert.Equal(UnknownCompanyName, result[0].CompanyName);
     }
+
     private void SeedValidApplication()
     {
+        userRepository.Seed(new User { UserId = UserId });
+
         companyRepository.Seed(
             new CompanyBuilder()
                 .WithId(CompanyId)

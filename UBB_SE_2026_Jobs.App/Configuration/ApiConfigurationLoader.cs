@@ -2,7 +2,7 @@ namespace UBB_SE_2026_Jobs.App.Configuration;
 
 public static class ApiConfigurationLoader
 {
-    private const string DefaultBaseUrl = "https://localhost:7168";
+    private const string DefaultBaseUrl = "http://172.30.242.79";
 
     public static ApiConfiguration Load(string? baseDirectory = null)
     {
@@ -15,7 +15,7 @@ public static class ApiConfigurationLoader
             ?? new ApiConfiguration(DefaultBaseUrl);
     }
 
-    private const string DefaultTiBaseUrl = "https://localhost:7168/";
+    private const string DefaultTiBaseUrl = "http://172.30.242.79";
 
     private static ApiConfiguration? TryLoad(string path)
     {

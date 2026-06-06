@@ -1,10 +1,15 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using UBB_SE_2026_Jobs.App.Configuration;
+using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.DTOs;
+using UBB_SE_2026_Jobs.Library.Services.Jobs;
+using UBB_SE_2026_Jobs.Library.Services.JobSkills;
+using UBB_SE_2026_Jobs.Library.Services.RecommendationAlgorithm;
+using UBB_SE_2026_Jobs.Library.Services.UserProfileService;
+using UBB_SE_2026_Jobs.Library.Services.UserSkillService;
 using UBB_SE_2026_Jobs.Library.Services.UserStatusService;
 
 namespace UBB_SE_2026_Jobs.App.ViewModels;
@@ -13,6 +18,12 @@ public class UserStatusViewModel : DispatchableObservableObject
 {
     private readonly IUserStatusService userStatusService;
     private readonly SessionContext session;
+    private readonly IUserProfileService userProfileService;
+    private readonly IUserSkillService userSkillService;
+    private readonly IJobSkillService jobSkillService;
+    private readonly IJobService jobService;
+    private readonly RecommendationAlgorithm algorithm = new();
+
     private bool isLoading;
     private bool hasError;
     private bool isEmpty;
@@ -23,10 +34,18 @@ public class UserStatusViewModel : DispatchableObservableObject
 
     public UserStatusViewModel(
         IUserStatusService userStatusService,
-        SessionContext session)
+        SessionContext session,
+        IUserProfileService userProfileService,
+        IUserSkillService userSkillService,
+        IJobSkillService jobSkillService,
+        IJobService jobService)
     {
         this.userStatusService = userStatusService;
         this.session = session;
+        this.userProfileService = userProfileService;
+        this.userSkillService = userSkillService;
+        this.jobSkillService = jobSkillService;
+        this.jobService = jobService;
 
         RefreshCommand = new RelayCommand(Refresh);
     }
@@ -54,15 +73,23 @@ public class UserStatusViewModel : DispatchableObservableObject
 
         try
         {
-            var applications = await userStatusService.GetApplicationsForUserAsync(userId, cancellationToken);
+            var applicationsTask = userStatusService.GetApplicationsForUserAsync(userId, cancellationToken);
+            var userTask = userProfileService.GetProfileAsync(userId, cancellationToken);
+            var userSkillsTask = userSkillService.GetByUserIdAsync(userId, cancellationToken);
+
+            await Task.WhenAll(applicationsTask, userTask, userSkillsTask);
+
+            var applications = applicationsTask.Result;
+            var user = userTask.Result;
+            var userSkills = userSkillsTask.Result;
+
+            await RecalculateScoresAsync(applications, user, userSkills, cancellationToken);
 
             await UIDispatcher.EnqueueAsync(() =>
             {
                 AppliedJobs.Clear();
                 foreach (var application in applications)
-                {
                     AppliedJobs.Add(application);
-                }
 
                 ApplyFilter(CurrentFilter);
             });
@@ -75,6 +102,37 @@ public class UserStatusViewModel : DispatchableObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task RecalculateScoresAsync(
+        IReadOnlyList<ApplicationCardModel> applications,
+        User? user,
+        IReadOnlyList<UserSkill> userSkills,
+        CancellationToken cancellationToken)
+    {
+        if (user is null)
+            return;
+
+        var jobSkillTasks = applications
+            .Select(app => jobSkillService.GetByJobIdAsync(app.JobId, cancellationToken))
+            .ToList();
+
+        var jobTasks = applications
+            .Select(app => jobService.GetByIdAsync(app.JobId, cancellationToken))
+            .ToList();
+
+        await Task.WhenAll(jobSkillTasks.Cast<Task>().Concat(jobTasks.Cast<Task>()));
+
+        for (var i = 0; i < applications.Count; i++)
+        {
+            var job = jobTasks[i].Result;
+            if (job is null)
+                continue;
+
+            var jobSkills = jobSkillTasks[i].Result;
+            var score = algorithm.CalculateCompatibilityScore(user, job, userSkills, jobSkills);
+            applications[i].CompatibilityScore = (int)Math.Round(score);
         }
     }
 
@@ -94,9 +152,7 @@ public class UserStatusViewModel : DispatchableObservableObject
         FilteredJobs.Clear();
 
         foreach (var application in GetFilteredApplications(filter))
-        {
             FilteredJobs.Add(application);
-        }
 
         if (FilteredJobs.Count == 0)
         {

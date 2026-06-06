@@ -212,6 +212,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+Microsoft.Playwright.Program.Main(["install", "chromium"]);
+
 var app = builder.Build();
 
 // Auto-migrate database
