@@ -129,10 +129,10 @@ public class LeaderboardServiceTests
     {
         const int testId = 3;
         const int userId = 42;
-        const decimal pct = 88.5m;
+        const decimal percentageScore = 88.5m;
         var attempts = new List<TestAttempt>
         {
-            new() { TestId = testId, ExternalUserId = userId, PercentageScore = pct },
+            new() { TestId = testId, ExternalUserId = userId, PercentageScore = percentageScore },
         };
         testAttemptRepository.FindValidAttemptsByTestIdAsync(testId).Returns(attempts);
 
@@ -147,7 +147,7 @@ public class LeaderboardServiceTests
         var entry = saved![0];
         Assert.Equal(testId, entry.TestId);
         Assert.Equal(userId, entry.UserId);
-        Assert.Equal(pct, entry.NormalizedScore);
+        Assert.Equal(percentageScore, entry.NormalizedScore);
         Assert.Equal(1, entry.RankPosition);
         Assert.Equal(1, entry.TieBreakPriority);
         Assert.InRange(entry.LastRecalculationAt, before, after);
