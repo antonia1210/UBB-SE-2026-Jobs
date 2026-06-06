@@ -83,8 +83,4 @@ public sealed partial class CompatibilityDetailPage : Page
         noSuggestionsLabel.Visibility = Visibility.Collapsed;
     }
 
-    private void ButtonBack_Click(object sender, RoutedEventArgs eventArguments)
-    {
-        if (Frame.CanGoBack) Frame.GoBack();
-    }
 }

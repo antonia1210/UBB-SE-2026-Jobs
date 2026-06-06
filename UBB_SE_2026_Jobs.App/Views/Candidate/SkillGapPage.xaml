@@ -54,9 +54,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button Content="← Back to My Status" VerticalAlignment="Center"
-                        Click="BackToStatus_Click" Foreground="Black" Padding="12,6" Height="36"/>
-                <TextBlock Grid.Column="1" Text="Skill Gap Analysis" FontSize="22" FontWeight="Bold"
+<TextBlock Grid.Column="1" Text="Skill Gap Analysis" FontSize="22" FontWeight="Bold"
                            HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Black"/>
                 <Button Grid.Column="2" Content="Refresh" VerticalAlignment="Center"
                         Click="RefreshButton_Click" Foreground="Black" Padding="12,6" Height="36"/>

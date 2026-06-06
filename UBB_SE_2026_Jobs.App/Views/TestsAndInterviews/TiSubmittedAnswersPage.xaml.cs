@@ -25,5 +25,4 @@ public sealed partial class TiSubmittedAnswersPage : Page
             await ViewModel.LoadAsync(p.TestId, p.AttemptId);
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e) => Frame.GoBack();
 }

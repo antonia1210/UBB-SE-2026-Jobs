@@ -25,5 +25,4 @@ public sealed partial class TiJobApplicantsPage : Page
             await ViewModel.LoadForJobAsync(job);
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e) => Frame.GoBack();
 }

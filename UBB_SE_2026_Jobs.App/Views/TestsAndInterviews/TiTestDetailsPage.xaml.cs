@@ -30,8 +30,6 @@ public sealed partial class TiTestDetailsPage : Page
         }
     }
 
-    private void Back_Click(object sender, RoutedEventArgs e) => Frame.GoBack();
-
     private void StartTest_Click(object sender, RoutedEventArgs e) =>
         Frame.Navigate(typeof(TiTestPage), loadedTestId);
 

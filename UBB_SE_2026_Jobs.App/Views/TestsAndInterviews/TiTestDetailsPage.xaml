@@ -16,13 +16,7 @@
 
         <!-- Header -->
         <Grid Grid.Row="0" Margin="0,0,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Content="← Back" Click="Back_Click" Margin="0,0,16,0"
-                    Background="Transparent" BorderThickness="0"/>
-            <StackPanel Grid.Column="1">
+            <StackPanel>
                 <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}"
                            FontSize="24" FontWeight="Bold" TextWrapping="Wrap"/>
                 <TextBlock Text="{x:Bind ViewModel.Category, Mode=OneWay}" FontSize="14"
