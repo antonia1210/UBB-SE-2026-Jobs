@@ -10,11 +10,12 @@ public class InterviewSessionServiceTests
 {
     private readonly FakeInterviewSessionRepository interviewSessionRepository = new();
     private readonly FakeApplicantRepository applicantRepository = new();
+    private readonly FakeMatchRepository matchRepository = new();
     private readonly InterviewSessionService interviewSessionService;
 
     public InterviewSessionServiceTests()
     {
-        interviewSessionService = new InterviewSessionService(interviewSessionRepository, applicantRepository);
+        interviewSessionService = new InterviewSessionService(interviewSessionRepository, applicantRepository, matchRepository);
     }
 
 
@@ -256,15 +257,16 @@ public class InterviewSessionServiceTests
     }
 
     [Fact]
-    public async Task SetInterviewDecision_ApplicantNotFound_ThrowsInvalidDataException()
+    public async Task SetInterviewDecision_ApplicantNotFound_CompletesWithoutException()
     {
+        // Candidates who applied via the Match flow (not the legacy Applicant table) have no
+        // Applicant row — the service should skip the applicant update and not throw.
         interviewSessionRepository.Seed(SessionWithCandidate(sessionId: 1, positionId: 10, candidateId: 5));
 
+        await interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted");
 
-       Func < Task > act = () => interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted");
-
-        var exception = await Assert.ThrowsAsync<InvalidDataException>(act);
-        Assert.Contains("Application", exception.Message, StringComparison.OrdinalIgnoreCase);
+        var session = await interviewSessionRepository.GetInterviewSessionByIdAsync(1);
+        Assert.Equal(InterviewStatus.Completed.ToString(), session!.Status);
     }
 
     [Fact]
@@ -306,10 +308,10 @@ public class InterviewSessionServiceTests
     [Fact]
     public async Task SetInterviewDecision_ApplicantNotFound_SessionIsStillMarkedCompleted()
     {
+        // No applicant seeded — should complete gracefully without throwing.
         interviewSessionRepository.Seed(SessionWithCandidate(sessionId: 1, positionId: 10, candidateId: 5));
 
-        await Assert.ThrowsAsync<InvalidDataException>(
-            () => interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted"));
+        await interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted");
 
         var session = await interviewSessionRepository.GetInterviewSessionByIdAsync(1);
         Assert.Equal(InterviewStatus.Completed.ToString(), session!.Status);

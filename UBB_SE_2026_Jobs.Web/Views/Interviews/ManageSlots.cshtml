@@ -111,7 +111,7 @@
     render();
 
     async function render() {
-        document.getElementById('weekLabel').textContent = fmtShort(weekStart) + ' – ' + fmtShort(addDays(weekStart, 6));
+        document.getElementById('weekLabel').textContent = fmtShort(weekStart) + ' ï¿½ ' + fmtShort(addDays(weekStart, 6));
         renderHead();
         await loadSlots();
         renderBody();
@@ -147,7 +147,7 @@
                     `<span class="slot-chip ${s.status ? 'booked' : 'free'}"
                         onclick="slotClick(event,${s.id})"
                         title="${s.status ? 'Booked' : 'Click to edit/delete'}">
-                        ${pad(h)}:${pad(m)} · ${s.duration ?? 60}m
+                        ${pad(h)}:${pad(m)} ï¿½ ${s.duration ?? 60}m
                     </span>`
                 ).join('');
                 html += `<td class="day-cell${empty ? ' empty' : ''}"
@@ -179,8 +179,9 @@
         if (!date || !time) return;
         const startTime = date + 'T' + time + ':00';
         try {
+            let res;
             if (editSlot) {
-                await fetch('/Interviews/UpdateRecruiterSlot', { method: 'POST', body: new URLSearchParams({
+                res = await fetch('/Interviews/UpdateRecruiterSlot', { method: 'POST', body: new URLSearchParams({
                     'initialSlot.id': editSlot.id,
                     'initialSlot.startTime': editSlot.startTime,
                     'initialSlot.duration': editSlot.duration ?? 60,
@@ -188,7 +189,7 @@
                     startTime, duration
                 })});
             } else {
-                await fetch('/Interviews/CreateRecruiterSlot', { method: 'POST', body: new URLSearchParams({
+                res = await fetch('/Interviews/CreateRecruiterSlot', { method: 'POST', body: new URLSearchParams({
                     'baseSlot.startTime': startTime,
                     'baseSlot.duration': duration,
                     'baseSlot.companyId': companyId,
@@ -196,9 +197,31 @@
                 })});
             }
 
+            if (!res.ok) {
+                let msg = 'Failed to save slot.';
+                try { const body = await res.json(); if (body.error) msg = body.error; } catch {}
+                showError(msg);
+                return;
+            }
+
             closeModal();
             await render();
-        } catch {}
+        } catch (e) {
+            showError('An unexpected error occurred.');
+        }
+    }
+
+    function showError(msg) {
+        let el = document.getElementById('slotError');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'slotError';
+            el.className = 'alert alert-danger alert-dismissible mt-3';
+            el.innerHTML = '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button><span id="slotErrorMsg"></span>';
+            document.querySelector('.container.py-4').prepend(el);
+        }
+        document.getElementById('slotErrorMsg').textContent = msg;
+        el.style.display = '';
     }
 
     async function deleteSlot() {

@@ -176,18 +176,23 @@ namespace UBB_SE_2026_Jobs.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateRecruiterSlot(SlotDto baseSlot, int duration)
         {
-            try {
-                int recruiterId = int.Parse(
-                    this.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                baseSlot.RecruiterId = recruiterId;
+            int recruiterId = int.Parse(
+                this.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            baseSlot.RecruiterId = recruiterId;
 
+            try
+            {
                 await this.slotsClient.AddRecruiterSlotAsync(baseSlot, duration);
                 return Ok();
-            } catch (HttpRequestException) {
-                this.TempData["Error"] = "Slot not available.";
             }
-
-            return this.RedirectToAction(nameof(this.ManageSlots));
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { error = ex.Message });
+            }
+            catch (HttpRequestException)
+            {
+                return StatusCode(500, new { error = "Failed to create slot." });
+            }
         }
 
         /// <summary>
