@@ -95,7 +95,7 @@ public class TestServiceTests
         var result = await service.FindTestsByCategoryAsync("Programming");
 
         Assert.Equal(2, result.Count);
-        Assert.All(result, t => Assert.Equal("Programming", t.Category));
+        Assert.All(result, test => Assert.Equal("Programming", test.Category));
     }
 
     [Fact]

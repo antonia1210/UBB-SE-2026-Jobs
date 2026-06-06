@@ -11,14 +11,14 @@ namespace UBB_SE_2026_Jobs.Tests.Integration;
 
 public class TestAttemptsIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly CustomWebApplicationFactory _factory;
+    private readonly CustomWebApplicationFactory customWebApplicationFactory;
 
     public TestAttemptsIntegrationTests(CustomWebApplicationFactory factory)
     {
-        _factory = factory;
+        customWebApplicationFactory = factory;
 
         // Ensure a clean in-memory database for each test instance
-        using var scope = _factory.Services.CreateScope();
+        using var scope = customWebApplicationFactory.Services.CreateScope();
         var database = scope.ServiceProvider.GetRequiredService<JobsDbContext>();
         database.Database.EnsureDeleted();
         database.Database.EnsureCreated();
@@ -27,7 +27,7 @@ public class TestAttemptsIntegrationTests : IClassFixture<CustomWebApplicationFa
     [Fact]
     public async Task PostAttempt_ControllerPersists_ThenCanBeRetrievedByUserAndTest()
     {
-        var client = _factory.CreateClient();
+        var client = customWebApplicationFactory.CreateClient();
 
         var testAttemptDto = new TestAttemptDto
         {
@@ -59,7 +59,7 @@ public class TestAttemptsIntegrationTests : IClassFixture<CustomWebApplicationFa
     public async Task SeedDatabase_DirectlyThenGetById_ReturnsSeededAttempt()
     {
         int seededId;
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = customWebApplicationFactory.Services.CreateScope())
         {
             var jobsDatabaseContext = scope.ServiceProvider.GetRequiredService<JobsDbContext>();
 
@@ -82,7 +82,7 @@ public class TestAttemptsIntegrationTests : IClassFixture<CustomWebApplicationFa
         }
 
         // Act - fetch via controller by id
-        var client = _factory.CreateClient();
+        var client = customWebApplicationFactory.CreateClient();
         var getResponse = await client.GetAsync($"api/testattempts/{seededId}");
 
         // Assert

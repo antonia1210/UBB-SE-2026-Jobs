@@ -46,12 +46,12 @@ public class FakeUserRepository : IUserRepository
         {
             user.UserId = NextId();
         }
-        var now = DateTime.UtcNow;
+        var currentDateTime = DateTime.UtcNow;
         if (user.CreatedAt == default)
         {
-            user.CreatedAt = now;
+            user.CreatedAt = currentDateTime;
         }
-        user.LastUpdated = now;
+        user.LastUpdated = currentDateTime;
         usersById[user.UserId] = user;
         return Task.FromResult(user);
     }

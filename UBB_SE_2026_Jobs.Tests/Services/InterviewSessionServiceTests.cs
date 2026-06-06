@@ -87,7 +87,7 @@ public class InterviewSessionServiceTests
         var result = await interviewSessionService.GetScheduledSessionsForCandidateAsync(10);
 
         Assert.Equal(expectedNumberOfSessions, result.Count);
-        Assert.All(result, s => Assert.Equal(userId, s.ExternalUserId));
+        Assert.All(result, interviewSession => Assert.Equal(userId, interviewSession.ExternalUserId));
     }
 
     [Fact]

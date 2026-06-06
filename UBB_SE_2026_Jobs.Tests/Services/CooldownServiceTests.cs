@@ -76,10 +76,10 @@ public class CooldownServiceTests
         var negativeService = new CooldownService(recommendationRepository, TimeSpan.FromHours(-1));
 
         const int userId = 1, jobId = 10, hoursAgo = 12;
-        var now = DateTime.UtcNow;
-        recommendationRepository.Seed(new Recommendation { RecommendationId = 1, User = new User { UserId = userId }, Job = new Job { JobId = jobId }, Timestamp = now.AddHours(-hoursAgo) });
+        var currentDateTime = DateTime.UtcNow;
+        recommendationRepository.Seed(new Recommendation { RecommendationId = 1, User = new User { UserId = userId }, Job = new Job { JobId = jobId }, Timestamp = currentDateTime.AddHours(-hoursAgo) });
 
-        Assert.True(await negativeService.IsOnCooldownAsync(userId, jobId, now));
-        Assert.True(await zeroService.IsOnCooldownAsync(userId, jobId, now));
+        Assert.True(await negativeService.IsOnCooldownAsync(userId, jobId, currentDateTime));
+        Assert.True(await zeroService.IsOnCooldownAsync(userId, jobId, currentDateTime));
     }
 }
