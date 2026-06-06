@@ -1,3 +1,4 @@
+using UBB_SE_2026_Jobs.Library.Domain;
 using UBB_SE_2026_Jobs.Library.Domain.Core;
 using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.Services;
@@ -8,18 +9,36 @@ namespace UBB_SE_2026_Jobs.Tests.Services;
 public class InterviewSessionServiceTests
 {
     private readonly FakeInterviewSessionRepository interviewSessionRepository = new();
+    private readonly FakeApplicantRepository applicantRepository = new();
     private readonly InterviewSessionService interviewSessionService;
 
     public InterviewSessionServiceTests()
     {
-        interviewSessionService = new InterviewSessionService(interviewSessionRepository);
+        interviewSessionService = new InterviewSessionService(interviewSessionRepository, applicantRepository);
     }
+
+
+    private static InterviewSession SessionWithCandidate(int sessionId, int positionId, int candidateId) => new()
+    {
+        Id = sessionId,
+        PositionId = positionId,
+        ExternalUserId = candidateId,
+        Status = InterviewStatus.Scheduled.ToString(),
+    };
+
+    private static Applicant ApplicantForSession(int applicantId, int jobId, int userId) => new()
+    {
+        ApplicantId = applicantId,
+        JobId = jobId,
+        UserId = userId,
+        ApplicationStatus = "Pending",
+    };
 
 
     [Fact]
     public async Task GetScheduledSessionsAsync_NoSessionsExist_ReturnsEmptyList()
     {
-        var result = await interviewSessionService.GetScheduledSessionsAsync();
+        var result = await interviewSessionService.GetScheduledSessionsAsync(null);
 
         Assert.Empty(result);
     }
@@ -32,7 +51,7 @@ public class InterviewSessionServiceTests
             new InterviewSession { Id = 1, Status = InterviewStatus.Scheduled.ToString() },
             new InterviewSession { Id = 2, Status = InterviewStatus.Scheduled.ToString() });
 
-        var result = await interviewSessionService.GetScheduledSessionsAsync();
+        var result = await interviewSessionService.GetScheduledSessionsAsync(null);
 
         Assert.Equal(expectedNumberOfSessions, result.Count);
     }
@@ -46,7 +65,7 @@ public class InterviewSessionServiceTests
             new InterviewSession { Id = 2, Status = InterviewStatus.Completed.ToString() },
             new InterviewSession { Id = 3, Status = InterviewStatus.InProgress.ToString() });
 
-        var result = await interviewSessionService.GetScheduledSessionsAsync();
+        var result = await interviewSessionService.GetScheduledSessionsAsync(null);
 
         Assert.Single(result);
         Assert.Equal(scheduledInterviewId, result[0].Id);
@@ -150,7 +169,7 @@ public class InterviewSessionServiceTests
 
         Assert.NotNull(result);
         Assert.Equal(externalUserId, result.ExternalUserId);
-        var allInteviewSessions = await interviewSessionService.GetScheduledSessionsAsync();
+        var allInteviewSessions = await interviewSessionService.GetScheduledSessionsAsync(null);
         Assert.Single(allInteviewSessions);
     }
 
@@ -210,13 +229,89 @@ public class InterviewSessionServiceTests
         Assert.Contains("not found", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    // -------------------------------------------------------------------------
-    // UploadVideoAsync / GetVideoAsync
-    // NOTE: These methods are tightly coupled to the real file system
-    // (Directory.CreateDirectory, FileStream, File.ReadAllBytes) with no
-    // injected abstraction.  Unit-testing them without touching disk requires
-    // extracting an IFileSystem interface first — tracked as a refactor task.
-    // Integration-level coverage for those two methods should live in a
-    // separate integration test project that runs against a temp directory.
-    // -------------------------------------------------------------------------
+    [Fact]
+    public async Task SetInterviewDecision_SessionNotFound_ThrowsKeyNotFoundException()
+    {
+        Func<Task> act = () => interviewSessionService.SetInterviewDecision(sessionId: 999, decision: "Accepted");
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(act);
+    }
+
+    [Fact]
+    public async Task SetInterviewDecision_SessionHasNoCandidate_ThrowsInvalidDataException()
+    {
+        var sessionWithoutCandidate = new InterviewSession
+        {
+            Id = 1,
+            PositionId = 10,
+            ExternalUserId = null,
+            Status = InterviewStatus.Scheduled.ToString(),
+        };
+        interviewSessionRepository.Seed(sessionWithoutCandidate);
+
+        Func<Task> act = () => interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted");
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(act);
+        Assert.Contains("candidate", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SetInterviewDecision_ApplicantNotFound_ThrowsInvalidDataException()
+    {
+        interviewSessionRepository.Seed(SessionWithCandidate(sessionId: 1, positionId: 10, candidateId: 5));
+
+
+       Func < Task > act = () => interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted");
+
+        var exception = await Assert.ThrowsAsync<InvalidDataException>(act);
+        Assert.Contains("Application", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SetInterviewDecision_ValidSession_MarksSessionAsCompleted()
+    {
+        interviewSessionRepository.Seed(SessionWithCandidate(sessionId: 1, positionId: 10, candidateId: 5));
+        applicantRepository.Seed(ApplicantForSession(applicantId: 1, jobId: 10, userId: 5));
+
+        await interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted");
+
+        var updatedSession = await interviewSessionRepository.GetInterviewSessionByIdAsync(1);
+        Assert.Equal(InterviewStatus.Completed.ToString(), updatedSession!.Status);
+    }
+
+    [Fact]
+    public async Task SetInterviewDecision_ValidSession_SetsApplicantStatusToDecision()
+    {
+        interviewSessionRepository.Seed(SessionWithCandidate(sessionId: 1, positionId: 10, candidateId: 5));
+        applicantRepository.Seed(ApplicantForSession(applicantId: 1, jobId: 10, userId: 5));
+
+        await interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted");
+
+        var updatedApplicant = applicantRepository.GetPendingApplicantByJobAndUser(jobId: 10, userId: 5);
+        Assert.Equal("Accepted", updatedApplicant!.ApplicationStatus);
+    }
+
+    [Fact]
+    public async Task SetInterviewDecision_DecisionIsDeclined_SetsApplicantStatusToDeclined()
+    {
+        interviewSessionRepository.Seed(SessionWithCandidate(sessionId: 1, positionId: 10, candidateId: 5));
+        applicantRepository.Seed(ApplicantForSession(applicantId: 1, jobId: 10, userId: 5));
+
+        await interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Declined");
+
+        var updatedApplicant = applicantRepository.GetPendingApplicantByJobAndUser(jobId: 10, userId: 5);
+        Assert.Equal("Declined", updatedApplicant!.ApplicationStatus);
+    }
+
+    [Fact]
+    public async Task SetInterviewDecision_ApplicantNotFound_SessionIsStillMarkedCompleted()
+    {
+        interviewSessionRepository.Seed(SessionWithCandidate(sessionId: 1, positionId: 10, candidateId: 5));
+
+        await Assert.ThrowsAsync<InvalidDataException>(
+            () => interviewSessionService.SetInterviewDecision(sessionId: 1, decision: "Accepted"));
+
+        var session = await interviewSessionRepository.GetInterviewSessionByIdAsync(1);
+        Assert.Equal(InterviewStatus.Completed.ToString(), session!.Status);
+    }
 }

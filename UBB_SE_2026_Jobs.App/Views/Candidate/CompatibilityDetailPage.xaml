@@ -15,6 +15,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <Button Grid.Row="0" Content="Back" Click="ButtonBack_Click" Margin="0,0,0,16"/>
@@ -22,7 +23,30 @@
         <TextBlock x:Name="roleNameLabel" Grid.Row="1" FontSize="22" FontWeight="SemiBold" Margin="0,0,0,8"/>
         <TextBlock x:Name="matchScoreLabel" Grid.Row="2" FontSize="16" Margin="0,0,0,16"/>
 
-        <StackPanel Grid.Row="3">
+        <StackPanel Grid.Row="3" Margin="0,0,0,16">
+            <TextBlock Text="Skill Evidence Used" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <ListView x:Name="skillScoresList" MaxHeight="220">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CompatibilitySkillScoreDisplayItem">
+                        <Grid Margin="0,4,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="180"/>
+                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{x:Bind SkillName}" FontWeight="SemiBold"/>
+                            <TextBlock Grid.Column="1" Text="{x:Bind ScoreDisplay}"/>
+                            <TextBlock Grid.Column="2" Text="{x:Bind Source}" Foreground="Gray" TextWrapping="Wrap"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <TextBlock x:Name="noSkillScoresLabel"
+                       Text="No matching profile or test skills were found for this role."
+                       Visibility="Collapsed"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="4">
             <TextBlock Text="Top Improvement Suggestions" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,8"/>
             <ListView x:Name="suggestionsList">
                 <ListView.ItemTemplate>

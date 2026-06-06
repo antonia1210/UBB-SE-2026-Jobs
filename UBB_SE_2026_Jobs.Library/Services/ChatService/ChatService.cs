@@ -3,7 +3,6 @@ using UBB_SE_2026_Jobs.Library.Domain.Enums;
 using UBB_SE_2026_Jobs.Library.Repositories;
 using UBB_SE_2026_Jobs.Library.Repositories.Chats;
 using UBB_SE_2026_Jobs.Library.Repositories.Messages;
-using UBB_SE_2026_Jobs.Library.Services.CompanyService;
 using UBB_SE_2026_Jobs.Library.Services.FileStorage;
 using UBB_SE_2026_Jobs.Library.Services.PussyCatsCompanyService;
 using UBB_SE_2026_Jobs.Library.Services.Users;
@@ -246,9 +245,25 @@ public class ChatService : IChatService
     {
         var chat = await chatRepository.GetByIdAsync(chatId, cancellationToken).ConfigureAwait(false)
             ?? throw new KeyNotFoundException($"Chat {chatId} not found.");
+
         EnsureParticipant(chat, blockerId, companyId);
+
         chat.IsBlocked = true;
         chat.BlockedByUserId = blockerId;
+
+        if (chat.User.UserId == blockerId)
+        {
+            chat.BlockedByUser = chat.User;
+        }
+        else if (chat.SecondUser?.UserId == blockerId)
+        {
+            chat.BlockedByUser = chat.SecondUser;
+        }
+        else
+        {
+            chat.BlockedByUser = await GetUserAsync(blockerId, cancellationToken);
+        }
+
         await chatRepository.UpdateAsync(chat, cancellationToken).ConfigureAwait(false);
     }
 
@@ -256,14 +271,20 @@ public class ChatService : IChatService
     {
         var chat = await chatRepository.GetByIdAsync(chatId, cancellationToken).ConfigureAwait(false)
             ?? throw new KeyNotFoundException($"Chat {chatId} not found.");
+
         EnsureParticipant(chat, unblockerId, companyId);
-        if (chat.BlockedByUserId != unblockerId)
+
+        var currentBlockerId = chat.BlockedByUserId ?? chat.BlockedByUser?.UserId;
+
+        if (currentBlockerId != unblockerId)
         {
             throw new UnauthorizedAccessException("Only the blocker can unblock this chat.");
         }
 
         chat.IsBlocked = false;
         chat.BlockedByUserId = null;
+        chat.BlockedByUser = null;
+
         await chatRepository.UpdateAsync(chat, cancellationToken).ConfigureAwait(false);
     }
 

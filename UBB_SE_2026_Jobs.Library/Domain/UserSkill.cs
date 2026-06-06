@@ -12,7 +12,7 @@ public class UserSkill
     //public int SkillId { get; set; }
     public Skill Skill { get; set; } = null!;
 
-    public int Score { get; set; }
+     public int Score { get; set; } = 10;
     public bool IsVerified { get; set; }
 
     /// <summary>

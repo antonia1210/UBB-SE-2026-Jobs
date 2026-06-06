@@ -25,7 +25,6 @@
                 <h2 class="mode-card__title">Build your profile</h2>
             </div>
             <p class="mode-card__copy">Upload CVs, refine skills, and discover matches. Authentication required.</p>
-            <button class="btn btn-primary mode-card__cta" type="submit" name="mode" value="User">Continue as User</button>
         </form>
         <form asp-action="SelectMode" method="post" class="mode-card" data-mode="Company">
             @Html.AntiForgeryToken()
@@ -34,7 +33,14 @@
                 <h2 class="mode-card__title">Review applicants</h2>
             </div>
             <p class="mode-card__copy">Browse matches, rank applicants, and manage listings. Recruiter account required.</p>
-            <button class="btn btn-outline-dark mode-card__cta" type="submit" name="mode" value="Company">Enter Company Mode</button>
+        </form>
+    </div>
+    <div class="text-center mt-5">
+        <form asp-action="SelectMode" method="post">
+            @Html.AntiForgeryToken()
+            <button class="btn btn-primary btn-lg px-5 py-3 fw-bold" style="border-radius: 10px;" type="submit" name="mode" value="Unified">
+                Sign In / Log In to Account
+            </button>
         </form>
     </div>
 </section>

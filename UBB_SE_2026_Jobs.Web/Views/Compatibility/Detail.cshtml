@@ -29,6 +29,30 @@
     }
 </div>
 
+@if (Model.SkillScores.Any())
+{
+    <h4 class="mb-3">Skill Evidence Used</h4>
+    <table class="table table-bordered" style="max-width: 700px;">
+        <thead class="table-light">
+            <tr>
+                <th>Skill</th>
+                <th>Score</th>
+                <th>Source</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var skillScore in Model.SkillScores)
+            {
+                <tr>
+                    <td>@skillScore.SkillName</td>
+                    <td>@skillScore.Score.ToString("F1")%</td>
+                    <td>@skillScore.Source</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
 @if (Model.Suggestions.Any())
 {
     <h4 class="mb-3">Suggested Skills to Improve Your Score</h4>

@@ -1295,6 +1295,10 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                         .HasColumnType("datetime2")
                         .HasColumnName("created_at");
 
+                    b.Property<int?>("SkillId")
+                        .HasColumnType("int")
+                        .HasColumnName("skill_id");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -1302,6 +1306,8 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                         .HasColumnName("title");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("SkillId");
 
                     b.ToTable("Tests");
 
@@ -1311,6 +1317,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Id = 1,
                             Category = "Programming",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SkillId = 1,
                             Title = "C# Fundamentals"
                         },
                         new
@@ -1318,6 +1325,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Id = 2,
                             Category = "Databases",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SkillId = 3,
                             Title = "SQL Basics"
                         },
                         new
@@ -1325,6 +1333,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Id = 3,
                             Category = "Web Development",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SkillId = 37,
                             Title = "JavaScript Essentials"
                         },
                         new
@@ -1332,6 +1341,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Id = 4,
                             Category = "Programming",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SkillId = 8,
                             Title = "Python Fundamentals"
                         },
                         new
@@ -1339,6 +1349,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Id = 5,
                             Category = "Programming",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SkillId = 21,
                             Title = "Java Fundamentals"
                         },
                         new
@@ -1346,6 +1357,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Id = 6,
                             Category = "Operations",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SkillId = 6,
                             Title = "DevOps Basics"
                         },
                         new
@@ -1353,6 +1365,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Id = 7,
                             Category = "Data Science",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SkillId = 10,
                             Title = "Data Science Basics"
                         },
                         new
@@ -1360,6 +1373,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                             Id = 8,
                             Category = "Design",
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            SkillId = 13,
                             Title = "UI/UX Fundamentals"
                         });
                 });
@@ -4091,7 +4105,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.AdviceChoice", b =>
                 {
                     b.HasOne("UBB_SE_2026_Jobs.Library.Domain.Scenario", null)
-                        .WithMany("AdviceChoices")
+                        .WithMany("Choices")
                         .HasForeignKey("ScenarioId");
                 });
 
@@ -4234,6 +4248,16 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
                     b.Navigation("Test");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.Core.Test", b =>
+                {
+                    b.HasOne("UBB_SE_2026_Jobs.Library.Domain.Skill", "Skill")
+                        .WithMany()
+                        .HasForeignKey("SkillId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Skill");
                 });
 
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.Core.TestAttempt", b =>
@@ -4585,7 +4609,7 @@ namespace UBB_SE_2026_Jobs.Library.Migrations
 
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.Scenario", b =>
                 {
-                    b.Navigation("AdviceChoices");
+                    b.Navigation("Choices");
                 });
 
             modelBuilder.Entity("UBB_SE_2026_Jobs.Library.Domain.User", b =>

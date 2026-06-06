@@ -1,4 +1,4 @@
-﻿namespace UBB_SE_2026_Jobs.Library.Repositories
+namespace UBB_SE_2026_Jobs.Library.Repositories
 {
     using Microsoft.EntityFrameworkCore;
     using System;
@@ -47,18 +47,18 @@
             if (!string.IsNullOrEmpty(company.Scen1Text))
             {
                 var scenario1 = new Scenario(company.Scen1Text);
-                scenario1.AddChoice(new AdviceChoice(company.Scen1Answer1 ?? string.Empty, company.Scen1Reaction1 ?? string.Empty));
-                scenario1.AddChoice(new AdviceChoice(company.Scen1Answer2 ?? string.Empty, company.Scen1Reaction2 ?? string.Empty));
-                scenario1.AddChoice(new AdviceChoice(company.Scen1Answer3 ?? string.Empty, company.Scen1Reaction3 ?? string.Empty));
+                scenario1.Choices.Add(new AdviceChoice(company.Scen1Answer1 ?? string.Empty, company.Scen1Reaction1 ?? string.Empty));
+                scenario1.Choices.Add(new AdviceChoice(company.Scen1Answer2 ?? string.Empty, company.Scen1Reaction2 ?? string.Empty));
+                scenario1.Choices.Add(new AdviceChoice(company.Scen1Answer3 ?? string.Empty, company.Scen1Reaction3 ?? string.Empty));
                 scenarios.Add(scenario1);
             }
 
             if (!string.IsNullOrEmpty(company.Scen2Text))
             {
                 var scenario2 = new Scenario(company.Scen2Text);
-                scenario2.AddChoice(new AdviceChoice(company.Scen2Answer1 ?? string.Empty, company.Scen2Reaction1 ?? string.Empty));
-                scenario2.AddChoice(new AdviceChoice(company.Scen2Answer2 ?? string.Empty, company.Scen2Reaction2 ?? string.Empty));
-                scenario2.AddChoice(new AdviceChoice(company.Scen2Answer3 ?? string.Empty, company.Scen2Reaction3 ?? string.Empty));
+                scenario2.Choices.Add(new AdviceChoice(company.Scen2Answer1 ?? string.Empty, company.Scen2Reaction1 ?? string.Empty));
+                scenario2.Choices.Add(new AdviceChoice(company.Scen2Answer2 ?? string.Empty, company.Scen2Reaction2 ?? string.Empty));
+                scenario2.Choices.Add(new AdviceChoice(company.Scen2Answer3 ?? string.Empty, company.Scen2Reaction3 ?? string.Empty));
                 scenarios.Add(scenario2);
             }
 
@@ -94,20 +94,20 @@
             existingCompany.BuddyDescription = game.Buddy.Introduction;
             existingCompany.AvatarId = game.Buddy.Id;
             existingCompany.FinalQuote = game.Conclusion;
-            existingCompany.Scen1Text = game.GetScenario(0).Description;
-            existingCompany.Scen1Answer1 = game.GetScenario(0).GetAdviceTexts()[0];
-            existingCompany.Scen1Answer2 = game.GetScenario(0).GetAdviceTexts()[1];
-            existingCompany.Scen1Answer3 = game.GetScenario(0).GetAdviceTexts()[2];
-            existingCompany.Scen1Reaction1 = game.GetScenario(0).GetAdviceReactions()[0];
-            existingCompany.Scen1Reaction2 = game.GetScenario(0).GetAdviceReactions()[1];
-            existingCompany.Scen1Reaction3 = game.GetScenario(0).GetAdviceReactions()[2];
-            existingCompany.Scen2Text = game.GetScenario(1).Description;
-            existingCompany.Scen2Answer1 = game.GetScenario(1).GetAdviceTexts()[0];
-            existingCompany.Scen2Answer2 = game.GetScenario(1).GetAdviceTexts()[1];
-            existingCompany.Scen2Answer3 = game.GetScenario(1).GetAdviceTexts()[2];
-            existingCompany.Scen2Reaction1 = game.GetScenario(1).GetAdviceReactions()[0];
-            existingCompany.Scen2Reaction2 = game.GetScenario(1).GetAdviceReactions()[1];
-            existingCompany.Scen2Reaction3 = game.GetScenario(1).GetAdviceReactions()[2];
+            existingCompany.Scen1Text = game.Scenarios[0].Description;
+            existingCompany.Scen1Answer1 = game.Scenarios[0].Choices[0].Advice;
+            existingCompany.Scen1Answer2 = game.Scenarios[0].Choices[1].Advice;
+            existingCompany.Scen1Answer3 = game.Scenarios[0].Choices[2].Advice;
+            existingCompany.Scen1Reaction1 = game.Scenarios[0].Choices[0].Feedback;
+            existingCompany.Scen1Reaction2 = game.Scenarios[0].Choices[1].Feedback;
+            existingCompany.Scen1Reaction3 = game.Scenarios[0].Choices[2].Feedback;
+            existingCompany.Scen2Text = game.Scenarios[1].Description;
+            existingCompany.Scen2Answer1 = game.Scenarios[1].Choices[0].Advice;
+            existingCompany.Scen2Answer2 = game.Scenarios[1].Choices[1].Advice;
+            existingCompany.Scen2Answer3 = game.Scenarios[1].Choices[2].Advice;
+            existingCompany.Scen2Reaction1 = game.Scenarios[1].Choices[0].Feedback;
+            existingCompany.Scen2Reaction2 = game.Scenarios[1].Choices[1].Feedback;
+            existingCompany.Scen2Reaction3 = game.Scenarios[1].Choices[2].Feedback;
 
             this.databaseContext.SaveChanges();
         }

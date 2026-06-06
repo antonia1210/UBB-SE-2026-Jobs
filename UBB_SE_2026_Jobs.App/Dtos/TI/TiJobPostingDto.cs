@@ -19,4 +19,10 @@ public class TiJobPostingDto
     public int? AmountPayed { get; set; }
     public DateTime? Deadline { get; set; }
     public List<TiJobSkillDto> JobSkills { get; set; } = new();
+
+    /// <summary>
+    /// True when the current session is in Company mode. Drives visibility of the recruiter
+    /// actions (Edit / Delete / etc.) on each job card. Set by <see cref="ViewModels.TI.TiJobsViewModel"/>.
+    /// </summary>
+    public bool IsCompanyMode { get; set; }
 }

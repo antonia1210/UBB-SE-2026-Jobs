@@ -25,6 +25,7 @@ public sealed partial class MainWindow : Window
         "DocumentsPage",
         "TiMainTestPage",
         "TiInterviewSlotsPage",
+        "TiCandidateBookedInterviewsPage",
     ];
 
     private static readonly HashSet<string> CompanyPages =
@@ -68,6 +69,7 @@ public sealed partial class MainWindow : Window
         ["TiEventsPage"]                = typeof(TiEventsPage),
         ["TiJobsPage"]                  = typeof(TiJobsPage),
         ["TiInterviewSlotsPage"]        = typeof(TiInterviewSlotsPage),
+        ["TiCandidateBookedInterviewsPage"] = typeof(TiCandidateBookedInterviewsPage),
         ["TiRecruiterInterviewsPage"]   = typeof(TiRecruiterInterviewsPage),
         ["TiLeaderboardPage"]           = typeof(TiLeaderboardPage),
     };

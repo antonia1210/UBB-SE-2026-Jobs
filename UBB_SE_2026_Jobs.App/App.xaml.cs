@@ -121,6 +121,8 @@ public partial class App : Application
             .AddHttpMessageHandler<JwtForwardingHandler>();
         services.AddHttpClient<ITiPaymentService, TiPaymentService>(client => client.BaseAddress = new Uri(tiBaseUrl))
             .AddHttpMessageHandler<JwtForwardingHandler>();
+        services.AddHttpClient<ITiInterviewSessionService, TiInterviewSessionService>(client => client.BaseAddress = new Uri(tiBaseUrl))
+            .AddHttpMessageHandler<JwtForwardingHandler>();
         RegisterViewModels(services);
     }
 

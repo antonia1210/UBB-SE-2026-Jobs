@@ -1,5 +1,6 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml;
+using System.Collections.ObjectModel;
 using UBB_SE_2026_Jobs.App.Configuration;
 using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.App.Services.TI;
@@ -8,51 +9,42 @@ namespace UBB_SE_2026_Jobs.App.ViewModels.TI;
 
 public partial class TiRecruiterInterviewsViewModel : DispatchableObservableObject
 {
-    private readonly ITiSlotsService slotsService;
+    private readonly ITiInterviewSessionService sessionService;
+    private readonly SessionContext session;
 
     [ObservableProperty] private bool isLoading;
-    [ObservableProperty] private DateTimeOffset selectedDate = DateTimeOffset.Now;
-    [ObservableProperty] private string selectedDateFormatted = DateTimeOffset.Now.ToString("dddd, dd MMM yyyy");
+    [ObservableProperty] private Visibility isEmpty = Visibility.Collapsed;
+    [ObservableProperty] private Visibility hasSessions = Visibility.Collapsed;
 
-    public ObservableCollection<TiSlotDto> Slots { get; } = new();
-    public ObservableCollection<TiInterviewSessionDto> PendingReviews { get; } = new();
+    public ObservableCollection<TiInterviewSessionDto> BookedSessions { get; } = new();
 
-    public TiRecruiterInterviewsViewModel(ITiSlotsService slotsService)
+    public TiRecruiterInterviewsViewModel(
+        ITiInterviewSessionService sessionService,
+        SessionContext session)
     {
-        this.slotsService = slotsService;
-    }
-
-    partial void OnSelectedDateChanged(DateTimeOffset value)
-    {
-        SelectedDateFormatted = value.ToString("dddd, dd MMM yyyy");
-        _ = LoadSlotsAsync();
+        this.sessionService = sessionService;
+        this.session = session;
     }
 
     public async Task LoadAllAsync()
     {
         IsLoading = true;
-        await LoadSlotsAsync();
-        await LoadPendingReviewsAsync();
+        var sessions = await sessionService.GetScheduledAsync(session.UserId);
+        await UIDispatcher.EnqueueAsync(() =>
+        {
+            BookedSessions.Clear();
+            foreach (var s in sessions)
+                BookedSessions.Add(s);
+
+            IsEmpty = BookedSessions.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            HasSessions = BookedSessions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        });
         IsLoading = false;
     }
 
-    private async Task LoadSlotsAsync()
+    public async Task SubmitDecisionAsync(int sessionId, string decision)
     {
-        var slots = await slotsService.GetAvailableAsync(SelectedDate.DateTime);
-        await UIDispatcher.EnqueueAsync(() =>
-        {
-            Slots.Clear();
-            foreach (var s in slots) Slots.Add(s);
-        });
-    }
-
-    private async Task LoadPendingReviewsAsync()
-    {
-        var sessions = await slotsService.GetSessionsByStatusAsync("InProgress");
-        await UIDispatcher.EnqueueAsync(() =>
-        {
-            PendingReviews.Clear();
-            foreach (var s in sessions) PendingReviews.Add(s);
-        });
+        await sessionService.SetInterviewDecisionAsync(sessionId, decision);
+        await LoadAllAsync();
     }
 }

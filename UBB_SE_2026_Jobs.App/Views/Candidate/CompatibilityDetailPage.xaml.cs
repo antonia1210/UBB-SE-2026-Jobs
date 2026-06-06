@@ -35,6 +35,30 @@ public sealed partial class CompatibilityDetailPage : Page
             ? "Score: Insufficient Data"
             : $"Match Score: {Math.Round(score, 1)}%";
 
+        var skillScores = viewModel.GetSkillScores();
+        if (skillScores.Count == 0)
+        {
+            skillScoresList.Visibility = Visibility.Collapsed;
+            noSkillScoresLabel.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            var skillScoreItems = new List<CompatibilitySkillScoreDisplayItem>();
+            foreach (var skillScore in skillScores)
+            {
+                skillScoreItems.Add(new CompatibilitySkillScoreDisplayItem
+                {
+                    SkillName = skillScore.SkillName,
+                    ScoreDisplay = $"{Math.Round(skillScore.Score, 1)}%",
+                    Source = skillScore.Source,
+                });
+            }
+
+            skillScoresList.ItemsSource = skillScoreItems;
+            skillScoresList.Visibility = Visibility.Visible;
+            noSkillScoresLabel.Visibility = Visibility.Collapsed;
+        }
+
         var suggestions = viewModel.GetSuggestions();
         if (suggestions is null || suggestions.Count == 0)
         {

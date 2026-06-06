@@ -2,8 +2,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using UBB_SE_2026_Jobs.App.Dtos.TI;
 using UBB_SE_2026_Jobs.App.ViewModels.TI;
-using UBB_SE_2026_Jobs.App;
 
 namespace UBB_SE_2026_Jobs.App.Views.TestsAndInterviews;
 
@@ -23,9 +23,32 @@ public sealed partial class TiRecruiterInterviewsPage : Page
         await ViewModel.LoadAllAsync();
     }
 
-    private void Calendar_SelectedDatesChanged(CalendarView sender, CalendarViewSelectedDatesChangedEventArgs e)
+    private void ManageSlots_Click(object sender, RoutedEventArgs e)
     {
-        if (e.AddedDates.Count > 0)
-            ViewModel.SelectedDate = new DateTimeOffset(e.AddedDates[0].DateTime);
+        Frame.Navigate(typeof(TiManageSlotsPage));
+    }
+
+    private async void DecideButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn || btn.Tag is not TiInterviewSessionDto session)
+            return;
+
+        var dialog = new ContentDialog
+        {
+            Title = "Candidate Decision",
+            Content = $"Session #{session.Id}\nCandidate #{session.ExternalUserId}\n\nChoose result for candidate:",
+            PrimaryButtonText = "Accept",
+            SecondaryButtonText = "Decline",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+
+        if (result == ContentDialogResult.Primary)
+            await ViewModel.SubmitDecisionAsync(session.Id, "Accepted");
+        else if (result == ContentDialogResult.Secondary)
+            await ViewModel.SubmitDecisionAsync(session.Id, "Declined");
     }
 }
