@@ -22,7 +22,7 @@ public class PersonalityTestServiceTests
         var questions = PersonalityTestService.LoadQuestions();
 
         var sortOrders = questions.Select(question => question.SortOrder).ToList();
-        Assert.Equal(sortOrders.OrderBy(x => x).ToList(), sortOrders);
+        Assert.Equal(sortOrders.OrderBy(sortOrder => sortOrder).ToList(), sortOrders);
     }
 
     [Fact]

@@ -66,14 +66,14 @@ namespace UBB_SE_2026_Jobs.Tests.Services
             Assert.Equal(string.Empty, slot.InterviewType);
 
             await slotRepository.Received(1).UpdateAsync(slot);
-            interviewSessionRepository.Received(1).Add(Arg.Is<InterviewSession>(s =>
-                s.PositionId == jobId &&
-                s.ExternalUserId == candidateId &&
-                s.InterviewerId == slot.RecruiterId &&
-                s.DateStart == slot.StartTime.ToUniversalTime() &&
-                s.Video == string.Empty &&
-                s.Status == "Scheduled" &&
-                s.Score == 0
+            interviewSessionRepository.Received(1).Add(Arg.Is<InterviewSession>(interviewSession =>
+                interviewSession.PositionId == jobId &&
+                interviewSession.ExternalUserId == candidateId &&
+                interviewSession.InterviewerId == slot.RecruiterId &&
+                interviewSession.DateStart == slot.StartTime.ToUniversalTime() &&
+                interviewSession.Video == string.Empty &&
+                interviewSession.Status == "Scheduled" &&
+                interviewSession.Score == 0
             ));
         }
     }

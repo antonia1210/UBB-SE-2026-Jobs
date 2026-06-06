@@ -39,8 +39,8 @@ public class UserProfileServiceTests
     public async Task IsProfileAvailableAsync_UserIsMissing_ThrowsException()
     {
         Func<Task> act = () => service.IsProfileAvailableAsync(MissingUserId);
-        var ex = await Assert.ThrowsAsync<Exception>(act);
-        Assert.Contains("No profile found", ex.Message);
+        var exception = await Assert.ThrowsAsync<Exception>(act);
+        Assert.Contains("No profile found", exception.Message);
     }
 
     [Fact]

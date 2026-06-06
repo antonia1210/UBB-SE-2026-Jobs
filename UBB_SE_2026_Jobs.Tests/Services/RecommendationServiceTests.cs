@@ -56,8 +56,8 @@ public class RecommendationServiceTests
 
         Func<Task> act = () => service.AddAsync(999, 2, DateTime.UtcNow);
 
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(act);
-        Assert.Contains("999", ex.Message);
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(act);
+        Assert.Contains("999", exception.Message);
     }
 
     [Fact]
@@ -67,8 +67,8 @@ public class RecommendationServiceTests
 
         Func<Task> act = () => service.AddAsync(1, 999, DateTime.UtcNow);
 
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(act);
-        Assert.Contains("999", ex.Message);
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(act);
+        Assert.Contains("999", exception.Message);
     }
 
     [Fact]
@@ -96,8 +96,8 @@ public class RecommendationServiceTests
     {
         Func<Task> act = () => service.UpdateTimestampAsync(404, DateTime.UtcNow);
 
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(act);
-        Assert.Contains("404", ex.Message);
+        var exception = await Assert.ThrowsAsync<KeyNotFoundException>(act);
+        Assert.Contains("404", exception.Message);
     }
 
     [Fact]

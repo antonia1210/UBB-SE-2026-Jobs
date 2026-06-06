@@ -94,8 +94,8 @@ public class UserRecommendationServiceTests
 
         Func<Task> act = () => service.GetNextCardAsync(nonExistentUserId, UserMatchmakingFilters.Empty());
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Equal("User not found.", ex.Message);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Equal("User not found.", exception.Message);
     }
 
     [Fact]
@@ -232,8 +232,8 @@ public class UserRecommendationServiceTests
 
         Func<Task> act = () => service.ApplyLikeAsync(userId, card);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Contains("Already applied", ex.Message);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Contains("Already applied", exception.Message);
     }
 
     [Fact]

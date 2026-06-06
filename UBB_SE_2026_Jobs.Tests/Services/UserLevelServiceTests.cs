@@ -70,16 +70,16 @@ public class UserLevelServiceTests
 
     [Theory]
     [MemberData(nameof(NextLevelThresholdCases))]
-    public void GetNextLevelExperiencePoints_BelowMaxLevel_ReturnsNextThreshold(int level, int expectedXp)
+    public void GetNextLevelExperiencePoints_BelowMaxLevel_ReturnsNextThreshold(int level, int expectedExperiencePoints)
     {
-        Assert.Equal(expectedXp, UserLevelService.GetNextLevelExperiencePoints(level));
+        Assert.Equal(expectedExperiencePoints, UserLevelService.GetNextLevelExperiencePoints(level));
     }
 
     [Theory]
     [MemberData(nameof(LevelFloorCases))]
-    public void GetLevelProgressPercent_AtLevelFloor_ReturnsZero(int xp, int level)
+    public void GetLevelProgressPercent_AtLevelFloor_ReturnsZero(int experiencePoints, int level)
     {
-        Assert.Equal(ZeroProgressPercent, UserLevelService.GetLevelProgressPercent(xp, level));
+        Assert.Equal(ZeroProgressPercent, UserLevelService.GetLevelProgressPercent(experiencePoints, level));
     }
 
     [Fact]
@@ -131,8 +131,8 @@ public class UserLevelServiceTests
 
     [Theory]
     [MemberData(nameof(LevelMappingCases))]
-    public void CalculateLevelNumber_ValidXpProvided_MapsXpToLevel(int xp, int expectedLevel)
+    public void CalculateLevelNumber_ValidXpProvided_MapsXpToLevel(int experiencePoints, int expectedLevel)
     {
-        Assert.Equal(expectedLevel, UserLevelService.CalculateLevelNumber(xp));
+        Assert.Equal(expectedLevel, UserLevelService.CalculateLevelNumber(experiencePoints));
     }
 }

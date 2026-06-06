@@ -10,10 +10,10 @@ public class FakeTestAttemptRepository : ITestAttemptRepository
     public void Seed(params TestAttempt[] items) => attempts.AddRange(items);
 
     public Task<TestAttempt?> FindByIdAsync(int id) =>
-        Task.FromResult(attempts.FirstOrDefault(a => a.Id == id));
+        Task.FromResult(attempts.FirstOrDefault(testAttempt => testAttempt.Id == id));
 
     public Task<TestAttempt?> FindByUserAndTestAsync(int userId, int testId) =>
-        Task.FromResult(attempts.FirstOrDefault(a => a.ExternalUserId == userId && a.TestId == testId));
+        Task.FromResult(attempts.FirstOrDefault(testAttempt => testAttempt.ExternalUserId == userId && testAttempt.TestId == testId));
 
     public Task SaveAsync(TestAttempt attempt)
     {
@@ -23,7 +23,7 @@ public class FakeTestAttemptRepository : ITestAttemptRepository
 
     public Task<TestAttempt?> UpdateAsync(TestAttempt attempt)
     {
-        var existing = attempts.FirstOrDefault(a => a.Id == attempt.Id);
+        var existing = attempts.FirstOrDefault(testAttempt => testAttempt.Id == attempt.Id);
         if (existing is null) return Task.FromResult<TestAttempt?>(null);
         attempts.Remove(existing);
         attempts.Add(attempt);
@@ -32,16 +32,16 @@ public class FakeTestAttemptRepository : ITestAttemptRepository
 
     public Task<List<TestAttempt>> FindValidAttemptsByTestIdAsync(int testId) =>
         Task.FromResult(attempts
-            .Where(a => a.TestId == testId && a.Status == "COMPLETED" && a.IsValidated)
+            .Where(testAttempt => testAttempt.TestId == testId && testAttempt.Status == "COMPLETED" && testAttempt.IsValidated)
             .ToList());
 
     public Task<IReadOnlyList<TestAttempt>> FindCompletedByUserIdAsync(
         int userId,
         CancellationToken cancellationToken = default) =>
         Task.FromResult<IReadOnlyList<TestAttempt>>(attempts
-            .Where(a => a.ExternalUserId == userId
-                     && a.Status == "COMPLETED"
-                     && a.IsValidated
-                     && a.CompletedAt != null)
+            .Where(testAttempt => testAttempt.ExternalUserId == userId
+                     && testAttempt.Status == "COMPLETED"
+                     && testAttempt.IsValidated
+                     && testAttempt.CompletedAt != null)
             .ToList());
 }

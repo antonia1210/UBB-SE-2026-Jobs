@@ -60,8 +60,8 @@ public class DocumentServiceTests : IDisposable
         {
             Func<Task> act = () => service.UploadDocumentAsync(
                 new Document { User = new User { UserId = userId }, DocumentName = documentName }, badPath);
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(act);
-            Assert.Contains("Invalid file type", ex.Message);
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+            Assert.Contains("Invalid file type", exception.Message);
         }
         finally
         {
@@ -264,8 +264,8 @@ public class DocumentServiceTests : IDisposable
             stream,
             isCv: true);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Contains("Only JSON", ex.Message);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Contains("Only JSON", exception.Message);
     }
 
     [Fact]
@@ -290,8 +290,8 @@ public class DocumentServiceTests : IDisposable
         const int nonExistentDocumentId = 9999;
         Func<Task> act = () => service.DeleteDocumentAsync(nonExistentDocumentId);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Equal("Document not found.", ex.Message);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Equal("Document not found.", exception.Message);
     }
 
     [Fact]
@@ -316,7 +316,7 @@ public class DocumentServiceTests : IDisposable
         const int nonExistentDocumentId = 9999;
         Func<Task> act = () => service.GetDocumentUrlAsync(nonExistentDocumentId);
 
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(act);
-        Assert.Equal("Document not found.", ex.Message);
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(act);
+        Assert.Equal("Document not found.", exception.Message);
     }
 }
